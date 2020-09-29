@@ -15,7 +15,7 @@ func (q *Quotations) Add(qs ...CurrencyQuotation) {
 
 func FindById(id uint64) CurrencyQuotation {
 	return CurrencyQuotation{
-		Id:     1,
+		Id:     id,
 		Value:  0,
 		Title:  "",
 		Change: 0,

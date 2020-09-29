@@ -1,7 +1,6 @@
 package Handlers
 
 import (
-	"fmt"
 	"net/http"
 )
 
@@ -10,7 +9,8 @@ func MainOrSignup(w http.ResponseWriter, r *http.Request) {
 	logged := err != http.ErrNoCookie
 
 	if logged {
-		fmt.Fprintf(w, "<h1>hello from root</h1>")
+		// find user in db session table to write his data in json
+		http.Redirect(w, r, root, http.StatusOK)
 	} else {
 		http.Redirect(w, r, signup, http.StatusUnauthorized)
 	}

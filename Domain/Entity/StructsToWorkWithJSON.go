@@ -26,7 +26,7 @@ func (s *SignupJSON) FillFields(body io.ReadCloser) error {
 }
 
 type LoginJSON struct {
-	Email     string `json:"email"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
