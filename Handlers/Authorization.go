@@ -1,10 +1,9 @@
 package Handlers
 
 import (
-	"crypto/md5"
-	"encoding/hex"
 	"net/http"
 	"server/Domain/Entity"
+	"server/Infrastructure/Security"
 	"strings"
 	"time"
 )
@@ -22,6 +21,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	defer r.Body.Close()
 
 	var signupJSON Entity.SignupJSON
 	if err := signupJSON.FillFields(r.Body); err != nil {
@@ -34,10 +34,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hash := md5.New()
-	hash.Write([]byte(signupJSON.Password1))
-	UsersServerSession[signupJSON.Email] = hex.EncodeToString(hash.Sum(nil))
-
+	UsersServerSession[signupJSON.Email] = Security.MakeDoubleHash(signupJSON.Password1)
 	http.Redirect(w, r, login, http.StatusOK)
 }
 
@@ -46,6 +43,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	defer r.Body.Close()
 
 	var loginJSON Entity.LoginJSON
 	if err := loginJSON.FillFields(r.Body); err != nil {
@@ -53,20 +51,11 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hash := md5.New()
-	hash.Write([]byte(loginJSON.Password))
-	if UsersServerSession[loginJSON.Email] != hex.EncodeToString(hash.Sum(nil)) {
+	if UsersServerSession[loginJSON.Email] != Security.MakeDoubleHash(loginJSON.Password) {
 		http.Redirect(w, r, login, http.StatusBadRequest)
 	}
 
-	expiration := time.Now().Add(10 * time.Hour)
-	hash.Write([]byte(loginJSON.Email))
-	cookie := http.Cookie{
-		Name:     "session_id",
-		Value:    hex.EncodeToString(hash.Sum(nil)),
-		Expires:  expiration,
-		HttpOnly: true,
-	}
+	cookie := Security.MakeCookie(loginJSON.Email)
 	http.SetCookie(w, &cookie)
 	http.Redirect(w, r, root, http.StatusFound)
 }
