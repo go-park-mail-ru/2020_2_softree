@@ -3,6 +3,7 @@ package Handlers
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -14,7 +15,7 @@ const (
 	root   = "/"
 )
 
-var UsersServerSession map[string]string
+var UsersServerSession = make(map[string]string, 0)
 
 func Signup(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -26,17 +27,17 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	password1 := r.FormValue("password1")
 	password2 := r.FormValue("password2")
-
+	fmt.Printf("email from json \"%s\"\n", email)
 	if strings.Compare(password1, password2) != 0 {
 		http.Redirect(w, r, signup, http.StatusBadRequest)
+		return
 	}
 
 	hash := md5.New()
 	hash.Write([]byte(password1))
 	UsersServerSession[email] = hex.EncodeToString(hash.Sum(nil))
 
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Location", login)
+	http.Redirect(w, r, login, http.StatusOK)
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {

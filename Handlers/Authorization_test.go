@@ -3,11 +3,11 @@ package Handlers
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"fmt"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
-	url2 "net/url"
+	"strings"
 	"testing"
 )
 
@@ -51,12 +51,9 @@ func TestSignupFailWithGET(t *testing.T) {
 
 func TestSignupSuccess(t *testing.T) {
 	url := "http://example.com/api/"
-	req := httptest.NewRequest("POST", url, nil)
-	req.PostForm(url, url2.Values{
-		"email":     {"right"},
-		"password1": {"123"},
-		"password2": {"123"},
-	})
+
+	body := strings.NewReader(`{"email": "right", "password1": "str", "password2": "str"}`)
+	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
 
 	Signup(w, req)
@@ -71,6 +68,25 @@ func TestSignupSuccess(t *testing.T) {
 		t.Errorf("wrong Location: got %s, expected %s",
 			loc.Path, login)
 	}
+}
 
-	fmt.Println(UsersServerSession[])
+func TestSignupFailToComparePasswords(t *testing.T) {
+	url := "http://example.com/api/"
+
+	mapForJSON := map[string]string{
+		"email":     "right",
+		"password1": "str",
+		"password2": "ste",
+	}
+	body, _ := json.Marshal(mapForJSON)
+	req := httptest.NewRequest("POST", url, strings.NewReader(string(body)))
+	req.Header.Set("content-type", "application/json")
+	w := httptest.NewRecorder()
+
+	Signup(w, req)
+
+	if w.Result().StatusCode != http.StatusBadRequest {
+		t.Errorf("\nwrong StatusCode\ngot: %d\nexpected: %d",
+			w.Code, http.StatusBadRequest)
+	}
 }
