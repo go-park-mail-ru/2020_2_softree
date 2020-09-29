@@ -3,8 +3,8 @@ package Handlers
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"fmt"
 	"net/http"
+	"server/Domain/Entity"
 	"strings"
 	"time"
 )
@@ -23,19 +23,20 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	r.ParseForm()
-	email := r.FormValue("email")
-	password1 := r.FormValue("password1")
-	password2 := r.FormValue("password2")
-	fmt.Printf("email from json \"%s\"\n", email)
-	if strings.Compare(password1, password2) != 0 {
+	var signupJSON Entity.SignupJSON
+	if err := signupJSON.FillFields(r.Body); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if strings.Compare(signupJSON.Password1, signupJSON.Password2) != 0 {
 		http.Redirect(w, r, signup, http.StatusBadRequest)
 		return
 	}
 
 	hash := md5.New()
-	hash.Write([]byte(password1))
-	UsersServerSession[email] = hex.EncodeToString(hash.Sum(nil))
+	hash.Write([]byte(signupJSON.Password1))
+	UsersServerSession[signupJSON.Email] = hex.EncodeToString(hash.Sum(nil))
 
 	http.Redirect(w, r, login, http.StatusOK)
 }
@@ -46,18 +47,20 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	r.ParseForm()
-	email := r.FormValue("email")
-	password := r.FormValue("password")
+	var loginJSON Entity.LoginJSON
+	if err := loginJSON.FillFields(r.Body); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
 	hash := md5.New()
-	hash.Write([]byte(password))
-	if UsersServerSession[email] != hex.EncodeToString(hash.Sum(nil)) {
+	hash.Write([]byte(loginJSON.Password))
+	if UsersServerSession[loginJSON.Email] != hex.EncodeToString(hash.Sum(nil)) {
 		http.Redirect(w, r, login, http.StatusBadRequest)
 	}
 
 	expiration := time.Now().Add(10 * time.Hour)
-	hash.Write([]byte(email))
+	hash.Write([]byte(loginJSON.Email))
 	cookie := http.Cookie{
 		Name:     "session_id",
 		Value:    hex.EncodeToString(hash.Sum(nil)),

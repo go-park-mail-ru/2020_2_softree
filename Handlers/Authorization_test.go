@@ -1,6 +1,7 @@
 package Handlers
 
 import (
+	"bytes"
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
@@ -79,7 +80,7 @@ func TestSignupFailToComparePasswords(t *testing.T) {
 		"password2": "ste",
 	}
 	body, _ := json.Marshal(mapForJSON)
-	req := httptest.NewRequest("POST", url, strings.NewReader(string(body)))
+	req := httptest.NewRequest("POST", url, bytes.NewBuffer(body))
 	req.Header.Set("content-type", "application/json")
 	w := httptest.NewRecorder()
 
