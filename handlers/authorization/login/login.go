@@ -1,4 +1,4 @@
-package authorization
+package login
 
 import (
 	"encoding/json"

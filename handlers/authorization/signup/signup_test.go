@@ -1,4 +1,4 @@
-package authorization
+package signup
 
 import (
 	"bytes"
@@ -40,9 +40,9 @@ func TestSignupSuccess(t *testing.T) {
 	}
 
 	loc, _ := w.Result().Location()
-	if loc.Path != RootPage {
+	if loc.Path != utils.RootPage {
 		t.Errorf("wrong Location: got %s, expected %s",
-			loc.Path, RootPage)
+			loc.Path, utils.RootPage)
 	}
 
 	cookies := w.Result().Cookies()
@@ -74,9 +74,9 @@ func TestSignupFailToComparePasswords(t *testing.T) {
 	}
 
 	loc, _ := w.Result().Location()
-	if loc.Path != SignupPage {
+	if loc.Path != utils.SignupPage {
 		t.Errorf("wrong Location: got %s, expected %s",
-			loc.Path, SignupPage)
+			loc.Path, utils.SignupPage)
 	}
 }
 
@@ -101,9 +101,9 @@ func TestSignupFailWithNotFilledField(t *testing.T) {
 	}
 
 	loc, _ := w.Result().Location()
-	if loc.Path != SignupPage {
+	if loc.Path != utils.SignupPage {
 		t.Errorf("wrong Location: got %s, expected %s",
-			loc.Path, SignupPage)
+			loc.Path, utils.SignupPage)
 	}
 }
 
@@ -127,8 +127,8 @@ func TestSignupInvalidEmail(t *testing.T) {
 	}
 
 	loc, _ := w.Result().Location()
-	if loc.Path != SignupPage {
+	if loc.Path != utils.SignupPage {
 		t.Errorf("wrong Location: got %s, expected %s",
-			loc.Path, SignupPage)
+			loc.Path, utils.SignupPage)
 	}
 }

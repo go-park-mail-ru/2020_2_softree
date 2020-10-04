@@ -1,4 +1,4 @@
-package authorization
+package logout
 
 import (
 	"net/http"

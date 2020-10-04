@@ -1,4 +1,4 @@
-package authorization
+package signup
 
 import (
 	"net/http"
