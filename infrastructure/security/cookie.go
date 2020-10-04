@@ -12,7 +12,7 @@ func MakeCookie(valueForCookie string, domain string) http.Cookie {
 		Value:    MakeShieldedHash(valueForCookie),
 		Expires:  expiration,
 		SameSite: http.SameSiteNoneMode,
-		Secure:   true,
+		Secure:   false,
 		HttpOnly: true,
 		Path:     "/",
 	}
