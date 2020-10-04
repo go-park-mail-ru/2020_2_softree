@@ -20,8 +20,8 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	var signupJSON jsonRealisation.SignupJSON
-	if validate(&signupJSON, &w, r) {
+	signupJSON := new(jsonRealisation.SignupJSON)
+	if !validate(signupJSON, &w, r) {
 		return
 	}
 
@@ -35,7 +35,8 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	Sessions[signupJSON.Email] = security.MakeShieldedHash(signupJSON.Email)
 
 	cookie := security.MakeCookie(signupJSON.Email, r.Header.Get("Origin"))
-	http.SetCookie(w, &cookie)
 
-	http.Redirect(w, r, RootPage, http.StatusOK)
+	http.SetCookie(w, &cookie)
+	w.Header().Set("Location", RootPage)
+	w.WriteHeader(http.StatusOK)
 }
