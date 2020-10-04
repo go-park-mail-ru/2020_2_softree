@@ -7,6 +7,10 @@ import (
 )
 
 func Login(w http.ResponseWriter, r *http.Request) {
+	EnableCors(&w)
+	if r.Method == http.MethodOptions {
+		return
+	}
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusBadRequest)
 		return
