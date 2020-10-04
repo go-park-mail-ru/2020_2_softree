@@ -26,7 +26,7 @@ func TestSignupFailWithGET(t *testing.T) {
 func TestSignupSuccess(t *testing.T) {
 	url := "http://example.com/api/"
 
-	body := strings.NewReader(`{"email": "right", "password1": "str", "password2": "str"}`)
+	body := strings.NewReader(`{"email": "hound@psina.ru", "password1": "str", "password2": "str"}`)
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
 
@@ -38,9 +38,14 @@ func TestSignupSuccess(t *testing.T) {
 	}
 
 	loc, _ := w.Result().Location()
-	if loc.Path != LoginPage {
+	if loc.Path != RootPage {
 		t.Errorf("wrong Location: got %s, expected %s",
-			loc.Path, LoginPage)
+			loc.Path, RootPage)
+	}
+
+	cookies := w.Result().Cookies()
+	if len(cookies) == 0 {
+		t.Errorf("no cookie ")
 	}
 }
 

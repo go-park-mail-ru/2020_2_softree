@@ -21,8 +21,9 @@ var Sessions = make(map[string]string, 0)
 func EnableCors(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length," +
+	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length,"+
 		"Accept-Encoding, X-CSRF-Token, Authorization")
+	(*w).Header().Set("Access-Control-Allow-Credentials", "true")
 }
 
 func isValidEmail(str string) bool {
@@ -50,6 +51,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 
 		errorJSON.Email = append(errorJSON.Email, "not an e-mail")
 		result, err := json.Marshal(errorJSON)
+
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return

@@ -30,6 +30,6 @@ func Rates(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	w.Write(result)
 	w.WriteHeader(http.StatusOK)
+	w.Write(result)
 }

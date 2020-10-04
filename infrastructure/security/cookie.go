@@ -6,12 +6,12 @@ import (
 )
 
 func MakeCookie(valueForCookie string, domain string) http.Cookie {
-	expiration := time.Now().Add(10 * time.Hour)
+	expiration := time.Now().Add(10 * 24 * time.Hour)
 	return http.Cookie{
-		Name:     "session_id",
-		Value:    MakeShieldedHash(valueForCookie),
-		Expires:  expiration,
-		HttpOnly: true,
-		Domain:   "localhost",
+		Name:    "session_id",
+		Value:   MakeShieldedHash(valueForCookie),
+		Expires: expiration,
+		Path:    "/",
+		Domain:  "softree.group",
 	}
 }
