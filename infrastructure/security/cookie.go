@@ -12,6 +12,6 @@ func MakeCookie(valueForCookie string, domain string) http.Cookie {
 		Value:    MakeShieldedHash(valueForCookie),
 		Expires:  expiration,
 		HttpOnly: true,
-		Domain: domain,
+		Domain:   "localhost",
 	}
 }
