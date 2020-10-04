@@ -7,6 +7,7 @@ import (
 
 type JSON interface {
 	FillFields(io.ReadCloser) error
+	GetEmail() string
 }
 
 type SignupJSON struct {
@@ -25,6 +26,10 @@ func (s *SignupJSON) FillFields(body io.ReadCloser) error {
 	return nil
 }
 
+func (s *SignupJSON) GetEmail() string {
+	return s.Email
+}
+
 type LoginJSON struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
@@ -40,8 +45,12 @@ func (l *LoginJSON) FillFields(body io.ReadCloser) error {
 	return nil
 }
 
+func (l *LoginJSON) GetEmail() string {
+	return l.Email
+}
+
 type ErrorJSON struct {
-	Name []string `json:"name,omitempty"`
+	Name     []string `json:"name,omitempty"`
 	Email    []string `json:"email,omitempty"`
 	Password []string `json:"password,omitempty"`
 }

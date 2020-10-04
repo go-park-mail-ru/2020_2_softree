@@ -12,6 +12,5 @@ func MakeCookie(valueForCookie string, domain string) http.Cookie {
 		Value:   MakeShieldedHash(valueForCookie),
 		Expires: expiration,
 		Path:    "/",
-		Domain:  "softree.group",
 	}
 }
