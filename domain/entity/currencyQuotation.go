@@ -1,4 +1,4 @@
-package Entity
+package entity
 
 type CurrencyQuotation struct {
 	Id     uint64 `json:"id"`
