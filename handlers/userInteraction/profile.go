@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"server/domain/entity"
-	"server/handlers/authorization"
+	"server/handlers/authorization/utils"
 )
 
 const (
@@ -28,7 +28,7 @@ func UserData(w http.ResponseWriter, r *http.Request) {
 		w.Write(result)
 		w.WriteHeader(http.StatusOK)
 	} else {
-		http.Redirect(w, r, authorization.SignupPage, http.StatusUnauthorized)
+		http.Redirect(w, r, utils.SignupPage, http.StatusUnauthorized)
 	}
 }
 

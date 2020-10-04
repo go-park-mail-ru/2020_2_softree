@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"server/domain/entity/jsonRealisation"
+	"server/handlers/authorization/utils"
 	"strings"
 	"testing"
 )
@@ -49,7 +50,7 @@ func TestSignupSuccess(t *testing.T) {
 		t.Errorf("no cookie ")
 	}
 
-	fmt.Println(len(UsersServerSession))
+	fmt.Println(len(utils.UsersServerSession))
 }
 
 func TestSignupFailToComparePasswords(t *testing.T) {

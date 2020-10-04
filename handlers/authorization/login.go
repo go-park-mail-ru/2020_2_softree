@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"net/http"
 	"server/domain/entity/jsonRealisation"
+	"server/handlers/authorization/utils"
 	"server/infrastructure/security"
 )
 
 func Login(w http.ResponseWriter, r *http.Request) {
-	EnableCors(&w)
+	utils.EnableCors(&w)
 	if r.Method == http.MethodOptions {
 		return
 	}
@@ -24,8 +25,8 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if UsersServerSession[loginJSON.Email] != security.MakeShieldedHash(loginJSON.Password) {
-		if _, exist := UsersServerSession[loginJSON.Email]; !exist {
+	if utils.UsersServerSession[loginJSON.Email] != security.MakeShieldedHash(loginJSON.Password) {
+		if _, exist := utils.UsersServerSession[loginJSON.Email]; !exist {
 			var errorJSON jsonRealisation.ErrorJSON
 
 			errorJSON.Email = append(errorJSON.Email, "user does not exist")
@@ -35,19 +36,19 @@ func Login(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			w.Write(result)
-			http.Redirect(w, r, SignupPage, http.StatusBadRequest)
+			http.Redirect(w, r, utils.SignupPage, http.StatusBadRequest)
 
 			return
 		}
 
-		if UsersServerSession[loginJSON.Email] != security.MakeShieldedHash(loginJSON.Password) {
-			http.Redirect(w, r, LoginPage, http.StatusBadRequest)
+		if utils.UsersServerSession[loginJSON.Email] != security.MakeShieldedHash(loginJSON.Password) {
+			http.Redirect(w, r, utils.LoginPage, http.StatusBadRequest)
 
 			return
 		}
 
 		cookie := security.MakeCookie(loginJSON.Email, r.Header.Get("Origin"))
 		http.SetCookie(w, &cookie)
-		http.Redirect(w, r, RootPage, http.StatusFound)
+		http.Redirect(w, r, utils.RootPage, http.StatusFound)
 	}
 }
