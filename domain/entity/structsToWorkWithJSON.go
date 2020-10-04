@@ -42,8 +42,8 @@ func (l *LoginJSON) FillFields(body io.ReadCloser) error {
 
 type ErrorJSON struct {
 	Name []string `json:"name,omitempty"`
-	Email []string `json:"email,omitempty"`
-	NonFieldsErrors []string `json:"non_fields_errors,omitempty"`
+	Email    []string `json:"email,omitempty"`
+	Password []string `json:"password,omitempty"`
 }
 
 func (l *ErrorJSON) FillFields(body io.ReadCloser) error {
