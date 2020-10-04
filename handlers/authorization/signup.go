@@ -14,6 +14,7 @@ const (
 )
 
 var UsersServerSession = make(map[string]string, 0)
+var Sessions = make(map[string]string, 0)
 
 func Signup(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -33,7 +34,14 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if _, exist := UsersServerSession[signupJSON.Email]; exist {
+		http.Redirect(w, r, SignupPage, http.StatusBadRequest)
+		return
+	}
+
 	UsersServerSession[signupJSON.Email] = security.MakeShieldedHash(signupJSON.Password1)
+	Sessions[signupJSON.Email] = security.MakeShieldedHash(signupJSON.Email)
+
 	cookie := security.MakeCookie(signupJSON.Email)
 	http.SetCookie(w, &cookie)
 

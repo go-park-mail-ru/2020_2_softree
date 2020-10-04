@@ -13,11 +13,6 @@ const (
 )
 
 func UserData(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
 	_, err := r.Cookie("session_id")
 	logged := err != http.ErrNoCookie
 
