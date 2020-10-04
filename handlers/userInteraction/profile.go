@@ -1,4 +1,4 @@
-package UserInteraction
+package userInteraction
 
 import (
 	"encoding/json"

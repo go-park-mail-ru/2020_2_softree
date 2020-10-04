@@ -1,9 +1,9 @@
-package Authorization
+package authorization
 
 import (
 	"net/http"
-	"server/Domain/Entity"
-	"server/Infrastructure/Security"
+	"server/domain/Entity"
+	"server/infrastructure/security"
 	"strings"
 )
 
@@ -33,6 +33,6 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	UsersServerSession[signupJSON.Email] = Security.MakeDoubleHash(signupJSON.Password1)
+	UsersServerSession[signupJSON.Email] = security.MakeDoubleHash(signupJSON.Password1)
 	http.Redirect(w, r, LoginPage, http.StatusOK)
 }

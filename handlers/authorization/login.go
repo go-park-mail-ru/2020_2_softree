@@ -1,9 +1,9 @@
-package Authorization
+package authorization
 
 import (
 	"net/http"
-	"server/Domain/Entity"
-	"server/Infrastructure/Security"
+	"server/domain/Entity"
+	"server/infrastructure/security"
 )
 
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -19,11 +19,11 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if UsersServerSession[loginJSON.Email] != Security.MakeDoubleHash(loginJSON.Password) {
+	if UsersServerSession[loginJSON.Email] != security.MakeDoubleHash(loginJSON.Password) {
 		http.Redirect(w, r, LoginPage, http.StatusBadRequest)
 	}
 
-	cookie := Security.MakeCookie(loginJSON.Email)
+	cookie := security.MakeCookie(loginJSON.Email)
 	http.SetCookie(w, &cookie)
 	http.Redirect(w, r, RootPage, http.StatusFound)
 }
