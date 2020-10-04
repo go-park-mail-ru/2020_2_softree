@@ -19,7 +19,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if UsersServerSession[loginJSON.Email] != security.MakeDoubleHash(loginJSON.Password) {
+	if UsersServerSession[loginJSON.Email] != security.MakeShieldedHash(loginJSON.Password) {
 		http.Redirect(w, r, LoginPage, http.StatusBadRequest)
 	}
 

@@ -1,13 +1,17 @@
 package security
 
 import (
-	"crypto/md5"
+	"crypto/sha256"
 	"encoding/hex"
 )
 
-func MakeDoubleHash(stringToHash string) string {
-	hash := md5.New()
-	hash.Write([]byte(stringToHash))
+func MakeShieldedHash(stringToHash string) string {
+	hash := sha256.New()
+	salt := "someSalt"
+
+	stringPlusSalt := stringToHash + salt
+
+	hash.Write([]byte(stringPlusSalt))
 	hash.Write([]byte(hex.EncodeToString(hash.Sum(nil))))
 
 	return hex.EncodeToString(hash.Sum(nil))
