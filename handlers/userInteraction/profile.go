@@ -3,7 +3,7 @@ package userInteraction
 import (
 	"encoding/json"
 	"net/http"
-	"server/domain/Entity"
+	"server/domain/entity"
 	"server/handlers/authorization"
 )
 
@@ -21,7 +21,7 @@ func UserData(w http.ResponseWriter, r *http.Request) {
 	_, err := r.Cookie("session_id")
 	logged := err != http.ErrNoCookie
 
-	var u Entity.User
+	var u entity.User
 	u.ID = testID
 	u.Email = testEmail
 	result, e := json.Marshal(u)
