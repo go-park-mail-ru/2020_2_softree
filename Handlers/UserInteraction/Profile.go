@@ -1,4 +1,4 @@
-package Handlers
+package UserInteraction
 
 import (
 	"net/http"

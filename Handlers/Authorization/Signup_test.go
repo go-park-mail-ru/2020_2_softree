@@ -1,4 +1,4 @@
-package Handlers
+package Authorization
 
 import (
 	"bytes"
