@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"net/http"
 	"regexp"
-	"server/domain/entity"
+	"server/domain/entity/jsonRealisation"
 )
 
 var UsersServerSession = make(map[string]string, 0)
 var Sessions = make(map[string]string, 0)
 
-func validate(JSON *entity.JSON, w *http.ResponseWriter, r *http.Request) bool {
+func validate(JSON *jsonRealisation.JSON, w *http.ResponseWriter, r *http.Request) bool {
 	if err := (*JSON).FillFields(r.Body); err != nil {
 		(*w).WriteHeader(http.StatusBadRequest)
 		return false
@@ -19,12 +19,12 @@ func validate(JSON *entity.JSON, w *http.ResponseWriter, r *http.Request) bool {
 	errorMas := make([]string, 0)
 	if !isValidEmail((*JSON).GetEmail()) {
 		errorMas = append(errorMas, "not an e-mail")
-		createErrorForm(&(*w), errorMas)
+		createErrorForm(w, errorMas)
 		return false
 	}
 	if _, exist := UsersServerSession[(*JSON).GetEmail()]; exist {
 		errorMas = append(errorMas, "user already exists")
-		createErrorForm(&(*w), errorMas)
+		createErrorForm(w, errorMas)
 		return false
 	}
 
@@ -47,7 +47,7 @@ func isValidEmail(str string) bool {
 }
 
 func createErrorForm(w *http.ResponseWriter, messages []string) {
-	var errorJSON entity.ErrorJSON
+	var errorJSON jsonRealisation.ErrorJSON
 
 	errorJSON.Email = append(errorJSON.Email, messages...)
 	result, err := json.Marshal(errorJSON)

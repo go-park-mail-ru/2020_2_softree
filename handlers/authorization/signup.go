@@ -2,7 +2,7 @@ package authorization
 
 import (
 	"net/http"
-	"server/domain/entity"
+	"server/domain/entity/jsonRealisation"
 	"server/infrastructure/security"
 	"strings"
 )
@@ -20,7 +20,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	var signupJSON entity.SignupJSON
+	var signupJSON jsonRealisation.SignupJSON
 	if validate(&signupJSON, &w, r) {
 		return
 	}

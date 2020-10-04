@@ -3,7 +3,7 @@ package authorization
 import (
 	"encoding/json"
 	"net/http"
-	"server/domain/entity"
+	"server/domain/entity/jsonRealisation"
 	"server/infrastructure/security"
 )
 
@@ -18,7 +18,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	var loginJSON entity.LoginJSON
+	var loginJSON jsonRealisation.LoginJSON
 	if err := loginJSON.FillFields(r.Body); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -26,7 +26,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	if UsersServerSession[loginJSON.Email] != security.MakeShieldedHash(loginJSON.Password) {
 		if _, exist := UsersServerSession[loginJSON.Email]; !exist {
-			var errorJSON entity.ErrorJSON
+			var errorJSON jsonRealisation.ErrorJSON
 
 			errorJSON.Email = append(errorJSON.Email, "user does not exist")
 			result, err := json.Marshal(errorJSON)

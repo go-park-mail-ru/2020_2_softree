@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"server/domain/entity"
+	"server/domain/entity/jsonRealisation"
 	"strings"
 	"testing"
 )
@@ -55,7 +55,7 @@ func TestSignupSuccess(t *testing.T) {
 func TestSignupFailToComparePasswords(t *testing.T) {
 	url := "http://example.com/api/"
 
-	jsonForBody := entity.SignupJSON{
+	jsonForBody := jsonRealisation.SignupJSON{
 		Email: "right",
 		Password1: "str",
 		Password2: "ste",
@@ -82,7 +82,7 @@ func TestSignupFailToComparePasswords(t *testing.T) {
 func TestSignupFailWithNotFilledField(t *testing.T) {
 	url := "http://example.com/api/"
 
-	jsonForBody := entity.SignupJSON{
+	jsonForBody := jsonRealisation.SignupJSON{
 		Email: "right",
 		Password1: "str",
 		Password2: "ste",
