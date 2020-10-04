@@ -21,7 +21,10 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	var signupJSON entity.SignupJSON
-	validate(&signupJSON, &w, &r)
+	if validate(&signupJSON, &w, r) {
+		return
+	}
+
 	if strings.Compare(signupJSON.Password1, signupJSON.Password2) != 0 {
 		w.Header().Set("Location", SignupPage)
 		w.WriteHeader(http.StatusBadRequest)
