@@ -21,8 +21,9 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if strings.Compare(signupJSON.Password1, signupJSON.Password2) != 0 {
-		w.Header().Set("Location", utils.SignupPage)
-		w.WriteHeader(http.StatusBadRequest)
+		errorMas := make([]string, 0)
+		errorMas = append(errorMas, "fail to compare passwords")
+		utils.CreateErrorForm(&w, errorMas)
 		return
 	}
 

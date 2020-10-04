@@ -3,7 +3,6 @@ package signup
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"server/domain/entity/jsonRealisation"
@@ -47,17 +46,23 @@ func TestSignupSuccess(t *testing.T) {
 
 	cookies := w.Result().Cookies()
 	if len(cookies) == 0 {
-		t.Errorf("no cookie ")
+		t.Errorf("no cookie")
 	}
 
-	fmt.Println(len(utils.UsersServerSession))
+	if len(utils.UsersServerSession) == 0 {
+		t.Errorf("no users created")
+	}
+
+	if len(utils.Sessions) == 0 {
+		t.Errorf("no session")
+	}
 }
 
 func TestSignupFailToComparePasswords(t *testing.T) {
 	url := "http://example.com/api/"
 
 	jsonForBody := jsonRealisation.SignupJSON{
-		Email: "right",
+		Email:     "hound@psina.ru",
 		Password1: "str",
 		Password2: "ste",
 	}
@@ -67,7 +72,6 @@ func TestSignupFailToComparePasswords(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	Signup(w, req)
-
 	if w.Result().StatusCode != http.StatusBadRequest {
 		t.Errorf("\nwrong StatusCode\ngot: %d\nexpected: %d",
 			w.Code, http.StatusBadRequest)
@@ -78,13 +82,15 @@ func TestSignupFailToComparePasswords(t *testing.T) {
 		t.Errorf("wrong Location: got %s, expected %s",
 			loc.Path, utils.SignupPage)
 	}
+
+
 }
 
 func TestSignupFailWithNotFilledField(t *testing.T) {
 	url := "http://example.com/api/"
 
 	jsonForBody := jsonRealisation.SignupJSON{
-		Email: "right",
+		Email:     "right",
 		Password1: "str",
 		Password2: "ste",
 	}

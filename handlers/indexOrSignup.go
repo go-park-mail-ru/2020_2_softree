@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"net/http"
-	"server/handlers/authorization"
+	"server/handlers/authorization/utils"
 )
 
 func MainOrSignup(w http.ResponseWriter, r *http.Request) {
@@ -11,8 +11,8 @@ func MainOrSignup(w http.ResponseWriter, r *http.Request) {
 
 	if logged {
 		// find user in db session table to write his data in json
-		http.Redirect(w, r, authorization.RootPage, http.StatusOK)
+		http.Redirect(w, r, utils.RootPage, http.StatusOK)
 	} else {
-		http.Redirect(w, r, authorization.SignupPage, http.StatusUnauthorized)
+		http.Redirect(w, r, utils.SignupPage, http.StatusUnauthorized)
 	}
 }
