@@ -2,19 +2,20 @@ package main
 
 import (
 	"net/http"
-	"server/Handlers"
-	"server/Handlers/Authorization"
-	"server/Handlers/UserInteraction"
+	"server/handlers"
+	"server/handlers/authorization"
+	"server/handlers/ratesInteraction"
+	"server/handlers/userInteraction"
 )
 
 func main() {
-	http.HandleFunc("/", Handlers.MainOrSignup)
-	http.HandleFunc("/api/signin", Authorization.Login)
-	http.HandleFunc("/api/signup", Authorization.Signup)
-	http.HandleFunc("/api/logout", Authorization.Logout)
-	http.HandleFunc("/api/user-data", UserInteraction.UserData)
-	http.HandleFunc("/api/rates", UserInteraction.Rates)
-	http.HandleFunc("/api/user", UserInteraction.UpdateUser)
+	http.HandleFunc("/", handlers.MainOrSignup)
+	http.HandleFunc("/api/signin", authorization.Login)
+	http.HandleFunc("/api/signup", authorization.Signup)
+	http.HandleFunc("/api/logout", authorization.Logout)
+	http.HandleFunc("/api/user-data", userInteraction.UserData)
+	http.HandleFunc("/api/rates", ratesInteraction.Rates)
+	http.HandleFunc("/api/user", userInteraction.UpdateUser)
 
 	http.ListenAndServe(":8000", nil)
 }

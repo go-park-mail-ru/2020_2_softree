@@ -1,11 +1,11 @@
-package Authorization
+package authorization
 
 import (
 	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"server/Domain/Entity"
+	"server/domain/Entity"
 	"strings"
 	"testing"
 )
@@ -38,9 +38,9 @@ func TestSignupSuccess(t *testing.T) {
 	}
 
 	loc, _ := w.Result().Location()
-	if loc.Path != login {
+	if loc.Path != LoginPage {
 		t.Errorf("wrong Location: got %s, expected %s",
-			loc.Path, login)
+			loc.Path, LoginPage)
 	}
 }
 
@@ -65,9 +65,9 @@ func TestSignupFailToComparePasswords(t *testing.T) {
 	}
 
 	loc, _ := w.Result().Location()
-	if loc.Path != signup {
+	if loc.Path != SignupPage {
 		t.Errorf("wrong Location: got %s, expected %s",
-			loc.Path, signup)
+			loc.Path, SignupPage)
 	}
 }
 
@@ -92,8 +92,8 @@ func TestSignupFailWithNotFilledField(t *testing.T) {
 	}
 
 	loc, _ := w.Result().Location()
-	if loc.Path != signup {
+	if loc.Path != SignupPage {
 		t.Errorf("wrong Location: got %s, expected %s",
-			loc.Path, signup)
+			loc.Path, SignupPage)
 	}
 }

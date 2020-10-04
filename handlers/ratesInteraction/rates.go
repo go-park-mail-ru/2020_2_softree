@@ -1,9 +1,9 @@
-package RatesInteraction
+package ratesInteraction
 
 import (
 	"encoding/json"
 	"net/http"
-	"server/Domain/Entity"
+	"server/domain/Entity"
 	"strconv"
 )
 
