@@ -3,8 +3,8 @@ package userInteraction
 import (
 	"encoding/json"
 	"net/http"
-	"server/Domain/Entity"
-	"server/Handlers/Authorization"
+	"server/domain/Entity"
+	"server/handlers/authorization"
 )
 
 const (
@@ -33,7 +33,7 @@ func UserData(w http.ResponseWriter, r *http.Request) {
 		w.Write(result)
 		w.WriteHeader(http.StatusOK)
 	} else {
-		http.Redirect(w, r, Authorization.SignupPage, http.StatusUnauthorized)
+		http.Redirect(w, r, authorization.SignupPage, http.StatusUnauthorized)
 	}
 }
 
