@@ -49,7 +49,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	UsersServerSession[signupJSON.Email] = security.MakeShieldedHash(signupJSON.Password1)
 	Sessions[signupJSON.Email] = security.MakeShieldedHash(signupJSON.Email)
 
-	cookie := security.MakeCookie(signupJSON.Email)
+	cookie := security.MakeCookie(signupJSON.Email, r.Header.Get("Origin"))
 	http.SetCookie(w, &cookie)
 
 	http.Redirect(w, r, RootPage, http.StatusOK)
