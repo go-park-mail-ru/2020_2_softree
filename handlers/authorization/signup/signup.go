@@ -17,6 +17,10 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	if strings.Compare(signupJSON.Password1, signupJSON.Password2) != 0 {
 		errorMas = append(errorMas, "Пароли не совпадают")
 		utils.CreateErrorForm(w, errorMas)
+	}
+
+	if len(errorMas) != 0 {  // contain some errors
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
