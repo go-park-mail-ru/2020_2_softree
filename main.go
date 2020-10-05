@@ -18,6 +18,8 @@ import (
 )
 
 func main() {
+	// r.HandleFunc("/rates/{id:([1-9]0?)+}", ratesInteraction.Rates).Methods("GET")
+	go rates.StartTicker()
 	config.InitFlags()
 
 	router := mux.NewRouter()
@@ -29,7 +31,6 @@ func main() {
 	r.HandleFunc("/logout", logout.Logout)
 	r.HandleFunc("/user-data", userInteraction.UserData).Methods("POST", "OPTIONS")
 	r.HandleFunc("/rates", ratesInteraction.Rates).Methods("GET", "OPTIONS")
-	// r.HandleFunc("/rates/{id:([1-9]0?)+}", ratesInteraction.Rates).Methods("GET")
 	r.HandleFunc("/user", userInteraction.UpdateUser).Methods("PUT", "PATCH", "OPTIONS")
 	r.Use(corsInteraction.CORSMiddleware())
 
@@ -40,7 +41,6 @@ func main() {
 		ReadTimeout:  10 * time.Second,
 	}
 
-	go rates.StartTicker()
 
 	log.Fatal(server.ListenAndServe())
 }
