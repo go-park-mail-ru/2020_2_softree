@@ -10,7 +10,7 @@ type ErrorJSON struct {
 	Email         []string `json:"email,omitempty"`
 	Password      []string `json:"password,omitempty"`
 	NonFieldError []string `json:"non_field_error,omitempty"`
-	NotEmpty      bool
+	NotEmpty      bool `json:"-"`
 }
 
 func (l *ErrorJSON) FillFields(body io.ReadCloser) error {
