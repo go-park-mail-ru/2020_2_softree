@@ -12,7 +12,7 @@ func Authentication(w http.ResponseWriter, r *http.Request) {
 	logged := err != http.ErrNoCookie
 
 	if logged {
-		var u entity.User
+		var u entity.PublicUser
 		u.Email = findEmailInSession(cookie.Value)
 
 		result, err := json.Marshal(&u)
