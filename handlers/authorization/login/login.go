@@ -1,7 +1,6 @@
 package login
 
 import (
-	"encoding/json"
 	"net/http"
 	"server/domain/entity/jsonRealisation"
 	"server/handlers/authorization/utils"
@@ -12,10 +11,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodOptions {
 		return
 	}
-	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
 	defer r.Body.Close()
 
 	var loginJSON jsonRealisation.LoginJSON
@@ -24,30 +19,19 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if utils.UsersServerSession[loginJSON.Email] != security.MakeShieldedHash(loginJSON.Password) {
-		if _, exist := utils.UsersServerSession[loginJSON.Email]; !exist {
-			var errorJSON jsonRealisation.ErrorJSON
-
-			errorJSON.Email = append(errorJSON.Email, "user does not exist")
-			result, err := json.Marshal(errorJSON)
-			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-			w.Write(result)
-			http.Redirect(w, r, utils.SignupPage, http.StatusBadRequest)
-
-			return
-		}
-
-		if utils.UsersServerSession[loginJSON.Email] != security.MakeShieldedHash(loginJSON.Password) {
-			http.Redirect(w, r, utils.LoginPage, http.StatusBadRequest)
-
-			return
-		}
-
-		cookie := security.MakeCookie(loginJSON.Email)
-		http.SetCookie(w, &cookie)
-		http.Redirect(w, r, utils.RootPage, http.StatusFound)
+	if _, isRegistered := utils.UsersServerSession[loginJSON.Email]; !isRegistered {
+		errorMas := []string {"user does not exist"}
+		utils.CreateErrorForm(&w, errorMas)
+		return
 	}
+
+	if utils.UsersServerSession[loginJSON.Password] != security.MakeShieldedHash(loginJSON.Password) {
+		errorMas := []string {"incorrect password"}
+		utils.CreateErrorForm(&w, errorMas)
+		return
+	}
+
+	cookie := security.MakeCookie(loginJSON.Email)
+	http.SetCookie(w, &cookie)
+	w.WriteHeader(http.StatusOK)
 }
