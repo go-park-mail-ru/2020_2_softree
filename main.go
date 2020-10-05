@@ -35,7 +35,7 @@ func main() {
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf("%s:%s", config.GlobalServerConfig.IP, config.GlobalServerConfig.Port),
-		Handler:      router,
+		Handler:      r,
 		WriteTimeout: 10 * time.Second,
 		ReadTimeout:  10 * time.Second,
 	}
