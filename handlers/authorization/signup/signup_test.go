@@ -3,6 +3,7 @@ package signup
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"server/domain/entity/jsonRealisation"
@@ -82,8 +83,6 @@ func TestSignupFailToComparePasswords(t *testing.T) {
 		t.Errorf("wrong Location: got %s, expected %s",
 			loc.Path, utils.SignupPage)
 	}
-
-
 }
 
 func TestSignupFailWithNotFilledField(t *testing.T) {
@@ -119,6 +118,7 @@ func TestSignupInvalidEmail(t *testing.T) {
 	body := strings.NewReader(`{"email": "hound", "password1": "str", "password2": "str"}`)
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
+	fmt.Println()
 
 	Signup(w, req)
 
