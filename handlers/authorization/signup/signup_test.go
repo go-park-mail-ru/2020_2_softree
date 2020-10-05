@@ -58,49 +58,10 @@ func TestSignupFailToComparePasswords(t *testing.T) {
 		t.Errorf("\nwrong StatusCode\ngot: %d\nexpected: %d",
 			w.Code, http.StatusBadRequest)
 	}
-
-<<<<<<< HEAD
-	loc, _ := w.Result().Location()
-	if loc.Path != utils.SignupPage {
-		t.Errorf("wrong Location: got %s, expected %s",
-			loc.Path, utils.SignupPage)
-	}
-}
-
-func TestSignupFailWithNotFilledField(t *testing.T) {
-	url := "http://example.com/api/"
-
-	jsonForBody := jsonRealisation.SignupJSON{
-		Email:     "right",
-		Password1: "str",
-		Password2: "ste",
-	}
-	body, _ := json.Marshal(jsonForBody)
-	req := httptest.NewRequest("POST", url, bytes.NewBuffer(body))
-	req.Header.Set("content-type", "application/json")
-	w := httptest.NewRecorder()
-
-	Signup(w, req)
-
-	if w.Result().StatusCode != http.StatusBadRequest {
-		t.Errorf("\nwrong StatusCode\ngot: %d\nexpected: %d",
-			w.Code, http.StatusBadRequest)
-	}
-
-	loc, _ := w.Result().Location()
-	if loc.Path != utils.SignupPage {
-		t.Errorf("wrong Location: got %s, expected %s",
-			loc.Path, utils.SignupPage)
-	}
-=======
-	errorJson := new(jsonRealisation.ErrorJSON)
-	errorJson.FillFields(w.Result().Body)
-	fmt.Println(errorJson)
->>>>>>> origin/michael
 }
 
 func TestSignupInvalidEmail(t *testing.T) {
-	url := "http://example.com/api/"
+	url := "http://127.0.0.1:8000/api/signup"
 
 	body := strings.NewReader(`{"email": "hound", "password1": "str", "password2": "str"}`)
 	req := httptest.NewRequest("POST", url, body)
