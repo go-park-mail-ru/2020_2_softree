@@ -7,13 +7,12 @@ import (
 )
 
 func MakeCookie(valueForCookie string) http.Cookie {
-	expiration := time.Now().Add(10 * 24 * time.Hour)
 	return http.Cookie{
 		Name:     "session_id",
 		Value:    MakeShieldedHash(valueForCookie),
-		Expires:  expiration,
+		Expires:  time.Now().Add(10 * 24 * time.Hour),
 		Domain:   config.GlobalServerConfig.Domain,
-		Secure:   false,
+		Secure:   config.GlobalServerConfig.Secure,
 		HttpOnly: true,
 		Path:     "/",
 	}
