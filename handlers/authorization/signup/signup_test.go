@@ -25,7 +25,7 @@ func TestSignupFailWithGET(t *testing.T) {
 }
 
 func TestSignupSuccess(t *testing.T) {
-	url := "http://example.com/api/"
+	url := "http://127.0.0.1:8000/api/signup"
 
 	body := strings.NewReader(`{"email": "hound@psina.ru", "password1": "str", "password2": "str"}`)
 	req := httptest.NewRequest("POST", url, body)
@@ -36,12 +36,6 @@ func TestSignupSuccess(t *testing.T) {
 	if w.Result().StatusCode != http.StatusOK {
 		t.Errorf("wrong StatusCode: got %d, expected %d",
 			w.Code, http.StatusOK)
-	}
-
-	loc, _ := w.Result().Location()
-	if loc.Path != utils.RootPage {
-		t.Errorf("wrong Location: got %s, expected %s",
-			loc.Path, utils.RootPage)
 	}
 
 	cookies := w.Result().Cookies()
@@ -76,14 +70,6 @@ func TestSignupFailToComparePasswords(t *testing.T) {
 		t.Errorf("\nwrong StatusCode\ngot: %d\nexpected: %d",
 			w.Code, http.StatusBadRequest)
 	}
-
-	loc, _ := w.Result().Location()
-	if loc.Path != utils.SignupPage {
-		t.Errorf("wrong Location: got %s, expected %s",
-			loc.Path, utils.SignupPage)
-	}
-
-
 }
 
 func TestSignupFailWithNotFilledField(t *testing.T) {
@@ -105,12 +91,6 @@ func TestSignupFailWithNotFilledField(t *testing.T) {
 		t.Errorf("\nwrong StatusCode\ngot: %d\nexpected: %d",
 			w.Code, http.StatusBadRequest)
 	}
-
-	loc, _ := w.Result().Location()
-	if loc.Path != utils.SignupPage {
-		t.Errorf("wrong Location: got %s, expected %s",
-			loc.Path, utils.SignupPage)
-	}
 }
 
 func TestSignupInvalidEmail(t *testing.T) {
@@ -130,11 +110,5 @@ func TestSignupInvalidEmail(t *testing.T) {
 	cookies := w.Result().Cookies()
 	if len(cookies) > 0 {
 		t.Fatalf("cookie enabled")
-	}
-
-	loc, _ := w.Result().Location()
-	if loc.Path != utils.SignupPage {
-		t.Errorf("wrong Location: got %s, expected %s",
-			loc.Path, utils.SignupPage)
 	}
 }
