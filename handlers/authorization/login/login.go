@@ -19,18 +19,19 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, isRegistered := utils.UsersServerSession[loginJSON.Email]; !isRegistered {
+	if _, exists := utils.UsersServerSession[loginJSON.Email]; !exists {
 		errorMas := []string {"user does not exist"}
 		utils.CreateErrorForm(&w, errorMas)
 		return
 	}
 
-	if utils.UsersServerSession[loginJSON.Password] != security.MakeShieldedHash(loginJSON.Password) {
+	if utils.UsersServerSession[loginJSON.Email] != security.MakeShieldedHash(loginJSON.Password) {
 		errorMas := []string {"incorrect password"}
 		utils.CreateErrorForm(&w, errorMas)
 		return
 	}
 
+	utils.Sessions[loginJSON.Email] = security.MakeShieldedHash(loginJSON.Email)
 	cookie := security.MakeCookie(loginJSON.Email)
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusOK)
