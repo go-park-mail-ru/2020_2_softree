@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"server/domain/entity/rates"
+	"server/handlers/authorization/auth"
 	"server/handlers/authorization/login"
 	"server/handlers/authorization/logout"
 	"server/handlers/authorization/signup"
@@ -24,6 +25,7 @@ func main() {
 
 	r.HandleFunc("/signin", login.Login).Methods("POST")
 	r.HandleFunc("/signup", signup.Signup).Methods("POST")
+	r.HandleFunc("/auth", auth.Authentication).Methods("GET")
 	r.HandleFunc("/logout", logout.Logout)
 	r.HandleFunc("/user-data", userInteraction.UserData).Methods("POST")
 	r.HandleFunc("/rates", ratesInteraction.Rates).Methods("GET")
