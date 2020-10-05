@@ -15,12 +15,12 @@ func Validate(JSON jsonRealisation.JSON, w *http.ResponseWriter, r *http.Request
 
 	errorMas := make([]string, 0)
 	if !isValidEmail(JSON.GetEmail()) {
-		errorMas = append(errorMas, "not an e-mail")
+		errorMas = append(errorMas, "Неправильный формат Email")
 		CreateErrorForm(w, errorMas)
 		return false
 	}
 	if _, exist := UsersServerSession[JSON.GetEmail()]; exist {
-		errorMas = append(errorMas, "user already exists")
+		errorMas = append(errorMas, "Пользователь с таким Email уже существует")
 		CreateErrorForm(w, errorMas)
 		return false
 	}
