@@ -26,7 +26,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if utils.UsersServerSession[loginJSON.Email] != security.MakeShieldedHash(loginJSON.Password) {
-		errorMas := []string {"incorrect password"}
+		errorMas := []string {"Неправильный пароль"}
 		utils.CreateErrorForm(w, errorMas)
 		return
 	}
