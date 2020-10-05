@@ -1,10 +1,10 @@
 package rates
 
 type Currency struct {
-	Title  string
-	Buy    int
-	Sell   int
-	Change float64
+	Title  string  `json:"title"`
+	Buy    int     `json:"buy"`
+	Sell   int     `json:"sell"`
+	Change float64 `json:"change"`
 }
 
 func (c *Currency) DoChange(newBuy int) {
