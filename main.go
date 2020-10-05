@@ -6,7 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
-	//"server/handlers"
+	customHandler "server/handlers"
 	"server/handlers/authorization/login"
 	"server/handlers/authorization/logout"
 	"server/handlers/authorization/signup"
@@ -37,7 +37,7 @@ func main() {
 	config.InitFlags()
 
 	r := mux.NewRouter()
-
+	r.HandleFunc("/", customHandler.MainOrSignup)
 	r.HandleFunc("/api/signin", login.Login)
 	r.HandleFunc("/api/signup", signup.Signup)
 	r.HandleFunc("/api/logout", logout.Logout)
