@@ -18,9 +18,9 @@ import (
 )
 
 func main() {
+	config.InitFlags()
 	// r.HandleFunc("/rates/{id:([1-9]0?)+}", ratesInteraction.Rates).Methods("GET")
 	go rates.StartTicker()
-	config.InitFlags()
 
 	router := mux.NewRouter()
 	r := router.PathPrefix("").Subrouter()
@@ -40,7 +40,6 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 		ReadTimeout:  10 * time.Second,
 	}
-
 
 	log.Fatal(server.ListenAndServe())
 }

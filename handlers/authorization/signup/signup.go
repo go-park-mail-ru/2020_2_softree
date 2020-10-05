@@ -27,9 +27,8 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.UsersServerSession[signupJSON.Email] = security.MakeShieldedHash(signupJSON.Password1)
-	utils.Sessions[signupJSON.Email] = security.MakeShieldedHash(signupJSON.Email)
-
 	cookie := security.MakeCookie(signupJSON.Email)
+	utils.Sessions[signupJSON.Email] = cookie.Value
 	http.SetCookie(w, &cookie)
 
 	w.WriteHeader(http.StatusCreated)
