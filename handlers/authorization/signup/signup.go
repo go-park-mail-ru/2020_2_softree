@@ -30,5 +30,5 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	cookie := security.MakeCookie(signupJSON.Email)
 	http.SetCookie(w, &cookie)
 
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusCreated)
 }

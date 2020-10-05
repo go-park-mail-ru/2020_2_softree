@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
@@ -12,6 +11,7 @@ import (
 	"server/handlers/userInteraction"
 	"server/infrastructure/config"
 	"server/infrastructure/corsInteraction"
+	"time"
 )
 
 func main() {
@@ -29,8 +29,11 @@ func main() {
 	r.HandleFunc("/user", userInteraction.UpdateUser).Methods("PUT", "PATCH")
 	r.Use(corsInteraction.CORSMiddleware())
 
-	err := http.ListenAndServe(fmt.Sprintf("%s:%s", config.GlobalServerConfig.IP, config.GlobalServerConfig.Port), r)
-	if err != nil {
-		log.Fatal(err)
+	server := &http.Server{
+		Handler:      router,
+		WriteTimeout: 10 * time.Second,
+		ReadTimeout:  10 * time.Second,
 	}
+
+	log.Fatal(server.ListenAndServe())
 }
