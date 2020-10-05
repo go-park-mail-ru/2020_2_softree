@@ -1,31 +1,25 @@
 package utils
 
 import (
-	"encoding/json"
 	"net/http"
 	"regexp"
 	"server/domain/entity/jsonRealisation"
 )
 
-func Validate(JSON jsonRealisation.JSON, w *http.ResponseWriter, r *http.Request) bool {
+func Validate(JSON jsonRealisation.JSON, w http.ResponseWriter, r *http.Request) jsonRealisation.ErrorJSON {
 	if err := JSON.FillFields(r.Body); err != nil {
-		(*w).WriteHeader(http.StatusBadRequest)
-		return false
+		w.WriteHeader(http.StatusBadRequest)
 	}
 
 	errorMas := make([]string, 0)
 	if !isValidEmail(JSON.GetEmail()) {
-		errorMas = append(errorMas, "not an e-mail")
-		CreateErrorForm(w, errorMas)
-		return false
+		errorMas = append(errorMas, "Неправильный формат Email")
 	}
 	if _, exist := UsersServerSession[JSON.GetEmail()]; exist {
-		errorMas = append(errorMas, "user already exists")
-		CreateErrorForm(w, errorMas)
-		return false
+		errorMas = append(errorMas, "Пользователь с таким Email уже существует")
 	}
 
-	return true
+	return CreateErrorForm("Email", errorMas...)
 }
 
 func isValidEmail(str string) bool {
@@ -35,16 +29,34 @@ func isValidEmail(str string) bool {
 	return re.MatchString(str)
 }
 
-func CreateErrorForm(w *http.ResponseWriter, messages []string) {
+func CreateErrorForm(errorType string, messages ...string) jsonRealisation.ErrorJSON {
 	var errorJSON jsonRealisation.ErrorJSON
 
-	errorJSON.Email = append(errorJSON.Email, messages...)
-	result, err := json.Marshal(errorJSON)
-	if err != nil {
-		(*w).WriteHeader(http.StatusInternalServerError)
-		return
+	errorJSON.NotEmpty = true
+
+	switch errorType {
+	case "Name":
+		errorJSON.Name = append(errorJSON.Name, messages...)
+	case "Email":
+		errorJSON.Email = append(errorJSON.Email, messages...)
+	case "Password":
+		errorJSON.Password = append(errorJSON.Password, messages...)
+	case "NonFieldError":
+		errorJSON.NonFieldError = append(errorJSON.NonFieldError, messages...)
 	}
-	(*w).Header().Set("Location", SignupPage)
-	(*w).WriteHeader(http.StatusBadRequest)
-	(*w).Write(result)
+
+	return errorJSON
+}
+
+func AddToErrorForm(errorJSON *jsonRealisation.ErrorJSON, errorType string, messages ...string) {
+	switch errorType {
+	case "Name":
+		errorJSON.Name = append(errorJSON.Name, messages...)
+	case "Email":
+		errorJSON.Email = append(errorJSON.Email, messages...)
+	case "Password":
+		errorJSON.Password = append(errorJSON.Password, messages...)
+	case "NonFieldError":
+		errorJSON.NonFieldError = append(errorJSON.NonFieldError, messages...)
+	}
 }

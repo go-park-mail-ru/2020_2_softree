@@ -3,9 +3,10 @@ package config
 import "flag"
 
 type ServerConfig struct {
-	Port string
-	IP string
+	Port   string
+	IP     string
 	Domain string
+	Secure bool
 }
 
 type CORSConfig struct {
@@ -28,6 +29,7 @@ func InitFlags() {
 	flag.StringVar(&GlobalServerConfig.Port, "port", "8000", "-port 8000")
 	flag.StringVar(&GlobalServerConfig.IP, "ip", "0.0.0.0", "-ip 127.0.0.1")
 	flag.StringVar(&GlobalServerConfig.Domain, "domain", "localhost", "-domain http://localhost")
+	flag.BoolVar(&GlobalServerConfig.Secure, "secure", false, "-secure true")
 
 	flag.Parse()
 }

@@ -12,21 +12,8 @@ import (
 	"testing"
 )
 
-func TestSignupFailWithGET(t *testing.T) {
-	url := "http://example.com/api/"
-	req := httptest.NewRequest("GET", url, nil)
-	w := httptest.NewRecorder()
-
-	Signup(w, req)
-
-	if w.Result().StatusCode != http.StatusBadRequest {
-		t.Errorf("wrong StatusCode: got %d, expected %d",
-			w.Code, http.StatusBadRequest)
-	}
-}
-
 func TestSignupSuccess(t *testing.T) {
-	url := "http://example.com/api/"
+	url := "http://127.0.0.1:8000/api/signup"
 
 	body := strings.NewReader(`{"email": "hound@psina.ru", "password1": "str", "password2": "str"}`)
 	req := httptest.NewRequest("POST", url, body)
@@ -34,15 +21,9 @@ func TestSignupSuccess(t *testing.T) {
 
 	Signup(w, req)
 
-	if w.Result().StatusCode != http.StatusOK {
+	if w.Result().StatusCode != http.StatusCreated {
 		t.Errorf("wrong StatusCode: got %d, expected %d",
-			w.Code, http.StatusOK)
-	}
-
-	loc, _ := w.Result().Location()
-	if loc.Path != utils.RootPage {
-		t.Errorf("wrong Location: got %s, expected %s",
-			loc.Path, utils.RootPage)
+			w.Code, http.StatusCreated)
 	}
 
 	cookies := w.Result().Cookies()
@@ -60,7 +41,7 @@ func TestSignupSuccess(t *testing.T) {
 }
 
 func TestSignupFailToComparePasswords(t *testing.T) {
-	url := "http://example.com/api/"
+	url := "http://127.0.0.1:8000/api/signup"
 
 	jsonForBody := jsonRealisation.SignupJSON{
 		Email:     "hound@psina.ru",
@@ -78,6 +59,7 @@ func TestSignupFailToComparePasswords(t *testing.T) {
 			w.Code, http.StatusBadRequest)
 	}
 
+<<<<<<< HEAD
 	loc, _ := w.Result().Location()
 	if loc.Path != utils.SignupPage {
 		t.Errorf("wrong Location: got %s, expected %s",
@@ -110,6 +92,11 @@ func TestSignupFailWithNotFilledField(t *testing.T) {
 		t.Errorf("wrong Location: got %s, expected %s",
 			loc.Path, utils.SignupPage)
 	}
+=======
+	errorJson := new(jsonRealisation.ErrorJSON)
+	errorJson.FillFields(w.Result().Body)
+	fmt.Println(errorJson)
+>>>>>>> origin/michael
 }
 
 func TestSignupInvalidEmail(t *testing.T) {
@@ -132,9 +119,7 @@ func TestSignupInvalidEmail(t *testing.T) {
 		t.Fatalf("cookie enabled")
 	}
 
-	loc, _ := w.Result().Location()
-	if loc.Path != utils.SignupPage {
-		t.Errorf("wrong Location: got %s, expected %s",
-			loc.Path, utils.SignupPage)
-	}
+	errorJson := new(jsonRealisation.ErrorJSON)
+	errorJson.FillFields(w.Result().Body)
+	fmt.Println(errorJson)
 }

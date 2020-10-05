@@ -20,14 +20,12 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if _, exists := utils.UsersServerSession[loginJSON.Email]; !exists {
-		errorMas := []string {"user does not exist"}
-		utils.CreateErrorForm(&w, errorMas)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	if utils.UsersServerSession[loginJSON.Email] != security.MakeShieldedHash(loginJSON.Password) {
-		errorMas := []string {"incorrect password"}
-		utils.CreateErrorForm(&w, errorMas)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 

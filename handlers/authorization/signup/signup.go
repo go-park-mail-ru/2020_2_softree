@@ -1,6 +1,7 @@
 package signup
 
 import (
+	"encoding/json"
 	"net/http"
 	"server/domain/entity/jsonRealisation"
 	"server/handlers/authorization/utils"
@@ -9,20 +10,19 @@ import (
 )
 
 func Signup(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodOptions {
-		return
-	}
 	defer r.Body.Close()
 
 	signupJSON := new(jsonRealisation.SignupJSON)
-	if !utils.Validate(signupJSON, &w, r) {
-		return
+
+	errorJSON := utils.Validate(signupJSON, w, r)
+	if strings.Compare(signupJSON.Password1, signupJSON.Password2) != 0 {
+		utils.AddToErrorForm(&errorJSON, "NonFieldError", "Пароли не совпадают")
 	}
 
-	if strings.Compare(signupJSON.Password1, signupJSON.Password2) != 0 {
-		errorMas := make([]string, 0)
-		errorMas = append(errorMas, "fail to compare passwords")
-		utils.CreateErrorForm(&w, errorMas)
+	if errorJSON.NotEmpty {  // contains some errors
+		w.WriteHeader(http.StatusBadRequest)
+		res, _ := json.Marshal(errorJSON)
+		w.Write(res)
 		return
 	}
 
@@ -30,8 +30,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	utils.Sessions[signupJSON.Email] = security.MakeShieldedHash(signupJSON.Email)
 
 	cookie := security.MakeCookie(signupJSON.Email)
-
 	http.SetCookie(w, &cookie)
-	w.Header().Set("Location", utils.RootPage)
-	w.WriteHeader(http.StatusOK)
+
+	w.WriteHeader(http.StatusCreated)
 }

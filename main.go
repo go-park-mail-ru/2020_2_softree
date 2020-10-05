@@ -2,53 +2,45 @@ package main
 
 import (
 	"fmt"
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
-	customHandler "server/handlers"
+	"server/domain/entity/rates"
+	"server/handlers/authorization/auth"
 	"server/handlers/authorization/login"
 	"server/handlers/authorization/logout"
 	"server/handlers/authorization/signup"
 	"server/handlers/ratesInteraction"
 	"server/handlers/userInteraction"
 	"server/infrastructure/config"
+	"server/infrastructure/corsInteraction"
+	"time"
 )
-
-func enableCORS(cfg *config.CORSConfig, handler http.Handler) http.Handler {
-	var (
-		allowedOrigins = handlers.AllowedOrigins(cfg.AllowedOrigins)
-		allowedHeaders = handlers.AllowedHeaders(cfg.AllowedHeaders)
-		exposedHeaders = handlers.ExposedHeaders(cfg.ExposedHeaders)
-		allowedMethods = handlers.AllowedMethods(cfg.AllowedMethods)
-		credentials = handlers.AllowCredentials()
-	)
-
-	return handlers.CORS(allowedOrigins, allowedHeaders, exposedHeaders, allowedMethods, credentials)(handler)
-}
-
-func CORSMiddleware() mux.MiddlewareFunc {
-	return func(next http.Handler) http.Handler {
-		return enableCORS(&config.GlobalCORSConfig, next)
-	}
-}
 
 func main() {
 	config.InitFlags()
 
-	r := mux.NewRouter()
-	r.HandleFunc("/", customHandler.MainOrSignup)
-	r.HandleFunc("/api/signin", login.Login)
-	r.HandleFunc("/api/signup", signup.Signup)
-	r.HandleFunc("/api/logout", logout.Logout)
-	r.HandleFunc("/api/user-data", userInteraction.UserData)
-	r.HandleFunc("/api/rates", ratesInteraction.Rates)
-	r.HandleFunc("/api/user", userInteraction.UpdateUser)
-	r.Use(CORSMiddleware())
+	router := mux.NewRouter()
+	r := router.PathPrefix("").Subrouter()
 
-	err := http.ListenAndServe(fmt.Sprintf("%s:%s", config.GlobalServerConfig.IP, config.GlobalServerConfig.Port), r)
+	r.HandleFunc("/signin", login.Login).Methods("POST", "OPTIONS")
+	r.HandleFunc("/signup", signup.Signup).Methods("POST", "OPTIONS")
+	r.HandleFunc("/auth", auth.Authentication).Methods("GET", "OPTIONS")
+	r.HandleFunc("/logout", logout.Logout)
+	r.HandleFunc("/user-data", userInteraction.UserData).Methods("POST", "OPTIONS")
+	r.HandleFunc("/rates", ratesInteraction.Rates).Methods("GET", "OPTIONS")
+	// r.HandleFunc("/rates/{id:([1-9]0?)+}", ratesInteraction.Rates).Methods("GET")
+	r.HandleFunc("/user", userInteraction.UpdateUser).Methods("PUT", "PATCH", "OPTIONS")
+	r.Use(corsInteraction.CORSMiddleware())
 
-	if err != nil {
-		log.Fatal(err)
+	server := &http.Server{
+		Addr:         fmt.Sprintf("%s:%s", config.GlobalServerConfig.IP, config.GlobalServerConfig.Port),
+		Handler:      r,
+		WriteTimeout: 10 * time.Second,
+		ReadTimeout:  10 * time.Second,
 	}
+
+	go rates.StartTicker()
+
+	log.Fatal(server.ListenAndServe())
 }
