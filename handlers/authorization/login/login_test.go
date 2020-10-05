@@ -1,8 +1,11 @@
 package login
 
 import (
+	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"server/domain/entity/jsonRealisation"
 	"server/handlers/authorization/utils"
 	"server/infrastructure/security"
 	"strings"
@@ -70,15 +73,11 @@ func TestLoginUserNonExist(t *testing.T) {
 
 	cookies := w.Result().Cookies()
 	if len(cookies) != 0 {
-		t.Errorf("no cookie")
-	}
-
-	if len(utils.UsersServerSession) != 0 {
-		t.Errorf("no users created")
+		t.Errorf("unexpected cookie was created")
 	}
 
 	if len(utils.Sessions) != 0 {
-		t.Errorf("no session")
+		t.Errorf("unexpected session was created")
 	}
 }
 
@@ -99,17 +98,34 @@ func TestSignupFailPassword(t *testing.T) {
 
 	cookies := w.Result().Cookies()
 	if len(cookies) != 0 {
-		t.Errorf("no cookie")
+		t.Errorf("unexpected cookie was created")
 	}
 
-	if len(utils.UsersServerSession) != 0 {
-		t.Errorf("no users created")
-	}
-
-	if len(utils.Sessions) == 0 {
-		t.Errorf("no session")
+	if len(utils.Sessions) != 0 {
+		t.Errorf("unexpected session was created")
 	}
 
 	delete(utils.UsersServerSession, "yandex@mail.ru")
 	delete(utils.Sessions, "yandex@mail.ru")
+}
+
+func TestLoginFailWithNotFilledField(t *testing.T) {
+	url := "http://example.com/api/"
+
+	jsonForBody := jsonRealisation.SignupJSON{
+		Email:     "right",
+		Password1: "str",
+		Password2: "ste",
+	}
+	body, _ := json.Marshal(jsonForBody)
+	req := httptest.NewRequest("POST", url, bytes.NewBuffer(body))
+	req.Header.Set("content-type", "application/json")
+	w := httptest.NewRecorder()
+
+	Login(w, req)
+
+	if w.Result().StatusCode != http.StatusBadRequest {
+		t.Errorf("\nwrong StatusCode\ngot: %d\nexpected: %d",
+			w.Code, http.StatusBadRequest)
+	}
 }
