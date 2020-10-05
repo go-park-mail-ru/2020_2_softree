@@ -1,7 +1,6 @@
 package login
 
 import (
-	"encoding/json"
 	"net/http"
 	"server/domain/entity/jsonRealisation"
 	"server/handlers/authorization/utils"
@@ -12,10 +11,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodOptions {
 		return
 	}
-	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
 	defer r.Body.Close()
 
 	var loginJSON jsonRealisation.LoginJSON
@@ -24,27 +19,20 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if utils.UsersServerSession[loginJSON.Email] != security.MakeShieldedHash(loginJSON.Password) {
-		if _, exist := utils.UsersServerSession[loginJSON.Email]; !exist {
-			var errorJSON jsonRealisation.ErrorJSON
-
-			errorJSON.Email = append(errorJSON.Email, "user does not exist")
-			result, err := json.Marshal(errorJSON)
-			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-			w.Write(result)
-
-			return
-		}
-
-		if utils.UsersServerSession[loginJSON.Email] != security.MakeShieldedHash(loginJSON.Password) {
-
-			return
-		}
-
-		cookie := security.MakeCookie(loginJSON.Email)
-		http.SetCookie(w, &cookie)
+	if _, exists := utils.UsersServerSession[loginJSON.Email]; !exists {
+		errorMas := []string {"Пользователь не существует"}
+		utils.CreateErrorForm(w, errorMas)
+		return
 	}
+
+	if utils.UsersServerSession[loginJSON.Email] != security.MakeShieldedHash(loginJSON.Password) {
+		errorMas := []string {"incorrect password"}
+		utils.CreateErrorForm(w, errorMas)
+		return
+	}
+
+	utils.Sessions[loginJSON.Email] = security.MakeShieldedHash(loginJSON.Email)
+	cookie := security.MakeCookie(loginJSON.Email)
+	http.SetCookie(w, &cookie)
+	w.WriteHeader(http.StatusOK)
 }
