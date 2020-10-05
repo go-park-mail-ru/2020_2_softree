@@ -3,6 +3,7 @@ package signup
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"server/domain/entity/jsonRealisation"
@@ -10,19 +11,6 @@ import (
 	"strings"
 	"testing"
 )
-
-func TestSignupFailWithGET(t *testing.T) {
-	url := "http://example.com/api/"
-	req := httptest.NewRequest("GET", url, nil)
-	w := httptest.NewRecorder()
-
-	Signup(w, req)
-
-	if w.Result().StatusCode != http.StatusBadRequest {
-		t.Errorf("wrong StatusCode: got %d, expected %d",
-			w.Code, http.StatusBadRequest)
-	}
-}
 
 func TestSignupSuccess(t *testing.T) {
 	url := "http://127.0.0.1:8000/api/signup"
@@ -53,7 +41,7 @@ func TestSignupSuccess(t *testing.T) {
 }
 
 func TestSignupFailToComparePasswords(t *testing.T) {
-	url := "http://example.com/api/"
+	url := "http://127.0.0.1:8000/api/signup"
 
 	jsonForBody := jsonRealisation.SignupJSON{
 		Email:     "hound@psina.ru",
@@ -70,27 +58,10 @@ func TestSignupFailToComparePasswords(t *testing.T) {
 		t.Errorf("\nwrong StatusCode\ngot: %d\nexpected: %d",
 			w.Code, http.StatusBadRequest)
 	}
-}
 
-func TestSignupFailWithNotFilledField(t *testing.T) {
-	url := "http://example.com/api/"
-
-	jsonForBody := jsonRealisation.SignupJSON{
-		Email:     "right",
-		Password1: "str",
-		Password2: "ste",
-	}
-	body, _ := json.Marshal(jsonForBody)
-	req := httptest.NewRequest("POST", url, bytes.NewBuffer(body))
-	req.Header.Set("content-type", "application/json")
-	w := httptest.NewRecorder()
-
-	Signup(w, req)
-
-	if w.Result().StatusCode != http.StatusBadRequest {
-		t.Errorf("\nwrong StatusCode\ngot: %d\nexpected: %d",
-			w.Code, http.StatusBadRequest)
-	}
+	errorJson := new(jsonRealisation.ErrorJSON)
+	errorJson.FillFields(w.Result().Body)
+	fmt.Println(errorJson)
 }
 
 func TestSignupInvalidEmail(t *testing.T) {
@@ -111,4 +82,8 @@ func TestSignupInvalidEmail(t *testing.T) {
 	if len(cookies) > 0 {
 		t.Fatalf("cookie enabled")
 	}
+
+	errorJson := new(jsonRealisation.ErrorJSON)
+	errorJson.FillFields(w.Result().Body)
+	fmt.Println(errorJson)
 }
