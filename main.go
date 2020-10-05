@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"server/handlers"
 	"server/handlers/authorization/login"
@@ -19,5 +20,8 @@ func main() {
 	http.HandleFunc("/api/rates", ratesInteraction.Rates)
 	http.HandleFunc("/api/user", userInteraction.UpdateUser)
 
-	http.ListenAndServe(":8000", nil)
+	err := http.ListenAndServe(":8000", nil)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

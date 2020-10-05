@@ -9,7 +9,6 @@ import (
 )
 
 func Signup(w http.ResponseWriter, r *http.Request) {
-	utils.EnableCors(&w)
 	if r.Method == http.MethodOptions {
 		return
 	}

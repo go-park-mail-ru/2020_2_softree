@@ -11,7 +11,7 @@ func MakeCookie(valueForCookie string, domain string) http.Cookie {
 		Name:     "session_id",
 		Value:    MakeShieldedHash(valueForCookie),
 		Expires:  expiration,
-		SameSite: http.SameSiteNoneMode,
+		Domain:   "localhost",
 		Secure:   false,
 		HttpOnly: true,
 		Path:     "/",
