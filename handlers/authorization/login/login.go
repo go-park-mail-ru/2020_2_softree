@@ -46,7 +46,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		cookie := security.MakeCookie(loginJSON.Email, r.Header.Get("Origin"))
+		cookie := security.MakeCookie(loginJSON.Email)
 		http.SetCookie(w, &cookie)
 		http.Redirect(w, r, utils.RootPage, http.StatusFound)
 	}

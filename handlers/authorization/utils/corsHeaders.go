@@ -2,11 +2,10 @@ package utils
 
 import (
 	"net/http"
-	"server/infrastructure/config"
 )
 
 func EnableCors(w *http.ResponseWriter) {
-	(*w).Header().Set("Access-Control-Allow-Origin", config.Options.CORSDomain)
+	(*w).Header().Set("Access-Control-Allow-Origin", "https://softree.group")
 	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, PATCH, DELETE")
 	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length,"+
 		"Accept-Encoding, X-CSRF-Token, Authorization")
