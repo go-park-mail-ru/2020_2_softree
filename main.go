@@ -4,6 +4,7 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"server/domain/entity/rates"
 	"server/handlers/authorization/login"
 	"server/handlers/authorization/logout"
 	"server/handlers/authorization/signup"
@@ -34,6 +35,8 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 		ReadTimeout:  10 * time.Second,
 	}
+
+	go rates.StartTicker()
 
 	log.Fatal(server.ListenAndServe())
 }
