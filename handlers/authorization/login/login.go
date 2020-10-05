@@ -35,19 +35,16 @@ func Login(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			w.Write(result)
-			http.Redirect(w, r, utils.SignupPage, http.StatusBadRequest)
 
 			return
 		}
 
 		if utils.UsersServerSession[loginJSON.Email] != security.MakeShieldedHash(loginJSON.Password) {
-			http.Redirect(w, r, utils.LoginPage, http.StatusBadRequest)
 
 			return
 		}
 
 		cookie := security.MakeCookie(loginJSON.Email)
 		http.SetCookie(w, &cookie)
-		http.Redirect(w, r, utils.RootPage, http.StatusFound)
 	}
 }
