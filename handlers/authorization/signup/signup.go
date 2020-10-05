@@ -9,20 +9,14 @@ import (
 )
 
 func Signup(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodOptions {
-		return
-	}
 	defer r.Body.Close()
 
 	signupJSON := new(jsonRealisation.SignupJSON)
-	if !utils.Validate(signupJSON, &w, r) {
-		return
-	}
 
+	errorMas := utils.Validate(signupJSON, w, r)
 	if strings.Compare(signupJSON.Password1, signupJSON.Password2) != 0 {
-		errorMas := make([]string, 0)
 		errorMas = append(errorMas, "Пароли не совпадают")
-		utils.CreateErrorForm(&w, errorMas)
+		utils.CreateErrorForm(w, errorMas)
 		return
 	}
 
@@ -30,8 +24,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	utils.Sessions[signupJSON.Email] = security.MakeShieldedHash(signupJSON.Email)
 
 	cookie := security.MakeCookie(signupJSON.Email)
-
 	http.SetCookie(w, &cookie)
-	w.Header().Set("Location", utils.RootPage)
+
 	w.WriteHeader(http.StatusOK)
 }

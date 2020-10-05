@@ -7,25 +7,22 @@ import (
 	"server/domain/entity/jsonRealisation"
 )
 
-func Validate(JSON jsonRealisation.JSON, w *http.ResponseWriter, r *http.Request) bool {
+func Validate(JSON jsonRealisation.JSON, w http.ResponseWriter, r *http.Request) []string {
 	if err := JSON.FillFields(r.Body); err != nil {
-		(*w).WriteHeader(http.StatusBadRequest)
-		return false
+		w.WriteHeader(http.StatusBadRequest)
 	}
 
 	errorMas := make([]string, 0)
 	if !isValidEmail(JSON.GetEmail()) {
 		errorMas = append(errorMas, "Неправильный формат Email")
 		CreateErrorForm(w, errorMas)
-		return false
 	}
 	if _, exist := UsersServerSession[JSON.GetEmail()]; exist {
 		errorMas = append(errorMas, "Пользователь с таким Email уже существует")
 		CreateErrorForm(w, errorMas)
-		return false
 	}
 
-	return true
+	return errorMas
 }
 
 func isValidEmail(str string) bool {
@@ -35,16 +32,15 @@ func isValidEmail(str string) bool {
 	return re.MatchString(str)
 }
 
-func CreateErrorForm(w *http.ResponseWriter, messages []string) {
+func CreateErrorForm(w http.ResponseWriter, messages []string) {
 	var errorJSON jsonRealisation.ErrorJSON
 
 	errorJSON.Email = append(errorJSON.Email, messages...)
 	result, err := json.Marshal(errorJSON)
 	if err != nil {
-		(*w).WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	(*w).Header().Set("Location", SignupPage)
-	(*w).WriteHeader(http.StatusBadRequest)
-	(*w).Write(result)
+	w.WriteHeader(http.StatusBadRequest)
+	w.Write(result)
 }
