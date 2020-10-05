@@ -21,9 +21,9 @@ func TestSignupSuccess(t *testing.T) {
 
 	Signup(w, req)
 
-	if w.Result().StatusCode != http.StatusOK {
+	if w.Result().StatusCode != http.StatusCreated {
 		t.Errorf("wrong StatusCode: got %d, expected %d",
-			w.Code, http.StatusOK)
+			w.Code, http.StatusCreated)
 	}
 
 	cookies := w.Result().Cookies()
