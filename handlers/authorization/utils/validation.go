@@ -31,6 +31,9 @@ func isValidEmail(str string) bool {
 
 func CreateErrorForm(errorType string, messages ...string) jsonRealisation.ErrorJSON {
 	var errorJSON jsonRealisation.ErrorJSON
+	if len(messages) == 0 { // no errors
+		return errorJSON
+	}
 
 	errorJSON.NotEmpty = true
 
@@ -49,6 +52,8 @@ func CreateErrorForm(errorType string, messages ...string) jsonRealisation.Error
 }
 
 func AddToErrorForm(errorJSON *jsonRealisation.ErrorJSON, errorType string, messages ...string) {
+	errorJSON.NotEmpty = true
+
 	switch errorType {
 	case "Name":
 		errorJSON.Name = append(errorJSON.Name, messages...)
