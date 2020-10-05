@@ -18,7 +18,7 @@ func main() {
 	config.InitFlags()
 
 	router := mux.NewRouter()
-	r := router.PathPrefix("/api").Subrouter()
+	r := router.PathPrefix("").Subrouter()
 
 	r.HandleFunc("/signin", login.Login).Methods("POST")
 	r.HandleFunc("/signup", signup.Signup).Methods("POST")
