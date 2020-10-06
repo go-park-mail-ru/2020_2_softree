@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"server/domain/entity"
-	"server/handlers/authorization/utils"
 )
 
 func Authentication(w http.ResponseWriter, r *http.Request) {
@@ -12,8 +11,7 @@ func Authentication(w http.ResponseWriter, r *http.Request) {
 	logged := err != http.ErrNoCookie
 
 	if logged {
-		var u entity.PublicUser
-		u.Email = findEmailInSession(cookie.Value)
+		u := FindUserInSession(cookie.Value)
 
 		result, err := json.Marshal(&u)
 		if err != nil {
@@ -28,12 +26,12 @@ func Authentication(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func findEmailInSession(hash string) string {
-	for key, val := range utils.Sessions {
-		if val == hash {
-			return key
+func FindUserInSession(hash string) entity.PublicUser {
+	for i, _ := range entity.Users {
+		if entity.Users[i].Email == hash {
+			return entity.Users[i]
 		}
 	}
 
-	return ""
+	return entity.PublicUser{}
 }
