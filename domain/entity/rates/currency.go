@@ -2,6 +2,7 @@ package rates
 
 import (
 	"fmt"
+	"math/rand"
 	"strconv"
 )
 
@@ -20,7 +21,7 @@ func (c *Currency) DoChange(newBuy float64) {
 	}
 
 	c.Buy = newBuy
-	c.Sell = c.Buy - 1.0
+	c.Sell = c.Buy - rand.Float64()
 
 	formatBuy := fmt.Sprintf("%.2f", c.Buy)
 	formatSell := fmt.Sprintf("%.2f", c.Sell)
