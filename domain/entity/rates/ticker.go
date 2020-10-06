@@ -12,7 +12,7 @@ func StartTicker() {
 	rand.Seed(time.Now().UnixNano())
 	for range ticker {
 		for i, _ := range Currencies {
-			newBuy := rand.Int() % randLimit + 1
+			newBuy := rand.Float64() * randLimit + 1
 			Currencies[i].DoChange(newBuy)
 		}
 	}
