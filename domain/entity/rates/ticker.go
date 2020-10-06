@@ -5,14 +5,17 @@ import (
 	"time"
 )
 
-const randLimit = 150
+const (
+	randLimit = 150
+	interval  = 2
+)
 
 func StartTicker() {
-	ticker := time.Tick(5 * time.Second)
+	ticker := time.Tick(interval * time.Second)
 	rand.Seed(time.Now().UnixNano())
 	for range ticker {
 		for i, _ := range Currencies {
-			newBuy := rand.Float64() * randLimit + 1
+			newBuy := rand.Float64()*randLimit + 1
 			Currencies[i].DoChange(newBuy)
 		}
 	}
