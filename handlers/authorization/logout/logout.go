@@ -12,7 +12,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session.Expires = time.Now().AddDate(0, 0, -1)
+	session.Expires = time.Now().AddDate(0, 0, -9000)
 	http.SetCookie(w, session)
 	w.WriteHeader(http.StatusFound)
 }
