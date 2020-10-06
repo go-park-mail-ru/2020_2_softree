@@ -8,9 +8,9 @@ import (
 type UserJSON struct {
 	Email        string `json:"email"`
 	Avatar       string `json:"avatar"`
-	OldPassword  string `json:"old_password"`
-	NewPassword1 string `json:"new_password_1"`
-	NewPassword2 string `json:"new_password_2"`
+	OldPassword  string `json:"oldPassword"`
+	NewPassword1 string `json:"newPassword1"`
+	NewPassword2 string `json:"newPassword2"`
 }
 
 func (s *UserJSON) FillFields(body io.ReadCloser) error {
