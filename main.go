@@ -31,6 +31,7 @@ func main() {
 	r.HandleFunc("/logout", logout.Logout)
 	r.HandleFunc("/rates", ratesInteraction.Rates).Methods("GET", "OPTIONS")
 	r.HandleFunc("/user", userInteraction.UpdateUser).Methods("PUT", "PATCH", "OPTIONS")
+	r.HandleFunc("/change-password", userInteraction.UpdatePassword).Methods("PATCH", "OPTIONS")
 	r.Use(corsInteraction.CORSMiddleware())
 
 	server := &http.Server{

@@ -3,7 +3,6 @@ package signup
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"server/domain/entity/jsonRealisation"
@@ -66,7 +65,6 @@ func TestSignupInvalidEmail(t *testing.T) {
 	body := strings.NewReader(`{"email": "hound", "password1": "str", "password2": "str"}`)
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
-	fmt.Println()
 
 	Signup(w, req)
 
@@ -82,5 +80,4 @@ func TestSignupInvalidEmail(t *testing.T) {
 
 	errorJson := new(jsonRealisation.ErrorJSON)
 	errorJson.FillFields(w.Result().Body)
-	fmt.Println(errorJson)
 }
