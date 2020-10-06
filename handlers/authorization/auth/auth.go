@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"server/domain/entity"
+	"server/handlers/authorization/utils"
 )
 
 func Authentication(w http.ResponseWriter, r *http.Request) {
@@ -27,8 +28,15 @@ func Authentication(w http.ResponseWriter, r *http.Request) {
 }
 
 func FindUserInSession(hash string) entity.PublicUser {
+	var email string
+	for key, val := range utils.Sessions {
+		if val == hash {
+			email = key
+		}
+	}
+
 	for i, _ := range entity.Users {
-		if entity.Users[i].Email == hash {
+		if entity.Users[i].Email == email {
 			return entity.Users[i]
 		}
 	}
