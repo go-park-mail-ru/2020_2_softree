@@ -1,5 +1,10 @@
 package rates
 
+import (
+	"fmt"
+	"strconv"
+)
+
 type Currency struct {
 	Title  string  `json:"title"`
 	Buy    float64 `json:"buy"`
@@ -16,6 +21,14 @@ func (c *Currency) DoChange(newBuy float64) {
 
 	c.Buy = newBuy
 	c.Sell = c.Buy - 1.0
+
+	formatBuy := fmt.Sprintf("%.2f", c.Buy)
+	formatSell := fmt.Sprintf("%.2f", c.Sell)
+	formatChange := fmt.Sprintf("%.2f", c.Change)
+
+	c.Buy, _ = strconv.ParseFloat(formatBuy, 64)
+	c.Sell, _ = strconv.ParseFloat(formatSell, 64)
+	c.Change, _ = strconv.ParseFloat(formatChange, 64)
 }
 
 const (
