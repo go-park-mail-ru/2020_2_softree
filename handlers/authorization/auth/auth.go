@@ -13,6 +13,10 @@ func Authentication(w http.ResponseWriter, r *http.Request) {
 
 	if logged {
 		u := FindUserInSession(cookie.Value)
+		if u.Email == "" {  // no user in session
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 
 		result, err := json.Marshal(&u)
 		if err != nil {
