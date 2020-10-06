@@ -50,11 +50,11 @@ func changePassword(cookie http.Cookie, userJSON jsonRealisation.UserJSON, w htt
 	var errorJSON jsonRealisation.ErrorJSON
 	if userPassword != userJSON.OldPassword {
 		errorJSON.NotEmpty = true
-		errorJSON.NonFieldError = append(errorJSON.NonFieldError, "Введен неверно старый пароль")
+		errorJSON.OldPassword = append(errorJSON.OldPassword, "Введен неверно старый пароль")
 	}
 	if userJSON.NewPassword1 != userJSON.NewPassword2 {
 		errorJSON.NotEmpty = true
-		errorJSON.NonFieldError = append(errorJSON.NonFieldError, "Неверно введен новый пароль")
+		errorJSON.NonFieldError = append(errorJSON.NonFieldError, "Пароли не совпадают")
 	}
 
 	if errorJSON.NotEmpty {
