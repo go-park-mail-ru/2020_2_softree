@@ -29,7 +29,6 @@ func main() {
 	r.HandleFunc("/signup", signup.Signup).Methods("POST", "OPTIONS")
 	r.HandleFunc("/auth", auth.Authentication).Methods("GET", "OPTIONS")
 	r.HandleFunc("/logout", logout.Logout)
-	r.HandleFunc("/user-data", userInteraction.UserData).Methods("POST", "OPTIONS")
 	r.HandleFunc("/rates", ratesInteraction.Rates).Methods("GET", "OPTIONS")
 	r.HandleFunc("/user", userInteraction.UpdateUser).Methods("PUT", "PATCH", "OPTIONS")
 	r.Use(corsInteraction.CORSMiddleware())

@@ -30,7 +30,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.Sessions[loginJSON.Email] = security.MakeShieldedHash(loginJSON.Email)
-	cookie := security.MakeCookie(loginJSON.Email)
+	cookie := security.MakeCookie()
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusOK)
 }

@@ -3,6 +3,7 @@ package signup
 import (
 	"encoding/json"
 	"net/http"
+	"server/domain/entity"
 	"server/domain/entity/jsonRealisation"
 	"server/handlers/authorization/utils"
 	"server/infrastructure/security"
@@ -27,9 +28,11 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.UsersServerSession[signupJSON.Email] = security.MakeShieldedHash(signupJSON.Password1)
-	cookie := security.MakeCookie(signupJSON.Email)
+	cookie := security.MakeCookie()
 	utils.Sessions[signupJSON.Email] = cookie.Value
 	http.SetCookie(w, &cookie)
+
+	entity.Users = append(entity.Users, entity.PublicUser{Email: signupJSON.Email})
 
 	w.WriteHeader(http.StatusCreated)
 }
