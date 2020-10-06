@@ -6,10 +6,10 @@ import (
 	"time"
 )
 
-func MakeCookie(valueForCookie string) http.Cookie {
+func MakeCookie() http.Cookie {
 	return http.Cookie{
 		Name:     "session_id",
-		Value:    MakeShieldedHash(valueForCookie),
+		Value:    MakeCookieHash(),
 		Expires:  time.Now().Add(10 * 24 * time.Hour),
 		Domain:   config.GlobalServerConfig.Domain,
 		Secure:   config.GlobalServerConfig.Secure,

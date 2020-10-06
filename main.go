@@ -19,6 +19,8 @@ import (
 
 func main() {
 	config.InitFlags()
+	// r.HandleFunc("/rates/{id:([1-9]0?)+}", ratesInteraction.Rates).Methods("GET")
+	go rates.StartTicker()
 
 	router := mux.NewRouter()
 	r := router.PathPrefix("").Subrouter()
@@ -27,9 +29,7 @@ func main() {
 	r.HandleFunc("/signup", signup.Signup).Methods("POST", "OPTIONS")
 	r.HandleFunc("/auth", auth.Authentication).Methods("GET", "OPTIONS")
 	r.HandleFunc("/logout", logout.Logout)
-	r.HandleFunc("/user-data", userInteraction.UserData).Methods("POST", "OPTIONS")
 	r.HandleFunc("/rates", ratesInteraction.Rates).Methods("GET", "OPTIONS")
-	// r.HandleFunc("/rates/{id:([1-9]0?)+}", ratesInteraction.Rates).Methods("GET")
 	r.HandleFunc("/user", userInteraction.UpdateUser).Methods("PUT", "PATCH", "OPTIONS")
 	r.Use(corsInteraction.CORSMiddleware())
 
@@ -39,8 +39,6 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 		ReadTimeout:  10 * time.Second,
 	}
-
-	go rates.StartTicker()
 
 	log.Fatal(server.ListenAndServe())
 }

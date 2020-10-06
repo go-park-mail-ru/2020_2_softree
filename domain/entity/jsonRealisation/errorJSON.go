@@ -9,7 +9,7 @@ type ErrorJSON struct {
 	Name          []string `json:"name,omitempty"`
 	Email         []string `json:"email,omitempty"`
 	Password      []string `json:"password,omitempty"`
-	NonFieldError []string `json:"non_field_error,omitempty"`
+	NonFieldError []string `json:"non_field_errors,omitempty"`
 	NotEmpty      bool     `json:"-"`
 }
 

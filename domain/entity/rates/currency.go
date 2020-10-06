@@ -2,16 +2,16 @@ package rates
 
 type Currency struct {
 	Title  string  `json:"title"`
-	Buy    int     `json:"buy"`
-	Sell   int     `json:"sell"`
+	Buy    float64 `json:"buy"`
+	Sell   float64 `json:"sell"`
 	Change float64 `json:"change"`
 }
 
-func (c *Currency) DoChange(newBuy int) {
+func (c *Currency) DoChange(newBuy float64) {
 	if newBuy > c.Buy {
-		c.Change = float64(newBuy / c.Buy)
+		c.Change = newBuy / c.Buy
 	} else {
-		c.Change = -float64(c.Buy / newBuy)
+		c.Change = -(c.Buy / newBuy)
 	}
 
 	c.Buy = newBuy

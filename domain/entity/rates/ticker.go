@@ -11,9 +11,9 @@ func StartTicker() {
 	ticker := time.Tick(5 * time.Second)
 	rand.Seed(time.Now().UnixNano())
 	for range ticker {
-		for _, obj := range Currencies {
-			newBuy := rand.Int() % randLimit + 1
-			obj.DoChange(newBuy)
+		for i, _ := range Currencies {
+			newBuy := rand.Float64() * randLimit + 1
+			Currencies[i].DoChange(newBuy)
 		}
 	}
 }

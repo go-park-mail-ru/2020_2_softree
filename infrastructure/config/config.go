@@ -19,7 +19,7 @@ type CORSConfig struct {
 var GlobalServerConfig = ServerConfig{}
 
 var GlobalCORSConfig = CORSConfig{
-	AllowedOrigins: []string{"http://localhost", "https://softree.group", "http://localhost:3000"},
+	AllowedOrigins: []string{"http://localhost", "https://softree.group", "http://localhost:3000", "http://self.ru"},
 	AllowedHeaders: []string{"If-Modified-Since", "Cache-Control", "Content-Type", "Range"},
 	AllowedMethods: []string{"GET", "POST", "OPTIONS", "PUT", "PATCH", "DELETE"},
 	ExposedHeaders: []string{"Content-Length", "Content-Range"},

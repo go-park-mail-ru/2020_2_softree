@@ -4,33 +4,75 @@ import (
 	"encoding/json"
 	"net/http"
 	"server/domain/entity"
+	"server/domain/entity/jsonRealisation"
+	"server/handlers/authorization/utils"
 )
 
-const (
-	testID    = 123
-	testEmail = "hound@psina.ru"
-)
-
-func UserData(w http.ResponseWriter, r *http.Request) {
-	_, err := r.Cookie("session_id")
+func UpdateUser(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("session_id")
 	logged := err != http.ErrNoCookie
 
 	if logged {
-		var u entity.User
-		u.ID = testID
-		u.Email = testEmail
-		result, e := json.Marshal(u)
-		if e != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
+		var userJSON jsonRealisation.UserJSON
+		userJSON.FillFields(r.Body)
+
+		if r.Method == "PUT" {
+			changePassword(*cookie, userJSON, w)
+			changeAvatar(*cookie, userJSON)
+		} else if r.Method == "PATCH" {
+			if userJSON.Avatar != "" {  // change only avatar
+				changeAvatar(*cookie, userJSON)
+			} else {  // change only password
+				changePassword(*cookie, userJSON, w)
+			}
 		}
+
 		w.WriteHeader(http.StatusOK)
-		w.Write(result)
 	} else {
 		w.WriteHeader(http.StatusUnauthorized)
 	}
 }
 
-func UpdateUser(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
+func findEmailInSession(hash string) string {
+	for key, val := range utils.Sessions {
+		if val == hash {
+			return key
+		}
+	}
+
+	return ""
+}
+
+func changePassword(cookie http.Cookie, userJSON jsonRealisation.UserJSON, w http.ResponseWriter) {
+	emailInSession := findEmailInSession(cookie.Value)
+	userPassword := utils.UsersServerSession[emailInSession]
+
+	var errorJSON jsonRealisation.ErrorJSON
+	if userPassword != userJSON.OldPassword {
+		errorJSON.NotEmpty = true
+		errorJSON.NonFieldError = append(errorJSON.NonFieldError, "Введен неверно старый пароль")
+	}
+	if userJSON.NewPassword1 != userJSON.NewPassword2 {
+		errorJSON.NotEmpty = true
+		errorJSON.NonFieldError = append(errorJSON.NonFieldError, "Неверно введен новый пароль")
+	}
+
+	if errorJSON.NotEmpty {
+		w.WriteHeader(http.StatusBadRequest)
+		res, _ := json.Marshal(errorJSON)
+		w.Write(res)
+		return
+	}
+
+	utils.UsersServerSession[emailInSession] = userJSON.NewPassword1
+}
+
+func changeAvatar(cookie http.Cookie, userJSON jsonRealisation.UserJSON) {
+	emailInSession := findEmailInSession(cookie.Value)
+	for i, _ := range entity.Users {
+		if entity.Users[i].Email == emailInSession {
+			entity.Users[i].Avatar = userJSON.Avatar
+			break
+		}
+	}
 }

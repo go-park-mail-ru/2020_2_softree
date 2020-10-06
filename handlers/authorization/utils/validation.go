@@ -23,13 +23,16 @@ func Validate(JSON jsonRealisation.JSON, w http.ResponseWriter, r *http.Request)
 }
 
 func isValidEmail(str string) bool {
-	re := regexp.MustCompile("^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$")
+	re := regexp.MustCompile("^[a-z0-9._%+\\-]+@[a-z0-9.\\-]+\\.[a-z]{2,4}$")
 
 	return re.MatchString(str)
 }
 
 func CreateErrorForm(errorType string, messages ...string) jsonRealisation.ErrorJSON {
 	var errorJSON jsonRealisation.ErrorJSON
+	if len(messages) == 0 { // no errors
+		return errorJSON
+	}
 
 	errorJSON.NotEmpty = true
 
@@ -48,6 +51,8 @@ func CreateErrorForm(errorType string, messages ...string) jsonRealisation.Error
 }
 
 func AddToErrorForm(errorJSON *jsonRealisation.ErrorJSON, errorType string, messages ...string) {
+	errorJSON.NotEmpty = true
+
 	switch errorType {
 	case "Name":
 		errorJSON.Name = append(errorJSON.Name, messages...)

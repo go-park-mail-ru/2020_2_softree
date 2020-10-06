@@ -12,8 +12,7 @@ func Authentication(w http.ResponseWriter, r *http.Request) {
 	logged := err != http.ErrNoCookie
 
 	if logged {
-		var u entity.User
-		u.Email = findEmailInSession(cookie.Value)
+		u := FindUserInSession(cookie.Value)
 
 		result, err := json.Marshal(&u)
 		if err != nil {
@@ -28,12 +27,19 @@ func Authentication(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func findEmailInSession(hash string) string {
+func FindUserInSession(hash string) entity.PublicUser {
+	var email string
 	for key, val := range utils.Sessions {
 		if val == hash {
-			return key
+			email = key
 		}
 	}
 
-	return ""
+	for i, _ := range entity.Users {
+		if entity.Users[i].Email == email {
+			return entity.Users[i]
+		}
+	}
+
+	return entity.PublicUser{}
 }
