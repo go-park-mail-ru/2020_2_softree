@@ -1,6 +1,7 @@
 package userInteraction
 
 import (
+	"encoding/json"
 	"net/http"
 	"server/domain/entity"
 	"server/domain/entity/jsonRealisation"
@@ -16,10 +17,14 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		userJSON.FillFields(r.Body)
 
 		if r.Method == "PUT" {
-			changeEmail(*cookie, userJSON)
+			changePassword(*cookie, userJSON, w)
 			changeAvatar(*cookie, userJSON)
 		} else if r.Method == "PATCH" {
-			changeAvatar(*cookie, userJSON)
+			if userJSON.Avatar != "" {  // change only avatar
+				changeAvatar(*cookie, userJSON)
+			} else {  // change only password
+				changePassword(*cookie, userJSON, w)
+			}
 		}
 
 		w.WriteHeader(http.StatusOK)
@@ -38,22 +43,28 @@ func findEmailInSession(hash string) string {
 	return ""
 }
 
-func changeEmail(cookie http.Cookie, userJSON jsonRealisation.UserJSON) {
+func changePassword(cookie http.Cookie, userJSON jsonRealisation.UserJSON, w http.ResponseWriter) {
 	emailInSession := findEmailInSession(cookie.Value)
-	userHashedPassword := utils.UsersServerSession[emailInSession]
+	userPassword := utils.UsersServerSession[emailInSession]
 
-	delete(utils.Sessions, emailInSession)
-	utils.Sessions[userJSON.Email] = cookie.Value
-
-	delete(utils.UsersServerSession, emailInSession)
-	utils.UsersServerSession[userJSON.Email] = userHashedPassword
-
-	for i, _ := range entity.Users {
-		if entity.Users[i].Email == emailInSession {
-			entity.Users[i].Email = userJSON.Email
-			break
-		}
+	var errorJSON jsonRealisation.ErrorJSON
+	if userPassword != userJSON.OldPassword {
+		errorJSON.NotEmpty = true
+		errorJSON.NonFieldError = append(errorJSON.NonFieldError, "Введен неверно старый пароль")
 	}
+	if userJSON.NewPassword1 != userJSON.NewPassword2 {
+		errorJSON.NotEmpty = true
+		errorJSON.NonFieldError = append(errorJSON.NonFieldError, "Неверно введен новый пароль")
+	}
+
+	if errorJSON.NotEmpty {
+		w.WriteHeader(http.StatusBadRequest)
+		res, _ := json.Marshal(errorJSON)
+		w.Write(res)
+		return
+	}
+
+	utils.UsersServerSession[emailInSession] = userJSON.NewPassword1
 }
 
 func changeAvatar(cookie http.Cookie, userJSON jsonRealisation.UserJSON) {
