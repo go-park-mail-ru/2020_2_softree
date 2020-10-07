@@ -6,6 +6,7 @@ import (
 	"server/domain/entity"
 	"server/domain/entity/jsonRealisation"
 	"server/handlers/authorization/utils"
+	"server/infrastructure/security"
 )
 
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
@@ -59,9 +60,10 @@ func FindEmailInSession(hash string) string {
 func changePassword(cookie http.Cookie, userJSON jsonRealisation.UserJSON, w http.ResponseWriter) bool {
 	emailInSession := FindEmailInSession(cookie.Value)
 	userPassword := utils.UsersServerSession[emailInSession]
+	oldPassword := security.MakeShieldedHash(userJSON.OldPassword)
 
 	var errorJSON jsonRealisation.ErrorJSON
-	if userPassword != userJSON.OldPassword {
+	if userPassword != oldPassword {
 		errorJSON.NotEmpty = true
 		errorJSON.OldPassword = append(errorJSON.OldPassword, "Введен неверно старый пароль")
 	}
@@ -77,7 +79,7 @@ func changePassword(cookie http.Cookie, userJSON jsonRealisation.UserJSON, w htt
 		return false
 	}
 
-	utils.UsersServerSession[emailInSession] = userJSON.NewPassword1
+	utils.UsersServerSession[emailInSession] = security.MakeShieldedHash(userJSON.NewPassword1)
 
 	return true
 }
