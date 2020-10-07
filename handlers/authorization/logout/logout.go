@@ -2,6 +2,7 @@ package logout
 
 import (
 	"net/http"
+	"time"
 )
 
 func Logout(w http.ResponseWriter, r *http.Request) {
@@ -11,7 +12,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session.MaxAge = -1
+	session.Expires = time.Date(1973, 1, 1, 0, 0, 0, 0, nil)
 	http.SetCookie(w, session)
 	w.WriteHeader(http.StatusFound)
 }
