@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"server/handlers/authorization/utils"
 	"server/handlers/userInteraction"
+	"server/infrastructure/security"
 	"time"
 )
 
@@ -14,10 +15,9 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie.Expires = time.Date(1973, time.January, 1, 0, 0, 0, 0, time.UTC)
-	cookie.Value = ""
-	cookie.MaxAge = 0
-	http.SetCookie(w, cookie)
+	newCookie := security.MakeCookie()
+	newCookie.Expires = time.Date(1973, 1, 1, 0, 0, 0, 0, time.UTC)
+	http.SetCookie(w, &newCookie)
 
 	email := userInteraction.FindEmailInSession(cookie.Value)
 	delete(utils.Sessions, email)
