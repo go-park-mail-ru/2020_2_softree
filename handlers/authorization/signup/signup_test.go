@@ -12,7 +12,7 @@ import (
 )
 
 func TestSignupSuccess(t *testing.T) {
-	url := "http://127.0.0.1:8000/api/signup"
+	url := "http://127.0.0.1:8000/signup"
 
 	body := strings.NewReader(`{"email": "hound@psina.ru", "password1": "str", "password2": "str"}`)
 	req := httptest.NewRequest("POST", url, body)
@@ -40,7 +40,7 @@ func TestSignupSuccess(t *testing.T) {
 }
 
 func TestSignupFailToComparePasswords(t *testing.T) {
-	url := "http://127.0.0.1:8000/api/signup"
+	url := "http://127.0.0.1:8000/signup"
 
 	jsonForBody := jsonRealisation.SignupJSON{
 		Email:     "hound@psina.ru",
@@ -60,7 +60,7 @@ func TestSignupFailToComparePasswords(t *testing.T) {
 }
 
 func TestSignupInvalidEmail(t *testing.T) {
-	url := "http://127.0.0.1:8000/api/signup"
+	url := "http://127.0.0.1:8000/signup"
 
 	body := strings.NewReader(`{"email": "hound", "password1": "str", "password2": "str"}`)
 	req := httptest.NewRequest("POST", url, body)

@@ -16,7 +16,6 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	if logged {
 		var userJSON jsonRealisation.UserJSON
 		userJSON.FillFields(r.Body)
-
 		if r.Method == "PUT" {
 			changeAvatar(*cookie, userJSON)
 		} else if r.Method == "PATCH" {
@@ -36,7 +35,6 @@ func UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	if logged {
 		var userJSON jsonRealisation.UserJSON
 		userJSON.FillFields(r.Body)
-
 		if changePassword(*cookie, userJSON, w) {
 			w.WriteHeader(http.StatusOK)
 		} else {
