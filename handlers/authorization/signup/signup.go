@@ -21,6 +21,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if errorJSON.NotEmpty {  // contains some errors
+		w.Header().Set("content-type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		res, _ := json.Marshal(errorJSON)
 		w.Write(res)
