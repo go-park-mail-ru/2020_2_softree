@@ -6,7 +6,7 @@ import (
 )
 
 func Logout(w http.ResponseWriter, r *http.Request) {
-	session, err := r.Cookie("session_id")
+	_, err := r.Cookie("session_id")
 	if err == http.ErrNoCookie {
 		w.WriteHeader(http.StatusFound)
 		return
