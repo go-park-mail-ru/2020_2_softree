@@ -72,6 +72,7 @@ func changePassword(cookie http.Cookie, userJSON jsonRealisation.UserJSON, w htt
 
 	if errorJSON.NotEmpty {
 		res, _ := json.Marshal(errorJSON)
+		w.WriteHeader(http.StatusBadRequest)
 		w.Write(res)
 		return false
 	}
