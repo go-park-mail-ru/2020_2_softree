@@ -17,6 +17,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 
 	newCookie := security.MakeCookie()
 	newCookie.Expires = time.Date(1973, 1, 1, 0, 0, 0, 0, time.UTC)
+	newCookie.Value = ""
 	http.SetCookie(w, &newCookie)
 
 	email := userInteraction.FindEmailInSession(cookie.Value)
