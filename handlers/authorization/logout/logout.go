@@ -2,6 +2,8 @@ package logout
 
 import (
 	"net/http"
+	"server/handlers/authorization/utils"
+	"server/handlers/userInteraction"
 	"time"
 )
 
@@ -16,5 +18,9 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	cookie.Value = ""
 	cookie.MaxAge = 0
 	http.SetCookie(w, cookie)
+
+	email := userInteraction.FindEmailInSession(cookie.Value)
+	delete(utils.Sessions, email)
+
 	w.WriteHeader(http.StatusFound)
 }

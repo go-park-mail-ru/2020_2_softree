@@ -46,7 +46,7 @@ func UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func findEmailInSession(hash string) string {
+func FindEmailInSession(hash string) string {
 	for key, val := range utils.Sessions {
 		if val == hash {
 			return key
@@ -57,7 +57,7 @@ func findEmailInSession(hash string) string {
 }
 
 func changePassword(cookie http.Cookie, userJSON jsonRealisation.UserJSON, w http.ResponseWriter) bool {
-	emailInSession := findEmailInSession(cookie.Value)
+	emailInSession := FindEmailInSession(cookie.Value)
 	userPassword := utils.UsersServerSession[emailInSession]
 
 	var errorJSON jsonRealisation.ErrorJSON
@@ -82,7 +82,7 @@ func changePassword(cookie http.Cookie, userJSON jsonRealisation.UserJSON, w htt
 }
 
 func changeAvatar(cookie http.Cookie, userJSON jsonRealisation.UserJSON) {
-	emailInSession := findEmailInSession(cookie.Value)
+	emailInSession := FindEmailInSession(cookie.Value)
 	for i, _ := range entity.Users {
 		if entity.Users[i].Email == emailInSession {
 			entity.Users[i].Avatar = userJSON.Avatar
