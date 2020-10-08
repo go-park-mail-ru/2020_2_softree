@@ -15,7 +15,11 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	if logged {
 		var userJSON jsonRealisation.UserJSON
-		userJSON.FillFields(r.Body)
+		err := userJSON.FillFields(r.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+
 		if r.Method == "PUT" {
 			changeAvatar(*cookie, userJSON)
 		} else if r.Method == "PATCH" {
@@ -34,7 +38,11 @@ func UpdatePassword(w http.ResponseWriter, r *http.Request) {
 
 	if logged {
 		var userJSON jsonRealisation.UserJSON
-		userJSON.FillFields(r.Body)
+		err := userJSON.FillFields(r.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+
 		if changePassword(*cookie, userJSON, w) {
 			w.WriteHeader(http.StatusOK)
 		} else {
@@ -73,7 +81,12 @@ func changePassword(cookie http.Cookie, userJSON jsonRealisation.UserJSON, w htt
 	if errorJSON.NotEmpty {
 		res, _ := json.Marshal(errorJSON)
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(res)
+
+		_, err := w.Write(res)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+
 		return false
 	}
 

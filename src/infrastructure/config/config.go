@@ -9,10 +9,10 @@ import (
 )
 
 type ServerConfig struct {
-	Port   string `yaml: port`
-	IP     string `yaml: ip`
-	Domain string `yaml: domain`
-	Secure bool   `yaml: secure`
+	Port   string `yaml:"port"`
+	IP     string `yaml:"ip"`
+	Domain string `yaml:"domain"`
+	Secure bool   `yaml:"secure"`
 }
 
 type CORSConfig struct {
@@ -34,15 +34,15 @@ var GlobalCORSConfig = CORSConfig{
 var configPath string
 
 func ParseConfig() {
-	yamlFile, error := ioutil.ReadFile(configPath)
-	if error != nil {
-		log.Fatal(error)
+	yamlFile, err := ioutil.ReadFile(configPath)
+	if err != nil {
+		log.Fatal(err)
 		return
 	}
 
-	error = yaml.Unmarshal(yamlFile, &GlobalServerConfig)
-	if error != nil {
-		log.Fatal(error)
+	err = yaml.Unmarshal(yamlFile, &GlobalServerConfig)
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 

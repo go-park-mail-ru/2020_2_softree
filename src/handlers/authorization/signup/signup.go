@@ -24,7 +24,12 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("content-type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		res, _ := json.Marshal(errorJSON)
-		w.Write(res)
+
+		_, err := w.Write(res)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+
 		return
 	}
 
