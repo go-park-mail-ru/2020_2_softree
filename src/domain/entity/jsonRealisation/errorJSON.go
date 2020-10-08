@@ -14,9 +14,8 @@ type ErrorJSON struct {
 	NotEmpty      bool     `json:"-"`
 }
 
-func (l *ErrorJSON) FillFields(body io.ReadCloser) error {
-	decoder := json.NewDecoder(body)
-	err := decoder.Decode(&l)
+func (l ErrorJSON) FillFields(body io.ReadCloser) error {
+	err := json.NewDecoder(body).Decode(&l)
 	if err != nil {
 		return err
 	}
