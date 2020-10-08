@@ -14,11 +14,7 @@ func Authentication(w http.ResponseWriter, r *http.Request) {
 	if logged {
 		u := FindUserInSession(cookie.Value)
 
-		result, err := json.Marshal(&u)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+		result, _ := json.Marshal(&u)
 
 		w.WriteHeader(http.StatusOK)
 		w.Write(result)
