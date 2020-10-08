@@ -1,6 +1,7 @@
 package logout
 
 import (
+	"log"
 	"net/http"
 	"server/src/handlers/authorization/utils"
 	"server/src/handlers/userInteraction"
@@ -17,7 +18,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 
 	newCookie, err := security.MakeCookie()
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		log.Println(err)
 		return
 	}
 

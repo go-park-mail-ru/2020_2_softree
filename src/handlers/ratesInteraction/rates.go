@@ -2,6 +2,7 @@ package ratesInteraction
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"server/src/domain/entity/rates"
 )
@@ -13,6 +14,7 @@ func Rates(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	if _, err := w.Write(result); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		log.Println(err)
+		return
 	}
 }

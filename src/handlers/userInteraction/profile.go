@@ -2,6 +2,7 @@ package userInteraction
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"server/src/domain/entity"
 	"server/src/domain/entity/jsonRealisation"
@@ -17,7 +18,7 @@ func UpdateUserPartly(w http.ResponseWriter, r *http.Request) {
 		var userJSON jsonRealisation.UserJSON
 		err := userJSON.FillFields(r.Body)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			log.Println(err)
 			return
 		}
 
@@ -37,7 +38,7 @@ func UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	if logged {
 		var userJSON jsonRealisation.UserJSON
 		if err := userJSON.FillFields(r.Body); err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			log.Println(err)
 			return
 		}
 
@@ -50,7 +51,7 @@ func UpdatePassword(w http.ResponseWriter, r *http.Request) {
 		res, _ := json.Marshal(errorJSON)
 		w.WriteHeader(code)
 		if _, err := w.Write(res); err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			log.Println(err)
 			return
 		}
 		return

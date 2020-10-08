@@ -2,6 +2,7 @@ package login
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"server/src/domain/entity/jsonRealisation"
 	"server/src/handlers/authorization/auth"
@@ -31,7 +32,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	cookie, err := security.MakeCookie()
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		log.Println(err)
 		return
 	}
 	utils.Sessions[loginJSON.Email] = cookie.Value
@@ -40,7 +41,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	u := auth.FindUserInSession(cookie.Value)
 	result, err := json.Marshal(&u)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		log.Println(err)
 		return
 	}
 
@@ -49,6 +50,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	_, err = w.Write(result)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		log.Println(err)
+		return
 	}
 }
