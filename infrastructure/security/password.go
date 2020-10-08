@@ -20,7 +20,7 @@ func MakeShieldedHash(stringToHash string) string {
 	return hex.EncodeToString(hash.Sum(nil))
 }
 
-func MakeCookieHash() string {
+func makeCookieHash() string {
 	rand.Seed(time.Now().UnixNano())
 	hash := sha256.New()
 

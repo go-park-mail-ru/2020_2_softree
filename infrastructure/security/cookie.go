@@ -9,7 +9,7 @@ import (
 func MakeCookie() http.Cookie {
 	return http.Cookie{
 		Name:     "session_id",
-		Value:    MakeCookieHash(),
+		Value:    makeCookieHash(),
 		Expires:  time.Now().Add(10 * 24 * time.Hour),
 		Domain:   config.GlobalServerConfig.Domain,
 		Secure:   config.GlobalServerConfig.Secure,
