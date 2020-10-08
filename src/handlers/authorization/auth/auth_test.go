@@ -24,23 +24,6 @@ func TestAuthenticationFail(t *testing.T) {
 	}
 }
 
-func TestAuthenticationFailMarshal(t *testing.T) {
-	url := "http://127.0.0.1:8000/auth"
-	body := strings.NewReader(`{"email": "yandex@mail.ru", "password": "str"}`)
-	req := httptest.NewRequest("POST", url, body)
-	w := httptest.NewRecorder()
-	cookie := security.MakeCookie()
-	req.AddCookie(&cookie)
-	utils.Sessions["yandex@mail.ru"] = cookie.Value
-
-	Authentication(w, req)
-
-	if w.Result().StatusCode != http.StatusOK {
-		t.Errorf("\nwrong StatusCode\ngot: %d\nexpected: %d",
-			w.Code, http.StatusOK)
-	}
-}
-
 func TestAuthenticationSuccess(t *testing.T) {
 	url := "http://127.0.0.1:8000/auth"
 	body := strings.NewReader(`{"email": "yandex@mail.ru", "password": "str"}`)
