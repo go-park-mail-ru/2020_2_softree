@@ -25,12 +25,18 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	if utils.UsersServerSession[loginJSON.Email] != security.MakeShieldedHash(loginJSON.Password) {
+
+	userTryToLogin, _ := security.MakeShieldedHash(loginJSON.Password)
+	if utils.UsersServerSession[loginJSON.Email] != userTryToLogin {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	cookie := security.MakeCookie()
+	cookie, err := security.MakeCookie()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	utils.Sessions[loginJSON.Email] = cookie.Value
 	http.SetCookie(w, &cookie)
 

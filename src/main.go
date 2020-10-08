@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"log"
+	"math/rand"
 	"net/http"
 	"server/src/domain/entity/rates"
 	"server/src/handlers/authorization/auth"
@@ -17,6 +18,10 @@ import (
 	"time"
 )
 
+func init()  {
+	rand.Seed(time.Now().UnixNano())
+}
+
 func main() {
 	config.InitFlags()
 	go rates.StartTicker()
@@ -29,7 +34,7 @@ func main() {
 	r.HandleFunc("/auth", auth.Authentication).Methods("GET", "OPTIONS")
 	r.HandleFunc("/logout", logout.Logout).Methods("POST", "OPTIONS")
 	r.HandleFunc("/rates", ratesInteraction.Rates).Methods("GET", "OPTIONS")
-	r.HandleFunc("/user", userInteraction.UpdateUser).Methods("PUT", "PATCH", "OPTIONS")
+	r.HandleFunc("/user", userInteraction.UpdateUserPartly).Methods("PATCH", "OPTIONS")
 	r.HandleFunc("/change-password", userInteraction.UpdatePassword).Methods("PATCH", "OPTIONS")
 	r.Use(corsInteraction.CORSMiddleware())
 

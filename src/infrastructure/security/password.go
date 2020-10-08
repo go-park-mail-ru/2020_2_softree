@@ -5,35 +5,30 @@ import (
 	"encoding/hex"
 	"math/rand"
 	"strconv"
-	"time"
 )
 
-func MakeShieldedHash(stringToHash string) string {
+func MakeShieldedHash(stringToHash string) (string, error) {
 	hash := sha256.New()
 	salt := "someSalt"
 
 	stringPlusSalt := stringToHash + salt
 
-	_, err := hash.Write([]byte(stringPlusSalt))
-	if err != nil {
-		panic(err)
+	if _, err := hash.Write([]byte(stringPlusSalt)); err != nil {
+		return "", err
 	}
 
-	_, err = hash.Write([]byte(hex.EncodeToString(hash.Sum(nil))))
-	if err != nil {
-		panic(err)
+	if _, err := hash.Write([]byte(hex.EncodeToString(hash.Sum(nil)))); err != nil {
+		return "", err
 	}
 
-	return hex.EncodeToString(hash.Sum(nil))
+	return hex.EncodeToString(hash.Sum(nil)), nil
 }
 
-func makeCookieHash() string {
-	rand.Seed(time.Now().UnixNano())
+func makeCookieHash() (string, error) {
 	hash := sha256.New()
 
-	_, err := hash.Write([]byte(strconv.Itoa(rand.Int())))
-	if err != nil {
-		panic(err)
+	if _, err := hash.Write([]byte(strconv.Itoa(rand.Int()))); err != nil {
+		return "", err
 	}
-	return hex.EncodeToString(hash.Sum(nil))
+	return hex.EncodeToString(hash.Sum(nil)), nil
 }

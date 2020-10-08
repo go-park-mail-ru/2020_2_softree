@@ -12,5 +12,7 @@ func Rates(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	_, _ = w.Write(result)
+	if _, err := w.Write(result); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }

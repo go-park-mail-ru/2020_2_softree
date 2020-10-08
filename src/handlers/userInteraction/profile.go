@@ -9,7 +9,7 @@ import (
 	"server/src/infrastructure/security"
 )
 
-func UpdateUser(w http.ResponseWriter, r *http.Request) {
+func UpdateUserPartly(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("session_id")
 	logged := err != http.ErrNoCookie
 
@@ -18,18 +18,16 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		err := userJSON.FillFields(r.Body)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 
-		if r.Method == "PUT" {
-			changeAvatar(*cookie, userJSON)
-		} else if r.Method == "PATCH" {
-			changeAvatar(*cookie, userJSON)
-		}
+		changeAvatar(*cookie, userJSON)
 
 		w.WriteHeader(http.StatusOK)
-	} else {
-		w.WriteHeader(http.StatusUnauthorized)
+		return
 	}
+
+	w.WriteHeader(http.StatusUnauthorized)
 }
 
 func UpdatePassword(w http.ResponseWriter, r *http.Request) {
@@ -38,19 +36,27 @@ func UpdatePassword(w http.ResponseWriter, r *http.Request) {
 
 	if logged {
 		var userJSON jsonRealisation.UserJSON
-		err := userJSON.FillFields(r.Body)
-		if err != nil {
+		if err := userJSON.FillFields(r.Body); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 
-		if changePassword(*cookie, userJSON, w) {
-			w.WriteHeader(http.StatusOK)
-		} else {
-			w.WriteHeader(http.StatusBadRequest)
+		code, errorJSON := changePassword(*cookie, userJSON)
+		if code == http.StatusOK {
+			w.WriteHeader(code)
+			return
 		}
-	} else {
-		w.WriteHeader(http.StatusUnauthorized)
+
+		res, _ := json.Marshal(errorJSON)
+		if _, err := w.Write(res); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(code)
+		return
 	}
+
+	w.WriteHeader(http.StatusUnauthorized)
 }
 
 func FindEmailInSession(hash string) string {
@@ -63,10 +69,10 @@ func FindEmailInSession(hash string) string {
 	return ""
 }
 
-func changePassword(cookie http.Cookie, userJSON jsonRealisation.UserJSON, w http.ResponseWriter) bool {
+func changePassword(cookie http.Cookie, userJSON jsonRealisation.UserJSON) (int, jsonRealisation.ErrorJSON) {
 	emailInSession := FindEmailInSession(cookie.Value)
 	userPassword := utils.UsersServerSession[emailInSession]
-	oldPassword := security.MakeShieldedHash(userJSON.OldPassword)
+	oldPassword, _ := security.MakeShieldedHash(userJSON.OldPassword)
 
 	var errorJSON jsonRealisation.ErrorJSON
 	if userPassword != oldPassword {
@@ -79,20 +85,11 @@ func changePassword(cookie http.Cookie, userJSON jsonRealisation.UserJSON, w htt
 	}
 
 	if errorJSON.NotEmpty {
-		res, _ := json.Marshal(errorJSON)
-		w.WriteHeader(http.StatusBadRequest)
-
-		_, err := w.Write(res)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-		}
-
-		return false
+		return http.StatusBadRequest, errorJSON
 	}
 
-	utils.UsersServerSession[emailInSession] = security.MakeShieldedHash(userJSON.NewPassword1)
-
-	return true
+	utils.UsersServerSession[emailInSession], _ = security.MakeShieldedHash(userJSON.NewPassword1)
+	return http.StatusOK, errorJSON
 }
 
 func changeAvatar(cookie http.Cookie, userJSON jsonRealisation.UserJSON) {

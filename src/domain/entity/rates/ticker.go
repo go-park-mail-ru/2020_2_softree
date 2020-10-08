@@ -13,7 +13,6 @@ const (
 func StartTicker() {
 	ticker := time.NewTicker(interval * time.Second)
 	defer ticker.Stop()
-	rand.Seed(time.Now().UnixNano())
 	for range ticker.C {
 		for i := range Currencies {
 			newBuy := rand.Float64()*randLimit + 1

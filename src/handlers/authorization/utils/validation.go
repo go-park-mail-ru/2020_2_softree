@@ -1,16 +1,11 @@
 package utils
 
 import (
-	"net/http"
 	"regexp"
 	"server/src/domain/entity/jsonRealisation"
 )
 
-func Validate(JSON jsonRealisation.JSON, w http.ResponseWriter, r *http.Request) jsonRealisation.ErrorJSON {
-	if err := JSON.FillFields(r.Body); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-	}
-
+func Validate(JSON jsonRealisation.JSON) jsonRealisation.ErrorJSON {
 	errorMas := make([]string, 0)
 	if !isValidEmail(JSON.GetEmail()) {
 		errorMas = append(errorMas, "Неправильный формат Email")

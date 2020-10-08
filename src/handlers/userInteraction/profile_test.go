@@ -17,7 +17,7 @@ func TestUpdateUserWithoutCookie(t *testing.T) {
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
 
-	UpdateUser(w, req)
+	UpdateUserPartly(w, req)
 
 	if w.Code != http.StatusUnauthorized {
 		t.Fatalf("wrong status code\nexpected: %d\nreceived: %d", http.StatusUnauthorized, w.Code)
@@ -26,10 +26,10 @@ func TestUpdateUserWithoutCookie(t *testing.T) {
 
 var testEmail = "hound@psina.ru"
 var testPassword = "123"
-var cookie = security.MakeCookie()
+var cookie, _ = security.MakeCookie()
 
 func makeTestData() {
-	utils.UsersServerSession[testEmail] = security.MakeShieldedHash(testPassword)
+	utils.UsersServerSession[testEmail], _ = security.MakeShieldedHash(testPassword)
 	entity.Users = append(entity.Users, entity.PublicUser{Email: testEmail})
 	utils.Sessions[testEmail] = cookie.Value
 }
@@ -45,7 +45,7 @@ func TestUpdateUserSuccess(t *testing.T) {
 
 	makeTestData()
 	req.Header.Set("Cookie", cookie.String())
-	UpdateUser(&w, req)
+	UpdateUserPartly(&w, req)
 
 	for _, obj := range entity.Users {
 		if obj.Avatar == "" {
@@ -67,7 +67,7 @@ func TestUpdateUserFailWrongOldPassword(t *testing.T) {
 	req.Header.Set("Cookie", cookie.String())
 	UpdatePassword(&w, req)
 
-	if w.Code != http.StatusBadRequest {
+	if w.Result().StatusCode != http.StatusBadRequest {
 		t.Fatalf("wrong status code\nexpected: %d\nreceived: %d", http.StatusBadRequest, w.Code)
 	}
 }
@@ -119,7 +119,7 @@ func TestUpdatePasswordSuccess(t *testing.T) {
 	req.Header.Set("Cookie", cookie.String())
 	UpdatePassword(&w, req)
 
-	passwordHash := security.MakeShieldedHash("1234")
+	passwordHash, _ := security.MakeShieldedHash("1234")
 	if passwordHash != utils.UsersServerSession[testEmail] {
 		t.Fatal("fail to update password")
 	}
