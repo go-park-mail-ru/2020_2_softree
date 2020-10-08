@@ -2,6 +2,7 @@ package login
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"server/src/domain/entity/jsonRealisation"
 	"server/src/handlers/authorization/auth"
@@ -10,9 +11,6 @@ import (
 )
 
 func Login(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodOptions {
-		return
-	}
 	defer r.Body.Close()
 
 	var loginJSON jsonRealisation.LoginJSON
@@ -25,19 +23,25 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	if utils.UsersServerSession[loginJSON.Email] != security.MakeShieldedHash(loginJSON.Password) {
+
+	userTryToLogin, _ := security.MakeShieldedHash(loginJSON.Password)
+	if utils.UsersServerSession[loginJSON.Email] != userTryToLogin {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	cookie := security.MakeCookie()
+	cookie, err := security.MakeCookie()
+	if err != nil {
+		log.Println(err)
+		return
+	}
 	utils.Sessions[loginJSON.Email] = cookie.Value
 	http.SetCookie(w, &cookie)
 
 	u := auth.FindUserInSession(cookie.Value)
 	result, err := json.Marshal(&u)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		log.Println(err)
 		return
 	}
 
@@ -46,6 +50,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	_, err = w.Write(result)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		log.Println(err)
+		return
 	}
 }
