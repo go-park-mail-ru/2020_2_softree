@@ -23,9 +23,10 @@ func Authentication(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
-	} else {
-		w.WriteHeader(http.StatusUnauthorized)
+		return
 	}
+
+	w.WriteHeader(http.StatusUnauthorized)
 }
 
 func FindUserInSession(hash string) entity.PublicUser {

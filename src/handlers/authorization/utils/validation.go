@@ -23,7 +23,8 @@ func Validate(JSON jsonRealisation.JSON, w http.ResponseWriter, r *http.Request)
 }
 
 func isValidEmail(str string) bool {
-	re := regexp.MustCompile("^[a-z0-9._%+\\-]+@[a-z0-9.\\-]+\\.[a-z]{2,4}$")
+	regStr := "^[a-z0-9._%+\\-]+@[a-z0-9.\\-]+\\.[a-z]{2,4}$"
+	re := regexp.MustCompile(regStr)
 
 	return re.MatchString(str)
 }
