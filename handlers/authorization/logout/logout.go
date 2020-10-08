@@ -11,7 +11,6 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusFound)
 		return
 	}
-
 	session.Expires = time.Now().AddDate(0, 0, -1)
 	http.SetCookie(w, session)
 	w.WriteHeader(http.StatusFound)
