@@ -20,7 +20,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		utils.AddToErrorForm(&errorJSON, "NonFieldError", "Пароли не совпадают")
 	}
 
-	if errorJSON.NotEmpty {  // contains some errors
+	if errorJSON.NotEmpty { // contains some errors
 		w.WriteHeader(http.StatusBadRequest)
 		res, _ := json.Marshal(errorJSON)
 		w.Write(res)
