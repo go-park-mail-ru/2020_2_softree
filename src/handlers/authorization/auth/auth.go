@@ -18,11 +18,7 @@ func Authentication(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		result, err := json.Marshal(&u)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+		result, _ := json.Marshal(&u)
 
 		w.Header().Set("content-type", "application/json")
 		w.WriteHeader(http.StatusOK)
