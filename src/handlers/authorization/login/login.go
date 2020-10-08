@@ -10,9 +10,6 @@ import (
 )
 
 func Login(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodOptions {
-		return
-	}
 	defer r.Body.Close()
 
 	var loginJSON jsonRealisation.LoginJSON
