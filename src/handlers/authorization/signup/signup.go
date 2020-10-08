@@ -32,12 +32,18 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		_, err := w.Write(res)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 
 		return
 	}
 
-	utils.UsersServerSession[signupJSON.Email], _ = security.MakeShieldedHash(signupJSON.Password1)
+	var err error
+	utils.UsersServerSession[signupJSON.Email], err = security.MakeShieldedHash(signupJSON.Password1)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	cookie, err := security.MakeCookie()
 	if err != nil {
@@ -47,7 +53,6 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 
 	utils.Sessions[signupJSON.Email] = cookie.Value
 	http.SetCookie(w, &cookie)
-
 	entity.Users = append(entity.Users, entity.PublicUser{Email: signupJSON.Email})
 
 	w.WriteHeader(http.StatusCreated)
