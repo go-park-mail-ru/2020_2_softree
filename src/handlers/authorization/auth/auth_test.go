@@ -11,7 +11,7 @@ import (
 )
 
 func TestAuthenticationFail(t *testing.T) {
-	url := "http://example.com/api/"
+	url := "http://127.0.0.1:8000/auth"
 	body := strings.NewReader(`{"email": "yandex@mail.ru", "password": "str"}`)
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
@@ -25,7 +25,7 @@ func TestAuthenticationFail(t *testing.T) {
 }
 
 func TestAuthenticationFailMarshal(t *testing.T) {
-	url := "http://example.com/api/"
+	url := "http://127.0.0.1:8000/auth"
 	body := strings.NewReader(`{"email": "yandex@mail.ru", "password": "str"}`)
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
@@ -42,7 +42,7 @@ func TestAuthenticationFailMarshal(t *testing.T) {
 }
 
 func TestAuthenticationSuccess(t *testing.T) {
-	url := "http://example.com/api/"
+	url := "http://127.0.0.1:8000/auth"
 	body := strings.NewReader(`{"email": "yandex@mail.ru", "password": "str"}`)
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
@@ -59,7 +59,7 @@ func TestAuthenticationSuccess(t *testing.T) {
 }
 
 func TestFindUserInSessionSuccess(t *testing.T) {
-	url := "http://example.com/api/"
+	url := "http://127.0.0.1:8000/auth"
 	body := strings.NewReader(`{"email": "yandex@mail.ru", "password": "str"}`)
 	req := httptest.NewRequest("POST", url, body)
 	cookie := security.MakeCookie()
@@ -79,7 +79,7 @@ func TestFindUserInSessionSuccess(t *testing.T) {
 }
 
 func TestFindUserInSessionFail(t *testing.T)  {
-	url := "http://example.com/api/"
+	url := "http://127.0.0.1:8000/auth"
 	body := strings.NewReader(`{"email": "yandex@mail.ru", "password": "str"}`)
 	req := httptest.NewRequest("POST", url, body)
 	cookie := security.MakeCookie()
