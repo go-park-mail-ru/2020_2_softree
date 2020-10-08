@@ -19,7 +19,6 @@ import (
 
 func main() {
 	config.InitFlags()
-	// r.HandleFunc("/rates/{id:([1-9]0?)+}", ratesInteraction.Rates).Methods("GET")
 	go rates.StartTicker()
 
 	router := mux.NewRouter()
