@@ -35,9 +35,10 @@ jobs:
         fi
 
     - name: Lint
-      run: |
-        curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.31.0
-        GOLINTFLAGS='--timeout=10m' make lint
+      run: | 
+        sudo snap install golangci-lint --edge
+        make lint
+
     - name: Build
       run: make build
 
