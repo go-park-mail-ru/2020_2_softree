@@ -35,9 +35,9 @@ jobs:
         fi
       
     - name: Lint
-      run: |
-        go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
-        GOLINTFLAGS='--timeout=10m' make lint
+      run: | 
+        snap install golangci-lint --edge
+        make lint
 
     - name: Build
       run: make build
