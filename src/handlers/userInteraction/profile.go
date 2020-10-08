@@ -48,11 +48,11 @@ func UpdatePassword(w http.ResponseWriter, r *http.Request) {
 		}
 
 		res, _ := json.Marshal(errorJSON)
+		w.WriteHeader(code)
 		if _, err := w.Write(res); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		w.WriteHeader(code)
 		return
 	}
 

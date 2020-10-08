@@ -29,7 +29,7 @@ func TestAuthenticationSuccess(t *testing.T) {
 	body := strings.NewReader(`{"email": "yandex@mail.ru", "password": "str"}`)
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
-	cookie := security.MakeCookie()
+	cookie, _ := security.MakeCookie()
 	req.AddCookie(&cookie)
 	utils.Sessions["yandex@mail.ru"] = cookie.Value
 
@@ -45,7 +45,7 @@ func TestFindUserInSessionSuccess(t *testing.T) {
 	url := "http://127.0.0.1:8000/auth"
 	body := strings.NewReader(`{"email": "yandex@mail.ru", "password": "str"}`)
 	req := httptest.NewRequest("POST", url, body)
-	cookie := security.MakeCookie()
+	cookie, _ := security.MakeCookie()
 	req.AddCookie(&cookie)
 
 	val := cookie.Value
@@ -65,7 +65,7 @@ func TestFindUserInSessionFail(t *testing.T)  {
 	url := "http://127.0.0.1:8000/auth"
 	body := strings.NewReader(`{"email": "yandex@mail.ru", "password": "str"}`)
 	req := httptest.NewRequest("POST", url, body)
-	cookie := security.MakeCookie()
+	cookie, _ := security.MakeCookie()
 	req.AddCookie(&cookie)
 
 	val := cookie.Value

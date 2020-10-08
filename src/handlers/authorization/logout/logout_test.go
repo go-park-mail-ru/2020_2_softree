@@ -30,7 +30,7 @@ func TestLogoutSuccess(t *testing.T) {
 	body := strings.NewReader(`{"email": "yandex@mail.ru", "password": "str"}`)
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
-	cookie := security.MakeCookie()
+	cookie, _ := security.MakeCookie()
 	req.AddCookie(&cookie)
 
 	Logout(w, req)
