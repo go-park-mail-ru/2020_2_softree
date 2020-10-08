@@ -26,7 +26,6 @@ func TestUpdateUserWithoutCookie(t *testing.T) {
 
 var testEmail = "hound@psina.ru"
 var testPassword = "123"
-var testHashedPassword = security.MakeShieldedHash(testPassword)
 var cookie = security.MakeCookie()
 
 func makeTestData() {
