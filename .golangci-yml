@@ -1,0 +1,49 @@
+linters:
+  enable-all: true
+  disable:
+    # Globals are OK
+    - gochecknoglobals
+    # So are inits
+    - gochecknoinits
+    # Cant disable some of go vet checks => disable all of them
+    - govet
+    # Useless
+    - interfacer
+    # Long lines are fine
+    - lll
+    # So are long functions
+    - funlen
+    # Using "weak" primitivies is fine when they're not used for crypto
+    - gosec
+    # TODO's are fine for us
+    - godox
+    # Waiting for generics
+    - dupl
+    # Can't disable some of golint checks
+    - golint
+    # This is bullshit
+    - gocyclo
+    # so is this
+    - gocognit
+    # we know how to place whitespaces
+    - wsl
+    - gomnd
+    - nestif
+    - godot
+    - goerr113
+    - gofumpt
+    - gci
+    - nlreturn
+
+run:
+  tests: false
+  skip-dirs:
+    - vendor/
+
+issues:
+  exclude-rules:
+    -
+      linters:
+        - "staticcheck"
+      # ignore Defering Close before checking for a possible error. It is OK
+      text: "SA5001:"
