@@ -36,7 +36,7 @@ jobs:
 
     - name: Lint
       run: |
-        go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
+        curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.31.0
         GOLINTFLAGS='--timeout=10m' make lint
     - name: Build
       run: make build
