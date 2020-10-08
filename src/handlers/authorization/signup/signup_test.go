@@ -79,5 +79,8 @@ func TestSignupInvalidEmail(t *testing.T) {
 	}
 
 	errorJson := new(jsonRealisation.ErrorJSON)
-	errorJson.FillFields(w.Result().Body)
+	err := errorJson.FillFields(w.Result().Body)
+	if err != nil {
+		t.Fatal("Fill fields error")
+	}
 }
