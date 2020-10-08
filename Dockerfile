@@ -7,7 +7,7 @@ ADD . .
 RUN make build
 
 # Enviroment
-FROM debian:buster-slim
+FROM alpine:latest
 
 WORKDIR /app
 COPY --from=build /app/bin/mc .
