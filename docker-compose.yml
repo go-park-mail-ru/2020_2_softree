@@ -1,0 +1,14 @@
+version: "3.8"
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mc_api:latest
+    container_name: moneycat
+    ports:
+    - 9000:8080
+    volumes:
+    - ./configs:/etc/moneycat
+    command: ["-f", "/etc/moneycat/local.yml"]
+    restart: on-failure

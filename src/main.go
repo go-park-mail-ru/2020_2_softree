@@ -2,10 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/gorilla/mux"
-	"log"
 	"math/rand"
 	"net/http"
+	"os"
 	"server/src/domain/entity/rates"
 	"server/src/handlers/authorization/auth"
 	"server/src/handlers/authorization/login"
@@ -15,17 +14,28 @@ import (
 	"server/src/handlers/userInteraction"
 	"server/src/infrastructure/config"
 	"server/src/infrastructure/corsInteraction"
+	"server/src/infrastructure/log"
 	"time"
+
+	"github.com/gorilla/mux"
 )
 
-func init()  {
+func init() {
 	rand.Seed(time.Now().UnixNano())
+
+	if err := config.InitFlags(); err != nil {
+		fmt.Fprint(os.Stderr, "Error during parse args or config", err)
+		os.Exit(1)
+	}
+
+	if err := log.ConfigureLogger(); err != nil {
+		fmt.Fprintf(os.Stderr, "Cannot inizialize logger %v\n", err)
+		os.Exit(1)
+	}
 }
 
 func main() {
-	config.InitFlags()
 	go rates.StartTicker()
-
 	router := mux.NewRouter()
 	r := router.PathPrefix("").Subrouter()
 
@@ -45,5 +55,5 @@ func main() {
 		ReadTimeout:  10 * time.Second,
 	}
 
-	log.Fatal(server.ListenAndServe())
+	log.GlobalLogger.Error(server.ListenAndServe())
 }
