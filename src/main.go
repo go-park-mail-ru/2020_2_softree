@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -20,13 +21,46 @@ import (
 	"github.com/gorilla/mux"
 )
 
+func initFlags() {
+	var helpFlag bool
+
+	flag.StringVar(&config.GlobalServerConfig.Port, "p", "", "-p set port to listen")
+	flag.StringVar(&config.GlobalServerConfig.IP, "ip", "", "-ip set ip addr")
+	flag.StringVar(&config.GlobalServerConfig.Domain, "d", "", "-d set domain")
+	flag.BoolVar(&config.GlobalServerConfig.Secure, "s", true, "-s set CORS")
+	flag.StringVar(&config.GlobalServerConfig.ConfigFile, "f", "", "-f path to config file")
+	flag.StringVar(&config.GlobalServerConfig.LogLevel, "ll", "info", "-ll set log level")
+	flag.StringVar(&config.GlobalServerConfig.LogFile, "lf", "", "-lf set log file")
+	flag.BoolVar(&helpFlag, "h", false, "-h get usage message")
+
+	flag.Parse()
+
+	if helpFlag {
+		flag.Usage()
+		os.Exit(0)
+	}
+
+	if config.GlobalServerConfig.ConfigFile != "" {
+		if err := config.ParseConfig(); err != nil {
+			fmt.Fprint(os.Stderr, "Error during parsing config", err)
+			os.Exit(1)
+		}
+		return
+	}
+
+	if config.GlobalServerConfig.IP == "" ||
+		config.GlobalServerConfig.Port == "" ||
+		config.GlobalServerConfig.Domain == "" {
+		fmt.Fprint(os.Stderr, "Need to explicit set server ip:port and domain")
+		flag.Usage()
+		os.Exit(1)
+	}
+}
+
 func init() {
 	rand.Seed(time.Now().UnixNano())
 
-	if err := config.InitFlags(); err != nil {
-		fmt.Fprint(os.Stderr, "Error during parse args or config", err)
-		os.Exit(1)
-	}
+	initFlags()
 
 	if err := log.ConfigureLogger(); err != nil {
 		fmt.Fprintf(os.Stderr, "Cannot inizialize logger %v\n", err)

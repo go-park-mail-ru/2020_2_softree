@@ -1,8 +1,6 @@
 package config
 
 import (
-	"errors"
-	"flag"
 	"io/ioutil"
 
 	"gopkg.in/yaml.v2"
@@ -15,6 +13,7 @@ type ServerConfig struct {
 	Secure   bool   `yaml:"secure"`
 	LogLevel string `yaml:"logLevel"`
 	LogFile  string `yaml:"logFile"`
+	ConfigFile string
 }
 
 type CORSConfig struct {
@@ -33,10 +32,8 @@ var GlobalCORSConfig = CORSConfig{
 	ExposedHeaders: []string{"Content-Length", "Content-Range"},
 }
 
-var configPath string
-
 func ParseConfig() error {
-	yamlFile, err := ioutil.ReadFile(configPath)
+	yamlFile, err := ioutil.ReadFile(GlobalServerConfig.ConfigFile)
 	if err != nil {
 		return err
 	}
@@ -45,33 +42,5 @@ func ParseConfig() error {
 	if err != nil {
 		return err
 	}
-	return nil
-}
-
-func InitFlags() error {
-	flag.StringVar(&GlobalServerConfig.Port, "p", "", "-p set port to listen")
-	flag.StringVar(&GlobalServerConfig.IP, "ip", "", "-ip set ip addr")
-	flag.StringVar(&GlobalServerConfig.Domain, "d", "", "-d set domain")
-	flag.BoolVar(&GlobalServerConfig.Secure, "s", true, "-s set CORS")
-	flag.StringVar(&configPath, "f", "", "-f path to config file")
-	flag.StringVar(&GlobalServerConfig.LogLevel, "ll", "info", "-ll set log level")
-	flag.StringVar(&GlobalServerConfig.LogFile, "lf", "", "-lf set log file")
-
-	flag.Parse()
-
-	if configPath != "" {
-		if err := ParseConfig(); err != nil {
-			return err
-		}
-		return nil
-	}
-
-	if GlobalServerConfig.IP == "" ||
-		GlobalServerConfig.Port == "" ||
-		GlobalServerConfig.Domain == "" {
-		flag.Usage()
-		return errors.New("Need to explicity set ip:port and domain")
-	}
-
 	return nil
 }
