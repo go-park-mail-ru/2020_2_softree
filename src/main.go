@@ -24,12 +24,12 @@ import (
 func initFlags() {
 	var helpFlag bool
 
-	flag.StringVar(&config.GlobalServerConfig.Port, "p", "", "-p set port to listen")
-	flag.StringVar(&config.GlobalServerConfig.IP, "ip", "", "-ip set ip addr")
-	flag.StringVar(&config.GlobalServerConfig.Domain, "d", "", "-d set domain")
-	flag.BoolVar(&config.GlobalServerConfig.Secure, "s", true, "-s set CORS")
+	flag.StringVar(&config.GlobalServerConfig.Port, "p", "127.0.0.1", "-p set port to listen")
+	flag.StringVar(&config.GlobalServerConfig.IP, "ip", "8000", "-ip set ip addr")
+	flag.StringVar(&config.GlobalServerConfig.Domain, "d", "", "-d set domain name")
+	flag.BoolVar(&config.GlobalServerConfig.Secure, "s", false, "-s set cookie HTTPS only")
 	flag.StringVar(&config.GlobalServerConfig.ConfigFile, "f", "", "-f path to config file")
-	flag.StringVar(&config.GlobalServerConfig.LogLevel, "ll", "info", "-ll set log level")
+	flag.StringVar(&config.GlobalServerConfig.LogLevel, "ll", "Info", "-ll set log level")
 	flag.StringVar(&config.GlobalServerConfig.LogFile, "lf", "", "-lf set log file")
 	flag.BoolVar(&helpFlag, "h", false, "-h get usage message")
 
@@ -46,14 +46,6 @@ func initFlags() {
 			os.Exit(1)
 		}
 		return
-	}
-
-	if config.GlobalServerConfig.IP == "" ||
-		config.GlobalServerConfig.Port == "" ||
-		config.GlobalServerConfig.Domain == "" {
-		fmt.Fprint(os.Stderr, "Need to explicit set server ip:port and domain")
-		flag.Usage()
-		os.Exit(1)
 	}
 }
 

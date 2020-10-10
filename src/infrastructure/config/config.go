@@ -7,12 +7,12 @@ import (
 )
 
 type ServerConfig struct {
-	Port     string `yaml:"port"`
-	IP       string `yaml:"ip"`
-	Domain   string `yaml:"domain"`
-	Secure   bool   `yaml:"secure"`
-	LogLevel string `yaml:"logLevel"`
-	LogFile  string `yaml:"logFile"`
+	Port       string `yaml:"port"`
+	IP         string `yaml:"ip"`
+	Domain     string `yaml:"domain"`
+	Secure     bool   `yaml:"secure"`
+	LogLevel   string `yaml:"logLevel"`
+	LogFile    string `yaml:"logFile"`
 	ConfigFile string
 }
 
