@@ -13,3 +13,10 @@ type PublicUser struct {
 }
 
 var Users []PublicUser
+
+func (u *User) Validate(action string) /*jsonRealisation.ErrorJSON*/ {
+	// some user validation like email, password, password difference
+	// action like login, auth, signup and others
+	// returns errorJSON
+	// errorJSON will be converted to json from calling func
+}
