@@ -33,6 +33,7 @@ func TestAuthenticationSuccess(t *testing.T) {
 	cookie, _ := security.MakeCookie()
 	req.AddCookie(&cookie)
 	utils.Sessions["yandex@mail.ru"] = cookie.Value
+	entity.Users = append(entity.Users, entity.PublicUser{Email: "yandex@mail.ru", Avatar: "str"})
 
 	Authentication(w, req)
 
@@ -41,7 +42,7 @@ func TestAuthenticationSuccess(t *testing.T) {
 			w.Code, http.StatusOK)
 	}
 
-	expected := "{\"email\":\"\",\"avatar\":\"\"}"
+	expected := "{\"email\":\"yandex@mail.ru\",\"avatar\":\"str\"}"
 
 	bodyBytes, _ := ioutil.ReadAll(w.Result().Body)
 	bodyString := string(bodyBytes)
