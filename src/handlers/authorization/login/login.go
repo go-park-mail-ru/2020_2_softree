@@ -38,7 +38,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	utils.Sessions[loginJSON.Email] = cookie.Value
 	http.SetCookie(w, &cookie)
 
-	u := auth.FindUserInSession(cookie.Value)
+	u, _ := auth.FindUserInSession(cookie.Value)
 	result, err := json.Marshal(&u)
 	if err != nil {
 		log.Println(err)
