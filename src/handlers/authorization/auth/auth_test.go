@@ -62,7 +62,7 @@ func TestFindUserInSessionSuccess(t *testing.T) {
 
 	val := cookie.Value
 	utils.Sessions["yandex@mail.ru"] = val
-	user := entity.PublicUser{Email: "yandex@mail.ru", Avatar: "some"}
+	user := entity.PublicUser{Email: "yandex@mail.ru", Avatar: "str"}
 	entity.Users = append(entity.Users, user)
 
 	result, _ := FindUserInSession(val)
