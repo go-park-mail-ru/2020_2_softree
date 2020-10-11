@@ -13,7 +13,7 @@ FROM alpine:latest
 
 WORKDIR /app
 COPY --from=build /app/bin/mc .
-COPY --from=build /app/etc/docker.yml .
+COPY --from=build /app/configs/docker.yml .
 
 ENTRYPOINT ["/app/mc", "-f", "/app/docker.yml"]
 

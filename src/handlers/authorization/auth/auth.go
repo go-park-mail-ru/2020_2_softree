@@ -2,6 +2,7 @@ package auth
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"server/src/domain/entity"
@@ -13,13 +14,18 @@ func Authentication(w http.ResponseWriter, r *http.Request) {
 	logged := err != http.ErrNoCookie
 
 	if logged {
-		u := FindUserInSession(cookie.Value)
+		u, err := FindUserInSession(cookie.Value)
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			log.Println(err)
+			return
+		}
 
 		result, _ := json.Marshal(&u)
 
 		w.Header().Set("content-type", "application/json")
 
-		_, err := w.Write(result)
+		_, err = w.Write(result)
 		if err != nil {
 			log.Println(err)
 			return
@@ -33,7 +39,7 @@ func Authentication(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusUnauthorized)
 }
 
-func FindUserInSession(hash string) entity.PublicUser {
+func FindUserInSession(hash string) (entity.PublicUser, error) {
 	var email string
 	for key, val := range utils.Sessions {
 		if val == hash {
@@ -43,9 +49,9 @@ func FindUserInSession(hash string) entity.PublicUser {
 
 	for i := range entity.Users {
 		if entity.Users[i].Email == email {
-			return entity.Users[i]
+			return entity.Users[i], nil
 		}
 	}
 
-	return entity.PublicUser{}
+	return entity.PublicUser{}, errors.New("no user in session")
 }

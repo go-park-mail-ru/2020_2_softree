@@ -24,8 +24,8 @@ import (
 func initFlags() {
 	var helpFlag bool
 
-	flag.StringVar(&config.GlobalServerConfig.Port, "p", "127.0.0.1", "-p set port to listen")
-	flag.StringVar(&config.GlobalServerConfig.IP, "ip", "8000", "-ip set ip addr")
+	flag.StringVar(&config.GlobalServerConfig.Port, "p", "8000", "-p set port to listen")
+	flag.StringVar(&config.GlobalServerConfig.IP, "ip", "127.0.0.1", "-ip set ip addr")
 	flag.StringVar(&config.GlobalServerConfig.Domain, "d", "", "-d set domain name")
 	flag.BoolVar(&config.GlobalServerConfig.Secure, "s", false, "-s set cookie HTTPS only")
 	flag.StringVar(&config.GlobalServerConfig.ConfigFile, "f", "", "-f path to config file")
