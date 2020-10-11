@@ -64,7 +64,7 @@ func TestFindUserInSessionSuccess(t *testing.T) {
 	user := entity.PublicUser{Email: "yandex@mail.ru", Avatar: "some"}
 	entity.Users = append(entity.Users, user)
 
-	result := FindUserInSession(val)
+	result, _ := FindUserInSession(val)
 
 	if result != user {
 		t.Errorf("\nwrong result\ngot: %s\nexpected: %s",
@@ -81,7 +81,7 @@ func TestFindUserInSessionFail(t *testing.T) {
 
 	val := cookie.Value
 
-	result := FindUserInSession(val)
+	result, _ := FindUserInSession(val)
 	expected := entity.PublicUser{}
 
 	if result != expected {
