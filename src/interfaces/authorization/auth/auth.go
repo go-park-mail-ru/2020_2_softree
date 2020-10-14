@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 	"server/src/domain/entity"
-	"server/src/handlers/authorization/utils"
+	"server/src/interfaces/authorization/utils"
 )
 
 func Authentication(w http.ResponseWriter, r *http.Request) {

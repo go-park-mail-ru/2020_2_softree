@@ -3,9 +3,9 @@ package logout
 import (
 	"log"
 	"net/http"
-	"server/src/handlers/authorization/utils"
-	"server/src/handlers/userInteraction"
 	"server/src/infrastructure/security"
+	"server/src/interfaces/authorization/utils"
+	"server/src/interfaces/userInteraction"
 	"time"
 )
 

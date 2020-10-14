@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"server/src/domain/entity"
 	"server/src/domain/entity/jsonRealisation"
-	"server/src/handlers/authorization/utils"
 	"server/src/infrastructure/security"
+	"server/src/interfaces/authorization/utils"
 )
 
 func UpdateUserPartly(w http.ResponseWriter, r *http.Request) {
