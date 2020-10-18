@@ -17,14 +17,14 @@ func (ur *UserRepo) SaveUser(u *entity.User) (*entity.User, *jsonRealisation.Err
 	return u, &jsonRealisation.ErrorJSON{}
 }
 
-func (ur *UserRepo) UpdateUser(uint64, entity.User) (entity.User, error) {
+func (ur *UserRepo) UpdateUser(id uint64, u entity.User) (entity.User, error) {
 	return entity.User{}, nil
 }
 
-func (ur *UserRepo) DeleteUser(uint64) error {
+func (ur *UserRepo) DeleteUser(id uint64) error {
 	return nil
 }
 
-func (ur *UserRepo) GetUser(uint64) (*entity.User, error) {
+func (ur *UserRepo) GetUser(id uint64) (*entity.User, error) {
 	return &entity.User{}, nil
 }
