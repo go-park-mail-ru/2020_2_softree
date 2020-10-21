@@ -5,25 +5,25 @@ import (
 	"server/src/domain/entity/jsonRealisation"
 )
 
-type UserRepo struct {
+type UserMemoryRepo struct {
 	database string
 }
 
-var users []entity.User
+var Users []entity.User
 
-func NewUserRepository(database string) *UserRepo {
-	return &UserRepo{}
+func NewUserRepository(database string) *UserMemoryRepo {
+	return &UserMemoryRepo{database: database}
 }
 
-func (ur *UserRepo) SaveUser(u *entity.User) (*entity.User, *jsonRealisation.ErrorJSON) {
-	users = append(users, *u)
-	u.ID = uint64(len(users))
+func (ur *UserMemoryRepo) SaveUser(u entity.User) (entity.User, *jsonRealisation.ErrorJSON) {
+	u.ID = uint64(len(Users) + 1)
+	Users = append(Users, u)
 	return u, &jsonRealisation.ErrorJSON{}
 }
 
-func (ur *UserRepo) UpdateUser(id uint64, u entity.User) (entity.User, error) {
+func (ur *UserMemoryRepo) UpdateUser(id uint64, u entity.User) (entity.User, error) {
 	var user entity.User
-	for _, user = range users {
+	for _, user = range Users {
 		if user.ID == id {
 			break
 		}
@@ -33,10 +33,10 @@ func (ur *UserRepo) UpdateUser(id uint64, u entity.User) (entity.User, error) {
 	return user, nil
 }
 
-func (ur *UserRepo) DeleteUser(id uint64) error {
+func (ur *UserMemoryRepo) DeleteUser(id uint64) error {
 	return nil
 }
 
-func (ur *UserRepo) GetUser(id uint64) (*entity.User, error) {
+func (ur *UserMemoryRepo) GetUser(id uint64) (*entity.User, error) {
 	return &entity.User{}, nil
 }

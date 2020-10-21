@@ -8,8 +8,8 @@ import (
 )
 
 func (a *Authenticate) Signup(w http.ResponseWriter, r *http.Request) {
-	var user *entity.User
-	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
+	var user entity.User
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -34,7 +34,7 @@ func (a *Authenticate) Signup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, &cookie)
-	if err := a.auth.CreateAuth(user.ID, &cookie); err != nil {
+	if err := a.auth.CreateAuth(user.ID, cookie.Value); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

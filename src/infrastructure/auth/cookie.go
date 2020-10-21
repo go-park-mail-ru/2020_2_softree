@@ -16,11 +16,35 @@ type CookieInterface interface {
 	ExtractData(*http.Request) (*AccessDetails, error)
 }
 
-func ExtractData(r *http.Request) (ad *AccessDetails, err error) {
+type Token struct {
+	token string
+}
+
+func NewToken(token string) *Token {
+	return &Token{token: token}
+}
+
+func (t *Token) ExtractData(r *http.Request) (ad *AccessDetails, err error) {
 	if err := json.NewDecoder(r.Body).Decode(&ad); err != nil {
 		return &AccessDetails{}, err
 	}
 	return ad, nil
+}
+
+func (t *Token) CreateCookie() (http.Cookie, error) {
+	hash, err := makeCookieHash()
+	if err != nil {
+		return http.Cookie{}, err
+	}
+	return http.Cookie{
+		Name:     "session_id",
+		Value:    hash,
+		Expires:  time.Now().Add(24 * time.Hour),
+		Domain:   config.GlobalServerConfig.Domain,
+		Secure:   config.GlobalServerConfig.Secure,
+		HttpOnly: true,
+		Path:     "/",
+	}, nil
 }
 
 func CreateCookie() (http.Cookie, error) {
