@@ -1,13 +1,13 @@
 version: "3.8"
 services:
   api:
-    #build:
-    #  context: .
-    #  dockerfile: Dockerfile
-    image: softree/moneycat:master
+    build:
+      context: .
+      dockerfile: Dockerfile
+    #image: softree/moneycat:master
     container_name: moneycat
     ports:
-    - 9000:8080
+    - 9000:80
     volumes:
     - ./configs:/etc/moneycat
     command: ["-f", "/etc/moneycat/local.yml"]
