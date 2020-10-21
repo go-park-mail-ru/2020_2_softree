@@ -12,19 +12,23 @@ import (
 )
 
 type CookieInterface interface {
-	CreateCookie(uint64) (*CookieDetails, error)
+	CreateCookie() (http.Cookie, error)
 	ExtractData(*http.Request) (*AccessDetails, error)
 }
 
-type Cookie struct{}
+func ExtractData(r *http.Request) (ad *AccessDetails, err error) {
+	if err := json.NewDecoder(r.Body).Decode(&ad); err != nil {
+		return &AccessDetails{}, err
+	}
+	return ad, nil
+}
 
-func (c *Cookie) CreateCookie() (*CookieDetails, error) {
+func CreateCookie() (http.Cookie, error) {
 	hash, err := makeCookieHash()
 	if err != nil {
-		return &CookieDetails{}, err
+		return http.Cookie{}, err
 	}
-
-	cd := MakeCookieDetailsFromCookie(http.Cookie{
+	return http.Cookie{
 		Name:     "session_id",
 		Value:    hash,
 		Expires:  time.Now().Add(24 * time.Hour),
@@ -32,16 +36,7 @@ func (c *Cookie) CreateCookie() (*CookieDetails, error) {
 		Secure:   config.GlobalServerConfig.Secure,
 		HttpOnly: true,
 		Path:     "/",
-	})
-
-	return &cd, nil
-}
-
-func (c *Cookie) ExtractData(r *http.Request) (ad *AccessDetails, err error) {
-	if err := json.NewDecoder(r.Body).Decode(&ad); err != nil {
-		return &AccessDetails{}, err
-	}
-	return ad, nil
+	}, nil
 }
 
 func makeCookieHash() (string, error) {

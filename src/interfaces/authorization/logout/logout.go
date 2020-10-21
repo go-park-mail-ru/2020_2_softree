@@ -3,7 +3,7 @@ package logout
 import (
 	"log"
 	"net/http"
-	"server/src/infrastructure/security"
+	"server/src/infrastructure/auth"
 	"server/src/interfaces/authorization/utils"
 	"server/src/interfaces/userInteraction"
 	"time"
@@ -16,7 +16,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newCookie, err := security.MakeCookie()
+	newCookie, err := auth.CreateCookie()
 	if err != nil {
 		log.Println(err)
 		return

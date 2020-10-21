@@ -9,16 +9,16 @@ import (
 type Authenticate struct {
 	userApp application.UserAppInterface
 	auth    auth.AuthInterface
+	cookie  auth.CookieInterface
 }
 
-func NewAuthenticate (uApp application.UserAppInterface, auth auth.AuthInterface) *Authenticate {
-	return &Authenticate{userApp: uApp, auth: auth}
+func NewAuthenticate(
+	uApp application.UserAppInterface, auth auth.AuthInterface, cookie auth.CookieInterface) *Authenticate {
+	return &Authenticate{userApp: uApp, auth: auth, cookie: cookie}
 }
 
 func (a *Authenticate) Login(w http.ResponseWriter, r *http.Request) {
 }
-
-// Signup?
 
 func (a *Authenticate) Logout(w http.ResponseWriter, r *http.Request) {
 }
