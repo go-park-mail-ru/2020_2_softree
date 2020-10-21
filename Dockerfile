@@ -12,9 +12,7 @@ RUN make build
 FROM alpine:latest
 
 WORKDIR /app
+RUN mkdir /etc/moneycat
 COPY --from=build /app/bin/mc .
-COPY --from=build /app/configs/docker.yml .
 
-ENTRYPOINT ["/app/mc", "-f", "/app/docker.yml"]
-
-EXPOSE 8888
+ENTRYPOINT ["/app/mc"]
