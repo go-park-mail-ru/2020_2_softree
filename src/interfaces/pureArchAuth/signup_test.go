@@ -10,13 +10,16 @@ import (
 	"testing"
 )
 
-func TestAuthenticate_SignupSuccess(t *testing.T) {
+func createTestAuthenticate() *Authenticate {
 	servicesDB := persistence.NewUserRepository("db")
 	servicesAuth := auth.NewMemAuth("auth")
 	servicesCookie := auth.NewToken("token")
 
-	testAuth := NewAuthenticate(servicesDB, servicesAuth, servicesCookie)
+	return NewAuthenticate(servicesDB, servicesAuth, servicesCookie)
+}
 
+func TestAuthenticate_SignupSuccess(t *testing.T) {
+	testAuth := createTestAuthenticate()
 	url := "http://127.0.0.1:8000/signup"
 	body := strings.NewReader(`{"email": "hound@psina.ru", "password": "str"}`)
 
@@ -27,5 +30,41 @@ func TestAuthenticate_SignupSuccess(t *testing.T) {
 
 	assert.NotEmpty(t, persistence.Users)
 	assert.NotEmpty(t, auth.Sessions)
+	assert.Empty(t, w.Result().Header.Get("content-type"))
+	assert.Empty(t, w.Body)
 	assert.Equal(t, http.StatusCreated, w.Result().StatusCode)
+}
+
+func TestAuthenticate_SignupFailEmail(t *testing.T) {
+	testAuth := createTestAuthenticate()
+	url := "http://127.0.0.1:8000/signup"
+	body := strings.NewReader(`{"email": "hound.ru", "password": "str"}`)
+
+	req := httptest.NewRequest("POST", url, body)
+	w := httptest.NewRecorder()
+
+	testAuth.Signup(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+	assert.NotEmpty(t, w.Body)
+	assert.NotEmpty(t, w.Header().Get("Content-type"))
+	assert.Empty(t, persistence.Users)
+	assert.Empty(t, auth.Sessions)
+}
+
+func TestAuthenticate_SignupFailEmptyPassword(t *testing.T) {
+	testAuth := createTestAuthenticate()
+	url := "http://127.0.0.1:8000/signup"
+	body := strings.NewReader(`{"email": "hound@psina.ru"}`)
+
+	req := httptest.NewRequest("POST", url, body)
+	w := httptest.NewRecorder()
+
+	testAuth.Signup(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+	assert.NotEmpty(t, w.Body)
+	assert.NotEmpty(t, w.Header().Get("Content-type"))
+	assert.Empty(t, persistence.Users)
+	assert.Empty(t, auth.Sessions)
 }

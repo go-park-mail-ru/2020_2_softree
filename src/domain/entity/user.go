@@ -1,11 +1,14 @@
 package entity
 
-import "server/src/domain/entity/jsonRealisation"
+import (
+	"github.com/asaskevich/govalidator"
+	"server/src/domain/entity/jsonRealisation"
+)
 
 type User struct {
 	ID       uint64 `json:"id"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    string `json:"email" valid:"email"`
+	Password string `json:"password" valid:"required"`
 	Avatar   string `json:"avatar"`
 }
 
@@ -23,10 +26,24 @@ func (u *User) PublicUsers() PublicUser {
 	}
 }
 
-func (u *User) Validate(action string) jsonRealisation.ErrorJSON {
-	// some user validation like email, password, password difference
-	// action like login, auth, signup and others
-	// returns errorJSON
-	// errorJSON will be converted to json from calling func
-	return jsonRealisation.ErrorJSON{}
+func (u *User) Validate(action string) (errors jsonRealisation.ErrorJSON) {
+	switch action {
+	case "signup":
+		if !govalidator.IsEmail(u.Email) {
+			errors.Email = append(errors.Email, "некорректный email")
+			errors.NotEmpty = true
+		}
+
+		if u.Password == "" {
+			errors.Password = append(errors.Email, "некорректный пароль")
+			errors.NotEmpty = true
+		}
+
+		if govalidator.IsNull(u.Password) {
+			errors.Password = append(errors.Email, "некорректный пароль")
+			errors.NotEmpty = true
+		}
+	}
+
+	return errors
 }

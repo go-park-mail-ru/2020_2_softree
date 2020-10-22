@@ -14,18 +14,12 @@ func (a *Authenticate) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var errors *jsonRealisation.ErrorJSON
-	user, errors = a.userApp.SaveUser(user)
-
+	errors := user.Validate("signup")
 	if errors.NotEmpty {
-		res, err := json.Marshal(errors)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-		}
-
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(res)
+		createInternalServerError(&errors, w)
+		return
 	}
+	user, _ = a.userApp.SaveUser(user)
 
 	cookie, err := a.cookie.CreateCookie()
 	if err != nil {
@@ -40,4 +34,15 @@ func (a *Authenticate) Signup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
+}
+
+func createInternalServerError(errors *jsonRealisation.ErrorJSON, w http.ResponseWriter) {
+	res, err := json.Marshal(errors)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	w.WriteHeader(http.StatusBadRequest)
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(res)
 }

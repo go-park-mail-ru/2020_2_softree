@@ -15,10 +15,10 @@ func NewUserRepository(database string) *UserMemoryRepo {
 	return &UserMemoryRepo{database: database}
 }
 
-func (ur *UserMemoryRepo) SaveUser(u entity.User) (entity.User, *jsonRealisation.ErrorJSON) {
+func (ur *UserMemoryRepo) SaveUser(u entity.User) (entity.User, jsonRealisation.ErrorJSON) {
 	u.ID = uint64(len(Users) + 1)
 	Users = append(Users, u)
-	return u, &jsonRealisation.ErrorJSON{}
+	return u, jsonRealisation.ErrorJSON{}
 }
 
 func (ur *UserMemoryRepo) UpdateUser(id uint64, u entity.User) (entity.User, error) {
