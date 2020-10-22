@@ -24,6 +24,7 @@ func (a *Authenticate) Auth(w http.ResponseWriter, r *http.Request) {
 
 	res, err := json.Marshal(user.MakePublicUser())
 	if err != nil {
+		log.GlobalLogger.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -36,12 +37,12 @@ func (a *Authenticate) Auth(w http.ResponseWriter, r *http.Request) {
 func extractUserFromSession(c *http.Cookie, a *Authenticate) (entity.User, error) {
 	id, err := a.auth.CheckAuth(c.Value)
 	if err != nil {
-		return entity.User{}, errors.New("InternalServerError")
+		return entity.User{}, errors.New("CheckAuth in extractUserFromSession")
 	}
 
 	user, err := a.userApp.GetUser(id)
 	if err != nil {
-		return entity.User{}, errors.New("InternalServerError")
+		return entity.User{}, errors.New("GetUser in extractUserFromSession")
 	}
 
 	return *user, nil

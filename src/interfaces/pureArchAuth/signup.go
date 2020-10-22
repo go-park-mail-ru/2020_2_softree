@@ -5,11 +5,13 @@ import (
 	"net/http"
 	"server/src/domain/entity"
 	"server/src/domain/entity/jsonRealisation"
+	"server/src/infrastructure/log"
 )
 
 func (a *Authenticate) Signup(w http.ResponseWriter, r *http.Request) {
 	var user entity.User
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		log.GlobalLogger.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -23,12 +25,14 @@ func (a *Authenticate) Signup(w http.ResponseWriter, r *http.Request) {
 
 	cookie, err := a.cookie.CreateCookie()
 	if err != nil {
+		log.GlobalLogger.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	http.SetCookie(w, &cookie)
 	if err := a.auth.CreateAuth(user.ID, cookie.Value); err != nil {
+		log.GlobalLogger.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -39,6 +43,7 @@ func (a *Authenticate) Signup(w http.ResponseWriter, r *http.Request) {
 func createInternalServerError(errors *jsonRealisation.ErrorJSON, w http.ResponseWriter) {
 	res, err := json.Marshal(errors)
 	if err != nil {
+		log.GlobalLogger.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
