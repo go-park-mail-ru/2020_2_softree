@@ -3,8 +3,6 @@ package security
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"math/rand"
-	"strconv"
 )
 
 func MakeShieldedHash(stringToHash string) (string, error) {
@@ -21,14 +19,5 @@ func MakeShieldedHash(stringToHash string) (string, error) {
 		return "", err
 	}
 
-	return hex.EncodeToString(hash.Sum(nil)), nil
-}
-
-func makeCookieHash() (string, error) {
-	hash := sha256.New()
-
-	if _, err := hash.Write([]byte(strconv.Itoa(rand.Int()))); err != nil {
-		return "", err
-	}
 	return hex.EncodeToString(hash.Sum(nil)), nil
 }
