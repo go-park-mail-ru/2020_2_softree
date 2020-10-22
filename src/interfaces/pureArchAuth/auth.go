@@ -2,7 +2,10 @@ package pureArchAuth
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
+	"server/src/domain/entity"
+	"server/src/infrastructure/log"
 )
 
 func (a *Authenticate) Auth(w http.ResponseWriter, r *http.Request) {
@@ -12,14 +15,9 @@ func (a *Authenticate) Auth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := a.auth.CheckAuth(cookie.Value)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	user, err := a.userApp.GetUser(id)
-	if err != nil {
+	var user entity.User
+	if user, err = extractUserFromSession(cookie, a); err != nil {
+		log.GlobalLogger.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -33,4 +31,18 @@ func (a *Authenticate) Auth(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-Type", "application/json")
 	w.Write(res)
+}
+
+func extractUserFromSession(c *http.Cookie, a *Authenticate) (entity.User, error) {
+	id, err := a.auth.CheckAuth(c.Value)
+	if err != nil {
+		return entity.User{}, errors.New("InternalServerError")
+	}
+
+	user, err := a.userApp.GetUser(id)
+	if err != nil {
+		return entity.User{}, errors.New("InternalServerError")
+	}
+
+	return *user, nil
 }

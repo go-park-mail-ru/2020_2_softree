@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"server/src/infrastructure/auth"
 	"server/src/interfaces/authorization/utils"
-	"server/src/interfaces/userInteraction"
+	"server/src/interfaces/profile"
 	"time"
 )
 
@@ -26,7 +26,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	newCookie.Value = ""
 	http.SetCookie(w, &newCookie)
 
-	email := userInteraction.FindEmailInSession(cookie.Value)
+	email := profile.FindEmailInSession(cookie.Value)
 	delete(utils.Sessions, email)
 
 	w.WriteHeader(http.StatusFound)

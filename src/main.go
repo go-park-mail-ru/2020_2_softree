@@ -15,7 +15,7 @@ import (
 	"server/src/interfaces/authorization/logout"
 	"server/src/interfaces/authorization/signup"
 	"server/src/interfaces/ratesInteraction"
-	"server/src/interfaces/userInteraction"
+	"server/src/interfaces/profile"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -80,10 +80,10 @@ func main() {
 	r.HandleFunc("/rates", ratesInteraction.Rates).
 		Methods("GET", "OPTIONS")
 
-	r.HandleFunc("/user", userInteraction.UpdateUserPartly).
+	r.HandleFunc("/user", profile.UpdateUserPartly).
 		Methods("PATCH", "OPTIONS")
 
-	r.HandleFunc("/change-password", userInteraction.UpdatePassword).
+	r.HandleFunc("/change-password", profile.UpdatePassword).
 		Methods("PATCH", "OPTIONS")
 
 	r.Use(corsInteraction.CORSMiddleware())
