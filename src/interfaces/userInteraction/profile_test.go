@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"server/src/domain/entity"
+	"server/src/infrastructure/auth"
 	"server/src/infrastructure/security"
 	"server/src/interfaces/authorization/utils"
 	"strings"
@@ -26,7 +27,7 @@ func TestUpdateUserWithoutCookie(t *testing.T) {
 
 var testEmail = "hound@psina.ru"
 var testPassword = "123"
-var cookie, _ = security.MakeCookie()
+var cookie, _ = auth.CreateCookie()
 
 func makeTestData() {
 	utils.UsersServerSession[testEmail], _ = security.MakeShieldedHash(testPassword)

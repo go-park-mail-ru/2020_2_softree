@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func createTestAuthenticate() *Authenticate {
+func createTestSignupAuthenticate() *Authenticate {
 	servicesDB := persistence.NewUserRepository("db")
 	servicesAuth := auth.NewMemAuth("auth")
 	servicesCookie := auth.NewToken("token")
@@ -19,7 +19,7 @@ func createTestAuthenticate() *Authenticate {
 }
 
 func TestAuthenticate_SignupSuccess(t *testing.T) {
-	testAuth := createTestAuthenticate()
+	testAuth := createTestSignupAuthenticate()
 	url := "http://127.0.0.1:8000/signup"
 	body := strings.NewReader(`{"email": "hound@psina.ru", "password": "str"}`)
 
@@ -36,7 +36,7 @@ func TestAuthenticate_SignupSuccess(t *testing.T) {
 }
 
 func TestAuthenticate_SignupFailEmail(t *testing.T) {
-	testAuth := createTestAuthenticate()
+	testAuth := createTestSignupAuthenticate()
 	url := "http://127.0.0.1:8000/signup"
 	body := strings.NewReader(`{"email": "hound.ru", "password": "str"}`)
 
@@ -53,7 +53,7 @@ func TestAuthenticate_SignupFailEmail(t *testing.T) {
 }
 
 func TestAuthenticate_SignupFailEmptyPassword(t *testing.T) {
-	testAuth := createTestAuthenticate()
+	testAuth := createTestSignupAuthenticate()
 	url := "http://127.0.0.1:8000/signup"
 	body := strings.NewReader(`{"email": "hound@psina.ru"}`)
 

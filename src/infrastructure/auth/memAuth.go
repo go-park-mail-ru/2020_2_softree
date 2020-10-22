@@ -34,7 +34,7 @@ func (m *MemAuth) CheckAuth(sessionValue string) (uint64, error) {
 
 func (m *MemAuth) DeleteAuth(details *AccessDetails) error {
 	for i, val := range Sessions {
-		if val.ID == details.SessionId {
+		if val.Value == details.Value {
 			Sessions = append(Sessions[:i], Sessions[i + 1:]...)
 		}
 	}

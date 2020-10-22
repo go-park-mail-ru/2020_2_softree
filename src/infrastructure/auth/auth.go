@@ -7,5 +7,5 @@ type AuthInterface interface {
 }
 
 type AccessDetails struct {
-	SessionId uint64 `json:"session_id"`
+	Value string `json:"session_id"`
 }
