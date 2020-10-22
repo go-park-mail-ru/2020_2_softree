@@ -30,7 +30,7 @@ func TestAuthenticate_SignupSuccess(t *testing.T) {
 
 	assert.NotEmpty(t, persistence.Users)
 	assert.NotEmpty(t, auth.Sessions)
-	assert.Empty(t, w.Result().Header.Get("content-type"))
+	assert.Empty(t, w.Header().Get("Content-type"))
 	assert.Empty(t, w.Body)
 	assert.Equal(t, http.StatusCreated, w.Result().StatusCode)
 }
