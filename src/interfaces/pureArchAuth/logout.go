@@ -23,6 +23,7 @@ func (a *Authenticate) Logout(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
 	newCookie.Expires = time.Date(1973, 1, 1, 0, 0, 0, 0, time.UTC)
 	newCookie.Value = ""
 	http.SetCookie(w, &newCookie)
