@@ -12,7 +12,7 @@ import (
 )
 
 func TestAuthSuccess(t *testing.T) {
-	url := "http://127.0.0.1:8000/logout"
+	url := "http://127.0.0.1:8000/auth"
 	body := strings.NewReader(`{"email": "yandex@mail.ru", "password": "str"}`)
 
 	req := httptest.NewRequest("POST", url, body)
@@ -28,7 +28,7 @@ func TestAuthSuccess(t *testing.T) {
 }
 
 func TestAuthFail(t *testing.T) {
-	url := "http://127.0.0.1:8000/logout"
+	url := "http://127.0.0.1:8000/auth"
 	body := strings.NewReader(`{"email": "yandex@mail.ru", "password": "str"}`)
 
 	req := httptest.NewRequest("POST", url, body)
