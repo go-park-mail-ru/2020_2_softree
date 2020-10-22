@@ -11,6 +11,35 @@ import (
 	"testing"
 )
 
+func TestAuthSuccess(t *testing.T) {
+	url := "http://127.0.0.1:8000/logout"
+	body := strings.NewReader(`{"email": "yandex@mail.ru", "password": "str"}`)
+
+	req := httptest.NewRequest("POST", url, body)
+	w := httptest.NewRecorder()
+	testAuth := createTestAuthAuthenticateSuccess(req)
+
+	testAuth.Auth(w, req)
+	assert.Equal(t, http.StatusOK, w.Result().StatusCode)
+	assert.NotEmpty(t, auth.Sessions)
+	assert.NotEmpty(t, w.Header().Get("Content-type"))
+	assert.NotEmpty(t, w.Body)
+	assert.NotEmpty(t, persistence.Users)
+}
+
+func TestAuthFail(t *testing.T) {
+	url := "http://127.0.0.1:8000/logout"
+	body := strings.NewReader(`{"email": "yandex@mail.ru", "password": "str"}`)
+
+	req := httptest.NewRequest("POST", url, body)
+	w := httptest.NewRecorder()
+	testAuth := createTestAuthAuthenticateFail(req)
+
+	testAuth.Auth(w, req)
+	assert.Empty(t, w.Header().Get("Content-type"))
+	assert.Equal(t, http.StatusUnauthorized, w.Result().StatusCode)
+}
+
 func createTestAuthAuthenticateSuccess(req *http.Request) *Authenticate {
 	servicesDB := persistence.NewUserRepository("db")
 	servicesAuth := auth.NewMemAuth("auth")
@@ -33,31 +62,3 @@ func createTestAuthAuthenticateFail(req *http.Request) *Authenticate {
 
 	return NewAuthenticate(servicesDB, servicesAuth, servicesCookie)
 }
-
-func TestAuthSuccess(t *testing.T) {
-	url := "http://127.0.0.1:8000/logout"
-	body := strings.NewReader(`{"email": "yandex@mail.ru", "password": "str"}`)
-
-	req := httptest.NewRequest("POST", url, body)
-	w := httptest.NewRecorder()
-	testAuth := createTestAuthAuthenticateSuccess(req)
-
-	testAuth.Auth(w, req)
-	assert.Equal(t, http.StatusOK, w.Result().StatusCode)
-	assert.NotEmpty(t, auth.Sessions)
-	assert.NotEmpty(t, w.Body)
-	assert.NotEmpty(t, persistence.Users)
-}
-
-func TestAuthFail(t *testing.T) {
-	url := "http://127.0.0.1:8000/logout"
-	body := strings.NewReader(`{"email": "yandex@mail.ru", "password": "str"}`)
-
-	req := httptest.NewRequest("POST", url, body)
-	w := httptest.NewRecorder()
-	testAuth := createTestAuthAuthenticateFail(req)
-
-	testAuth.Auth(w, req)
-	assert.Equal(t, http.StatusUnauthorized, w.Result().StatusCode)
-}
-
