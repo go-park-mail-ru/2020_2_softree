@@ -31,5 +31,6 @@ func (a *Authenticate) Auth(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+	w.Header().Add("Content-Type", "application/json")
 	w.Write(res)
 }
