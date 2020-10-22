@@ -38,5 +38,12 @@ func (ur *UserMemoryRepo) DeleteUser(id uint64) error {
 }
 
 func (ur *UserMemoryRepo) GetUser(id uint64) (*entity.User, error) {
-	return &entity.User{}, nil
+	var user entity.User
+	for _, user = range Users {
+		if user.ID == id {
+			break
+		}
+	}
+
+	return &user, nil
 }

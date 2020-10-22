@@ -19,7 +19,7 @@ type PublicUser struct {
 
 var Users []PublicUser
 
-func (u *User) PublicUsers() PublicUser {
+func (u *User) MakePublicUser() PublicUser {
 	return PublicUser{
 		Email:  u.Email,
 		Avatar: u.Avatar,
