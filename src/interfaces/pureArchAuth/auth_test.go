@@ -33,7 +33,7 @@ func TestAuthFail(t *testing.T) {
 
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
-	testAuth := createTestAuthAuthenticateFail(req)
+	testAuth := createTestAuthAuthenticateFail()
 
 	testAuth.Auth(w, req)
 	assert.Empty(t, w.Header().Get("Content-type"))
@@ -55,7 +55,7 @@ func createTestAuthAuthenticateSuccess(req *http.Request) *Authenticate {
 	return NewAuthenticate(servicesDB, servicesAuth, servicesCookie)
 }
 
-func createTestAuthAuthenticateFail(req *http.Request) *Authenticate {
+func createTestAuthAuthenticateFail() *Authenticate {
 	servicesDB := persistence.NewUserRepository("db")
 	servicesAuth := auth.NewMemAuth("auth")
 	servicesCookie := auth.NewToken("token")
