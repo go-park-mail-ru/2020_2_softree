@@ -28,7 +28,7 @@ func (t *Token) ExtractData(r *http.Request) (ad *AccessDetails, err error) {
 	if err := json.NewDecoder(r.Body).Decode(&ad); err != nil {
 		return &AccessDetails{}, err
 	}
-	return ad, nil
+	return
 }
 
 func (t *Token) CreateCookie() (http.Cookie, error) {

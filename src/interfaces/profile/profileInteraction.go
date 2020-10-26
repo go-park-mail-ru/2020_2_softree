@@ -29,9 +29,19 @@ func (p *Profile) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, _ = p.userApp.UpdateUser(id, user)
+	if user, err = p.userApp.UpdateUser(id, user); err != nil {
+		log.GlobalLogger.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
-	res, err := json.Marshal(user.MakePublicUser())
+	res := make([]byte, 1)
+	if res, err = json.Marshal(user.MakePublicUser()); err != nil {
+		log.GlobalLogger.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-Type", "application/json")
 	w.Write(res)
