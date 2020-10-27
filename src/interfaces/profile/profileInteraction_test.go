@@ -19,7 +19,7 @@ func TestUpdateUserAvatarSuccess(t *testing.T) {
 	w := httptest.NewRecorder()
 	testAuth := createTestUpdateUserAuthenticateSuccess(req)
 
-	testAuth.UpdateUser(w, req)
+	testAuth.Auth(testAuth.UpdateUser(testAuth.WriteResponse))
 
 	assert.Equal(t, http.StatusOK, w.Result().StatusCode)
 	assert.NotEmpty(t, auth.Sessions)
@@ -36,7 +36,7 @@ func TestUpdateUserPasswordSuccess(t *testing.T) {
 	w := httptest.NewRecorder()
 	testAuth := createTestUpdateUserAuthenticateSuccess(req)
 
-	testAuth.UpdateUser(w, req)
+	testAuth.Auth(testAuth.UpdateUser(testAuth.WriteResponse))
 
 	assert.Equal(t, http.StatusOK, w.Result().StatusCode)
 	assert.NotEmpty(t, auth.Sessions)
@@ -53,7 +53,8 @@ func TestUpdateUserFail(t *testing.T) {
 	w := httptest.NewRecorder()
 	testAuth := createTestUpdateUserAuthenticateFail()
 
-	testAuth.UpdateUser(w, req)
+	testAuth.Auth(testAuth.UpdateUser(testAuth.WriteResponse))
+
 	assert.Empty(t, w.Header().Get("Content-type"))
 	assert.Equal(t, http.StatusUnauthorized, w.Result().StatusCode)
 }

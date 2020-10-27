@@ -3,7 +3,6 @@ package persistence
 import (
 	"github.com/asaskevich/govalidator"
 	"server/src/domain/entity"
-	"server/src/domain/entity/jsonRealisation"
 	"server/src/infrastructure/security"
 )
 
@@ -17,11 +16,17 @@ func NewUserRepository(database string) *UserMemoryRepo {
 	return &UserMemoryRepo{database: database}
 }
 
-func (ur *UserMemoryRepo) SaveUser(u entity.User) (entity.User, jsonRealisation.ErrorJSON) {
+func (ur *UserMemoryRepo) SaveUser(u entity.User) (entity.User, error) {
 	u.ID = uint64(len(Users) + 1)
-	u.Password, _ = security.MakeShieldedHash(u.Password)
+
+	var err error
+	u.Password, err = security.MakeShieldedHash(u.Password)
+	if err != nil {
+		return entity.User{}, err
+	}
+
 	Users = append(Users, u)
-	return u, jsonRealisation.ErrorJSON{}
+	return u, nil
 }
 
 func (ur *UserMemoryRepo) UpdateUser(id uint64, u entity.User) (entity.User, error) {

@@ -2,7 +2,6 @@ package application
 
 import (
 	"server/src/domain/entity"
-	"server/src/domain/entity/jsonRealisation"
 	"server/src/domain/repository"
 )
 
@@ -11,13 +10,13 @@ type userApp struct {
 }
 
 type UserAppInterface interface {
-	SaveUser(entity.User) (entity.User, jsonRealisation.ErrorJSON)
+	SaveUser(entity.User) (entity.User, error)
 	UpdateUser(uint64, entity.User) (entity.User, error)
 	DeleteUser(uint64) error
 	GetUser(uint64) (*entity.User, error)
 }
 
-func (ua *userApp) SaveUser(u entity.User) (entity.User, jsonRealisation.ErrorJSON) {
+func (ua *userApp) SaveUser(u entity.User) (entity.User, error) {
 	return ua.ur.SaveUser(u)
 }
 

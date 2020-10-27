@@ -10,14 +10,6 @@ import (
 	"testing"
 )
 
-func createTestSignupAuthenticate() *Authenticate {
-	servicesDB := persistence.NewUserRepository("db")
-	servicesAuth := auth.NewMemAuth("auth")
-	servicesCookie := auth.NewToken("token")
-
-	return NewAuthenticate(servicesDB, servicesAuth, servicesCookie)
-}
-
 func TestAuthenticate_SignupSuccess(t *testing.T) {
 	testAuth := createTestSignupAuthenticate()
 	url := "http://127.0.0.1:8000/signup"
@@ -26,7 +18,7 @@ func TestAuthenticate_SignupSuccess(t *testing.T) {
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
 
-	testAuth.Signup(w, req)
+	testAuth.PrepareUser(testAuth.SaveUser(testAuth.Signup))
 
 	assert.NotEmpty(t, persistence.Users)
 	assert.NotEmpty(t, auth.Sessions)
@@ -43,7 +35,7 @@ func TestAuthenticate_SignupFailEmail(t *testing.T) {
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
 
-	testAuth.Signup(w, req)
+	testAuth.PrepareUser(testAuth.SaveUser(testAuth.Signup))
 
 	assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 	assert.NotEmpty(t, w.Body)
@@ -60,11 +52,19 @@ func TestAuthenticate_SignupFailEmptyPassword(t *testing.T) {
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
 
-	testAuth.Signup(w, req)
+	testAuth.PrepareUser(testAuth.SaveUser(testAuth.Signup))
 
 	assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 	assert.NotEmpty(t, w.Body)
 	assert.NotEmpty(t, w.Header().Get("Content-type"))
 	assert.Empty(t, persistence.Users)
 	assert.Empty(t, auth.Sessions)
+}
+
+func createTestSignupAuthenticate() *Authenticate {
+	servicesDB := persistence.NewUserRepository("db")
+	servicesAuth := auth.NewMemAuth("auth")
+	servicesCookie := auth.NewToken("token")
+
+	return NewAuthenticate(servicesDB, servicesAuth, servicesCookie)
 }
