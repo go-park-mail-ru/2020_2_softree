@@ -18,7 +18,7 @@ func TestAuthenticate_SignupSuccess(t *testing.T) {
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
 
-	testAuth.PrepareUser(testAuth.SaveUser(testAuth.Signup))
+	testAuth.Signup(w, req)
 
 	assert.NotEmpty(t, persistence.Users)
 	assert.NotEmpty(t, auth.Sessions)
@@ -35,7 +35,7 @@ func TestAuthenticate_SignupFailEmail(t *testing.T) {
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
 
-	testAuth.PrepareUser(testAuth.SaveUser(testAuth.Signup))
+	testAuth.Signup(w, req)
 
 	assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 	assert.NotEmpty(t, w.Body)
@@ -52,7 +52,7 @@ func TestAuthenticate_SignupFailEmptyPassword(t *testing.T) {
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
 
-	testAuth.PrepareUser(testAuth.SaveUser(testAuth.Signup))
+	testAuth.Signup(w, req)
 
 	assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 	assert.NotEmpty(t, w.Body)
