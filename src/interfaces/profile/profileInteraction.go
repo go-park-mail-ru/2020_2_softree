@@ -29,33 +29,22 @@ func (p *Profile) Auth(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func (p *Profile) UpdateUser(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		id := r.Context().Value("id").(uint64)
+func (p *Profile) UpdateUser(w http.ResponseWriter, r *http.Request) {
+	id := r.Context().Value("id").(uint64)
 
-		var user entity.User
-		err := json.NewDecoder(r.Body).Decode(&user)
-		if err != nil {
-			p.log.Print(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		if user, err = p.userApp.UpdateUser(id, user); err != nil {
-			p.log.Print(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		ctx := context.WithValue(r.Context(), "user", user)
-		r = r.Clone(ctx)
-
-		next.ServeHTTP(w, r)
+	var user entity.User
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		p.log.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
-}
 
-func (p *Profile) WriteResponse(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(entity.User)
+	if user, err = p.userApp.UpdateUser(id, user); err != nil {
+		p.log.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	res, err := json.Marshal(user.MakePublicUser())
 	if err != nil {
