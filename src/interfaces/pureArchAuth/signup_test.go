@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"server/src/infrastructure/auth"
+	"server/src/infrastructure/log"
 	"server/src/infrastructure/persistence"
 	"strings"
 	"testing"
@@ -65,6 +66,7 @@ func createTestSignupAuthenticate() *Authenticate {
 	servicesDB := persistence.NewUserRepository("db")
 	servicesAuth := auth.NewMemAuth("auth")
 	servicesCookie := auth.NewToken("token")
+	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(servicesDB, servicesAuth, servicesCookie)
+	return NewAuthenticate(servicesDB, servicesAuth, servicesCookie, servicesLog)
 }

@@ -5,41 +5,40 @@ import (
 	"net/http"
 	"server/src/domain/entity"
 	"server/src/domain/entity/jsonRealisation"
-	"server/src/infrastructure/log"
 )
 
 func (a *Authenticate) Signup(w http.ResponseWriter, r *http.Request) {
 	var user entity.User
 	var err error
 	if err = json.NewDecoder(r.Body).Decode(&user); err != nil {
-		log.GlobalLogger.Println(err)
+		a.log.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	errors := user.Validate("signup")
 	if errors.NotEmpty {
-		createInternalServerError(&errors, w)
+		a.createInternalServerError(&errors, w)
 		return
 	}
 
 	user, err = a.userApp.SaveUser(user)
 	if err != nil {
-		log.GlobalLogger.Println(err)
+		a.log.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	cookie, err := a.cookie.CreateCookie()
 	if err != nil {
-		log.GlobalLogger.Println(err)
+		a.log.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	http.SetCookie(w, &cookie)
 	if err := a.auth.CreateAuth(user.ID, cookie.Value); err != nil {
-		log.GlobalLogger.Println(err)
+		a.log.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -47,10 +46,10 @@ func (a *Authenticate) Signup(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func createInternalServerError(errors *jsonRealisation.ErrorJSON, w http.ResponseWriter) {
+func (a *Authenticate) createInternalServerError(errors *jsonRealisation.ErrorJSON, w http.ResponseWriter) {
 	res, err := json.Marshal(errors)
 	if err != nil {
-		log.GlobalLogger.Println(err)
+		a.log.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 

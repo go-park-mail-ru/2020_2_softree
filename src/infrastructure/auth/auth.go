@@ -1,6 +1,6 @@
 package auth
 
-type AuthInterface interface {
+type AuthHandler interface {
 	CreateAuth(uint64, string) error
 	CheckAuth(string) (uint64, error)
 	DeleteAuth(*AccessDetails) error

@@ -3,7 +3,6 @@ package pureArchAuth
 import (
 	"net/http"
 	"server/src/infrastructure/auth"
-	"server/src/infrastructure/log"
 	"time"
 )
 
@@ -15,14 +14,14 @@ func (a *Authenticate) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = a.auth.DeleteAuth(&auth.AccessDetails{Value: cookie.Value}); err != nil {
-		log.GlobalLogger.Println(err)
+		a.log.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	newCookie, err := a.cookie.CreateCookie()
 	if err != nil {
-		log.GlobalLogger.Println(err)
+		a.log.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

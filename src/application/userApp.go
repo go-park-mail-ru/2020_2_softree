@@ -9,7 +9,7 @@ type userApp struct {
 	ur repository.UserRepository
 }
 
-type UserAppInterface interface {
+type UserAppHandler interface {
 	SaveUser(entity.User) (entity.User, error)
 	UpdateUser(uint64, entity.User) (entity.User, error)
 	DeleteUser(uint64) error

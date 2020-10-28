@@ -3,15 +3,17 @@ package profile
 import (
 	"server/src/application"
 	"server/src/infrastructure/auth"
+	"server/src/infrastructure/log"
 )
 
 type Profile struct {
-	userApp application.UserAppInterface
-	auth    auth.AuthInterface
-	cookie  auth.CookieInterface
+	userApp application.UserAppHandler
+	auth    auth.AuthHandler
+	cookie  auth.CookieHandler
+	log     log.LogHandler
 }
 
 func NewProfile(
-	uApp application.UserAppInterface, auth auth.AuthInterface, cookie auth.CookieInterface) *Profile {
-	return &Profile{userApp: uApp, auth: auth, cookie: cookie}
+	uApp application.UserAppHandler, auth auth.AuthHandler, cookie auth.CookieHandler, log log.LogHandler) *Profile {
+	return &Profile{userApp: uApp, auth: auth, cookie: cookie, log: log}
 }

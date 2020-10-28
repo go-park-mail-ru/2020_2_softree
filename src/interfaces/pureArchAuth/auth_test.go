@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"server/src/domain/entity"
 	"server/src/infrastructure/auth"
+	"server/src/infrastructure/log"
 	"server/src/infrastructure/persistence"
 	"strings"
 	"testing"
@@ -44,6 +45,7 @@ func createTestAuthAuthenticateSuccess(req *http.Request) *Authenticate {
 	servicesDB := persistence.NewUserRepository("db")
 	servicesAuth := auth.NewMemAuth("auth")
 	servicesCookie := auth.NewToken("token")
+	servicesLog := log.NewLogrusLogger()
 
 	cookie, _ := auth.CreateCookie()
 	user := entity.User{Email: "yandex@mail.ru", Password: "str"}
@@ -52,13 +54,14 @@ func createTestAuthAuthenticateSuccess(req *http.Request) *Authenticate {
 	servicesAuth.CreateAuth(user.ID, cookie.Value)
 
 	req.AddCookie(&cookie)
-	return NewAuthenticate(servicesDB, servicesAuth, servicesCookie)
+	return NewAuthenticate(servicesDB, servicesAuth, servicesCookie, servicesLog)
 }
 
 func createTestAuthAuthenticateFail() *Authenticate {
 	servicesDB := persistence.NewUserRepository("db")
 	servicesAuth := auth.NewMemAuth("auth")
 	servicesCookie := auth.NewToken("token")
+	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(servicesDB, servicesAuth, servicesCookie)
+	return NewAuthenticate(servicesDB, servicesAuth, servicesCookie, servicesLog)
 }

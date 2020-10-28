@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-type CookieInterface interface {
+type CookieHandler interface {
 	CreateCookie() (http.Cookie, error)
 	ExtractData(*http.Request) (*AccessDetails, error)
 }

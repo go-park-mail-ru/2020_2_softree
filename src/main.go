@@ -53,11 +53,6 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 
 	initFlags()
-
-	if err := log.ConfigureLogger(); err != nil {
-		fmt.Fprintf(os.Stderr, "Cannot inizialize logger %v\n", err)
-		os.Exit(1)
-	}
 }
 
 func main() {

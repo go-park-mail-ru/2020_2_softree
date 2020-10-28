@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"server/src/domain/entity"
-	"server/src/infrastructure/log"
 )
 
 func (p *Profile) Auth(next http.HandlerFunc) http.HandlerFunc {
@@ -18,7 +17,7 @@ func (p *Profile) Auth(next http.HandlerFunc) http.HandlerFunc {
 
 		id, err := p.auth.CheckAuth(cookie.Value)
 		if err != nil {
-			log.GlobalLogger.Println(err)
+			p.log.Print(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -37,13 +36,13 @@ func (p *Profile) UpdateUser(next http.HandlerFunc) http.HandlerFunc {
 		var user entity.User
 		err := json.NewDecoder(r.Body).Decode(&user)
 		if err != nil {
-			log.GlobalLogger.Println(err)
+			p.log.Print(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
 		if user, err = p.userApp.UpdateUser(id, user); err != nil {
-			log.GlobalLogger.Println(err)
+			p.log.Print(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -60,7 +59,7 @@ func (p *Profile) WriteResponse(w http.ResponseWriter, r *http.Request) {
 
 	res, err := json.Marshal(user.MakePublicUser())
 	if err != nil {
-		log.GlobalLogger.Println(err)
+		p.log.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/http"
 	"server/src/domain/entity"
-	"server/src/infrastructure/log"
 )
 
 func (a *Authenticate) Auth(w http.ResponseWriter, r *http.Request) {
@@ -17,14 +16,14 @@ func (a *Authenticate) Auth(w http.ResponseWriter, r *http.Request) {
 
 	var user entity.User
 	if user, err = extractUserFromSession(cookie, a); err != nil {
-		log.GlobalLogger.Println(err)
+		a.log.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	res, err := json.Marshal(user.MakePublicUser())
 	if err != nil {
-		log.GlobalLogger.Println(err)
+		a.log.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
