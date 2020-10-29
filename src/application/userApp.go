@@ -5,29 +5,26 @@ import (
 	"server/src/domain/repository"
 )
 
-type userApp struct {
+type UserApp struct {
 	ur repository.UserRepository
 }
 
-type UserAppHandler interface {
-	SaveUser(entity.User) (entity.User, error)
-	UpdateUser(uint64, entity.User) (entity.User, error)
-	DeleteUser(uint64) error
-	GetUser(uint64) (entity.User, error)
+func NewUserApp(userRepository repository.UserRepository) *UserApp {
+	return &UserApp{ur: userRepository}
 }
 
-func (ua *userApp) SaveUser(u entity.User) (entity.User, error) {
+func (ua *UserApp) SaveUser(u entity.User) (entity.User, error) {
 	return ua.ur.SaveUser(u)
 }
 
-func (ua *userApp) UpdateUser(id uint64, u entity.User) (entity.User, error) {
+func (ua *UserApp) UpdateUser(id uint64, u entity.User) (entity.User, error) {
 	return ua.ur.UpdateUser(id, u)
 }
 
-func (ua *userApp) DeleteUser(id uint64) error {
+func (ua *UserApp) DeleteUser(id uint64) error {
 	return ua.ur.DeleteUser(id)
 }
 
-func (ua *userApp) GetUser(id uint64) (entity.User, error) {
+func (ua *UserApp) GetUser(id uint64) (entity.User, error) {
 	return ua.ur.GetUser(id)
 }

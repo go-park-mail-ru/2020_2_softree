@@ -7,17 +7,16 @@ import (
 )
 
 type UserMemoryRepo struct {
-	database string
+	Users []entity.User
 }
 
-var Users []entity.User
-
-func NewUserRepository(database string) *UserMemoryRepo {
-	return &UserMemoryRepo{database: database}
+func NewUserRepository() *UserMemoryRepo {
+	users := make([]entity.User, 1)
+	return &UserMemoryRepo{Users: users}
 }
 
 func (ur *UserMemoryRepo) SaveUser(u entity.User) (entity.User, error) {
-	u.ID = uint64(len(Users) + 1)
+	u.ID = uint64(len(ur.Users) + 1)
 
 	var err error
 	u.Password, err = security.MakeShieldedHash(u.Password)
@@ -25,25 +24,25 @@ func (ur *UserMemoryRepo) SaveUser(u entity.User) (entity.User, error) {
 		return entity.User{}, err
 	}
 
-	Users = append(Users, u)
+	ur.Users = append(ur.Users, u)
 	return u, nil
 }
 
 func (ur *UserMemoryRepo) UpdateUser(id uint64, u entity.User) (entity.User, error) {
 	var user entity.User
 	var i int
-	for i, user = range Users {
+	for i, user = range ur.Users {
 		if user.ID == id {
 			break
 		}
 	}
 
 	if !govalidator.IsNull(u.Password) {
-		Users[i].Password, _ = security.MakeShieldedHash(u.Password)
+		ur.Users[i].Password, _ = security.MakeShieldedHash(u.Password)
 		user.Password, _ = security.MakeShieldedHash(u.Password)
 	}
 	if !govalidator.IsNull(u.Avatar) {
-		Users[i].Avatar = u.Avatar
+		ur.Users[i].Avatar = u.Avatar
 		user.Avatar = u.Avatar
 	}
 
@@ -53,9 +52,9 @@ func (ur *UserMemoryRepo) UpdateUser(id uint64, u entity.User) (entity.User, err
 func (ur *UserMemoryRepo) DeleteUser(id uint64) error {
 	var user entity.User
 	var i int
-	for i, user = range Users {
+	for i, user = range ur.Users {
 		if user.ID == id {
-			Users = append(Users[:i], Users[i + 1:]...)
+			ur.Users = append(ur.Users[:i], ur.Users[i + 1:]...)
 		}
 	}
 
@@ -64,7 +63,7 @@ func (ur *UserMemoryRepo) DeleteUser(id uint64) error {
 
 func (ur *UserMemoryRepo) GetUser(id uint64) (entity.User, error) {
 	var user entity.User
-	for _, user = range Users {
+	for _, user = range ur.Users {
 		if user.ID == id {
 			break
 		}

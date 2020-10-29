@@ -1,18 +1,22 @@
 package pureArchAuth
 
 import (
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
+	"server/src/application"
+	"server/src/domain/entity"
 	"server/src/infrastructure/auth"
 	"server/src/infrastructure/log"
-	"server/src/infrastructure/persistence"
+	userMock "server/src/infrastructure/mock"
+	"server/src/infrastructure/security"
 	"strings"
 	"testing"
 )
 
 func TestAuthenticate_SignupSuccess(t *testing.T) {
-	testAuth := createTestSignupAuthenticate()
+	testAuth := createTestSignupAuthenticate(t)
 	url := "http://127.0.0.1:8000/signup"
 	body := strings.NewReader(`{"email": "hound@psina.ru", "password": "str"}`)
 
@@ -21,15 +25,13 @@ func TestAuthenticate_SignupSuccess(t *testing.T) {
 
 	testAuth.Signup(w, req)
 
-	assert.NotEmpty(t, persistence.Users)
-	assert.NotEmpty(t, auth.Sessions)
 	assert.Empty(t, w.Header().Get("Content-type"))
 	assert.Empty(t, w.Body)
 	assert.Equal(t, http.StatusCreated, w.Result().StatusCode)
 }
 
 func TestAuthenticate_SignupFailEmail(t *testing.T) {
-	testAuth := createTestSignupAuthenticate()
+	testAuth := createTestSignupAuthenticate(t)
 	url := "http://127.0.0.1:8000/signup"
 	body := strings.NewReader(`{"email": "hound.ru", "password": "str"}`)
 
@@ -41,12 +43,10 @@ func TestAuthenticate_SignupFailEmail(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 	assert.NotEmpty(t, w.Body)
 	assert.NotEmpty(t, w.Header().Get("Content-type"))
-	assert.Empty(t, persistence.Users)
-	assert.Empty(t, auth.Sessions)
 }
 
 func TestAuthenticate_SignupFailEmptyPassword(t *testing.T) {
-	testAuth := createTestSignupAuthenticate()
+	testAuth := createTestSignupAuthenticate(t)
 	url := "http://127.0.0.1:8000/signup"
 	body := strings.NewReader(`{"email": "hound@psina.ru"}`)
 
@@ -58,15 +58,30 @@ func TestAuthenticate_SignupFailEmptyPassword(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 	assert.NotEmpty(t, w.Body)
 	assert.NotEmpty(t, w.Header().Get("Content-type"))
-	assert.Empty(t, persistence.Users)
-	assert.Empty(t, auth.Sessions)
 }
 
-func createTestSignupAuthenticate() *Authenticate {
-	servicesDB := persistence.NewUserRepository("db")
-	servicesAuth := auth.NewMemAuth("auth")
+func createTestSignupAuthenticate(t *testing.T) *Authenticate {
+	userToSave := entity.User{
+		Email: "hound@psina.ru",
+		Password: "str",
+	}
+	password, _ := security.MakeShieldedHash(userToSave.Password)
+	expectedUser := entity.User{
+		ID: 1,
+		Email: userToSave.Email,
+		Password: password,
+	}
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUser := userMock.NewUserRepositoryForMock(ctrl)
+	mockUser.EXPECT().SaveUser(userToSave).Times(1).Return(expectedUser, nil)
+
+	servicesDB := application.NewUserApp(mockUser)
+	servicesAuth := auth.NewMemAuth()
 	servicesCookie := auth.NewToken("token")
 	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(servicesDB, servicesAuth, servicesCookie, servicesLog)
+	return NewAuthenticate(*servicesDB, servicesAuth, servicesCookie, servicesLog)
 }

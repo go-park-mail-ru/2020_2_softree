@@ -3,11 +3,12 @@ package auth
 import "errors"
 
 type MemAuth struct {
-	auth string
+	Sessions []Session
 }
 
-func NewMemAuth(auth string) *MemAuth {
-	return &MemAuth{auth: auth}
+func NewMemAuth() *MemAuth {
+	sessions := make([]Session, 1)
+	return &MemAuth{Sessions: sessions}
 }
 
 type Session struct {
@@ -15,15 +16,13 @@ type Session struct {
 	Value string
 }
 
-var Sessions []Session
-
 func (m *MemAuth) CreateAuth(id uint64, sessionValue string) error {
-	Sessions = append(Sessions, Session{ID: id, Value: sessionValue})
+	m.Sessions = append(m.Sessions, Session{ID: id, Value: sessionValue})
 	return nil
 }
 
 func (m *MemAuth) CheckAuth(sessionValue string) (uint64, error) {
-	for _, val := range Sessions {
+	for _, val := range m.Sessions {
 		if val.Value == sessionValue {
 			return val.ID, nil
 		}
@@ -33,9 +32,9 @@ func (m *MemAuth) CheckAuth(sessionValue string) (uint64, error) {
 }
 
 func (m *MemAuth) DeleteAuth(details *AccessDetails) error {
-	for i, val := range Sessions {
+	for i, val := range m.Sessions {
 		if val.Value == details.Value {
-			Sessions = append(Sessions[:i], Sessions[i + 1:]...)
+			m.Sessions = append(m.Sessions[:i], m.Sessions[i + 1:]...)
 		}
 	}
 	return nil
