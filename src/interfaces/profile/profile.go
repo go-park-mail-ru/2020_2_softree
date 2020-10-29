@@ -9,11 +9,11 @@ import (
 type Profile struct {
 	userApp application.UserApp
 	auth    auth.AuthHandler
-	cookie  auth.CookieHandler
+	cookie  auth.TokenHandler
 	log     log.LogHandler
 }
 
 func NewProfile(
-	uApp application.UserApp, auth auth.AuthHandler, cookie auth.CookieHandler, log log.LogHandler) *Profile {
+	uApp application.UserApp, auth auth.AuthHandler, cookie auth.TokenHandler, log log.LogHandler) *Profile {
 	return &Profile{userApp: uApp, auth: auth, cookie: cookie, log: log}
 }
