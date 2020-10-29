@@ -7,13 +7,13 @@ import (
 )
 
 type Profile struct {
-	userApp application.UserAppHandler
+	userApp application.UserApp
 	auth    auth.AuthHandler
 	cookie  auth.CookieHandler
 	log     log.LogHandler
 }
 
 func NewProfile(
-	uApp application.UserAppHandler, auth auth.AuthHandler, cookie auth.CookieHandler, log log.LogHandler) *Profile {
+	uApp application.UserApp, auth auth.AuthHandler, cookie auth.CookieHandler, log log.LogHandler) *Profile {
 	return &Profile{userApp: uApp, auth: auth, cookie: cookie, log: log}
 }

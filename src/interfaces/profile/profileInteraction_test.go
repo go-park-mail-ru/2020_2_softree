@@ -1,13 +1,16 @@
 package profile
 
 import (
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
+	"server/src/application"
 	"server/src/domain/entity"
 	"server/src/infrastructure/auth"
 	"server/src/infrastructure/log"
-	"server/src/infrastructure/persistence"
+	userMock "server/src/infrastructure/mock"
+	"server/src/infrastructure/security"
 	"strings"
 	"testing"
 )
@@ -18,16 +21,14 @@ func TestUpdateUserAvatarSuccess(t *testing.T) {
 
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
-	testAuth := createTestUpdateUserAuthenticateSuccess(req)
+	testAuth := createTestUpdateUserAuthenticateSuccess(t)
 
 	update := testAuth.Auth(testAuth.UpdateUser)
 	update(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Result().StatusCode)
-	assert.NotEmpty(t, auth.Sessions)
 	assert.NotEmpty(t, w.Header().Get("Content-type"))
 	assert.NotEmpty(t, w.Body)
-	assert.NotEmpty(t, persistence.Users)
 }
 
 func TestUpdateUserPasswordSuccess(t *testing.T) {
@@ -36,16 +37,14 @@ func TestUpdateUserPasswordSuccess(t *testing.T) {
 
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
-	testAuth := createTestUpdateUserAuthenticateSuccess(req)
+	testAuth := createTestUpdateUserAuthenticateSuccess(t)
 
 	update := testAuth.Auth(testAuth.UpdateUser)
 	update(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Result().StatusCode)
-	assert.NotEmpty(t, auth.Sessions)
 	assert.NotEmpty(t, w.Header().Get("Content-type"))
 	assert.NotEmpty(t, w.Body)
-	assert.NotEmpty(t, persistence.Users)
 }
 
 func TestUpdateUserFail(t *testing.T) {
@@ -54,7 +53,7 @@ func TestUpdateUserFail(t *testing.T) {
 
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
-	testAuth := createTestUpdateUserAuthenticateFail()
+	testAuth := createTestUpdateUserAuthenticateSuccess(t)
 
 	update := testAuth.Auth(testAuth.UpdateUser)
 	update(w, req)
@@ -63,28 +62,28 @@ func TestUpdateUserFail(t *testing.T) {
 	assert.Equal(t, http.StatusUnauthorized, w.Result().StatusCode)
 }
 
-func createTestUpdateUserAuthenticateSuccess(req *http.Request) *Profile {
-	servicesDB := persistence.NewUserRepository("db")
-	servicesAuth := auth.NewMemAuth("auth")
+func createTestUpdateUserAuthenticateSuccess(t *testing.T) *Profile {
+	userToSave := entity.User{
+		Email: "hound@psina.ru",
+		Password: "str",
+	}
+	password, _ := security.MakeShieldedHash(userToSave.Password)
+	expectedUser := entity.User{
+		ID: 1,
+		Email: userToSave.Email,
+		Password: password,
+	}
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUser := userMock.NewUserRepositoryForMock(ctrl)
+	mockUser.EXPECT().SaveUser(userToSave).Times(1).Return(expectedUser, nil)
+
+	servicesDB := application.NewUserApp(mockUser)
+	servicesAuth := auth.NewMemAuth()
 	servicesCookie := auth.NewToken("token")
 	servicesLog := log.NewLogrusLogger()
 
-	cookie, _ := auth.CreateCookie()
-	user := entity.User{Email: "yandex@mail.ru", Password: "str", Avatar: "some"}
-
-	servicesDB.SaveUser(user)
-	servicesAuth.CreateAuth(user.ID, cookie.Value)
-
-	req.AddCookie(&cookie)
-	return NewProfile(servicesDB, servicesAuth, servicesCookie, servicesLog)
+	return NewProfile(*servicesDB, servicesAuth, servicesCookie, servicesLog)
 }
-
-func createTestUpdateUserAuthenticateFail() *Profile {
-	servicesDB := persistence.NewUserRepository("db")
-	servicesAuth := auth.NewMemAuth("auth")
-	servicesCookie := auth.NewToken("token")
-	servicesLog := log.NewLogrusLogger()
-
-	return NewProfile(servicesDB, servicesAuth, servicesCookie, servicesLog)
-}
-
