@@ -22,10 +22,8 @@ func TestAuthSuccess(t *testing.T) {
 
 	testAuth.Auth(w, req)
 	assert.Equal(t, http.StatusOK, w.Result().StatusCode)
-	assert.NotEmpty(t, auth.Sessions)
 	assert.NotEmpty(t, w.Header().Get("Content-type"))
 	assert.NotEmpty(t, w.Body)
-	assert.NotEmpty(t, persistence.Users)
 }
 
 func TestAuthFail(t *testing.T) {
@@ -42,26 +40,9 @@ func TestAuthFail(t *testing.T) {
 }
 
 func createTestAuthAuthenticateSuccess(req *http.Request) *Authenticate {
-	servicesDB := persistence.NewUserRepository("db")
-	servicesAuth := auth.NewMemAuth("auth")
-	servicesCookie := auth.NewToken("token")
-	servicesLog := log.NewLogrusLogger()
 
-	cookie, _ := auth.CreateCookie()
-	user := entity.User{Email: "yandex@mail.ru", Password: "str"}
-
-	servicesDB.SaveUser(user)
-	servicesAuth.CreateAuth(user.ID, cookie.Value)
-
-	req.AddCookie(&cookie)
-	return NewAuthenticate(servicesDB, servicesAuth, servicesCookie, servicesLog)
 }
 
 func createTestAuthAuthenticateFail() *Authenticate {
-	servicesDB := persistence.NewUserRepository("db")
-	servicesAuth := auth.NewMemAuth("auth")
-	servicesCookie := auth.NewToken("token")
-	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(servicesDB, servicesAuth, servicesCookie, servicesLog)
 }

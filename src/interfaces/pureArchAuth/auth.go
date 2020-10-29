@@ -44,5 +44,5 @@ func extractUserFromSession(c *http.Cookie, a *Authenticate) (entity.User, error
 		return entity.User{}, errors.New("GetUser in extractUserFromSession")
 	}
 
-	return *user, nil
+	return user, nil
 }

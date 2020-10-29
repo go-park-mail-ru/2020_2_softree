@@ -21,7 +21,6 @@ func TestLogoutSuccess(t *testing.T) {
 
 	testAuth.Logout(w, req)
 	assert.Equal(t, http.StatusFound, w.Result().StatusCode)
-	assert.Empty(t, auth.Sessions)
 }
 
 func TestLogoutFail(t *testing.T) {
@@ -37,24 +36,9 @@ func TestLogoutFail(t *testing.T) {
 }
 
 func createTestLogoutAuthenticateSuccess(req *http.Request) *Authenticate {
-	servicesDB := persistence.NewUserRepository("db")
-	servicesAuth := auth.NewMemAuth("auth")
-	servicesCookie := auth.NewToken("token")
 
-	cookie, _ := auth.CreateCookie()
-	user := entity.User{Email: "yandex@mail.ru", Password: "str"}
-
-	servicesDB.SaveUser(user)
-	servicesAuth.CreateAuth(user.ID, cookie.Value)
-
-	req.AddCookie(&cookie)
-	return NewAuthenticate(servicesDB, servicesAuth, servicesCookie)
 }
 
 func createTestLogoutAuthenticateFail(req *http.Request) *Authenticate {
-	servicesDB := persistence.NewUserRepository("db")
-	servicesAuth := auth.NewMemAuth("auth")
-	servicesCookie := auth.NewToken("token")
 
-	return NewAuthenticate(servicesDB, servicesAuth, servicesCookie)
 }
