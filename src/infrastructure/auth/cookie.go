@@ -13,7 +13,7 @@ import (
 
 type CookieHandler interface {
 	CreateCookie() (http.Cookie, error)
-	ExtractData(*http.Request) (*AccessDetails, error)
+	ExtractData(*http.Request) (AccessDetails, error)
 }
 
 type Token struct {
@@ -24,9 +24,9 @@ func NewToken(token string) *Token {
 	return &Token{token: token}
 }
 
-func (t *Token) ExtractData(r *http.Request) (ad *AccessDetails, err error) {
+func (t *Token) ExtractData(r *http.Request) (ad AccessDetails, err error) {
 	if err := json.NewDecoder(r.Body).Decode(&ad); err != nil {
-		return &AccessDetails{}, err
+		return AccessDetails{}, err
 	}
 	return
 }
