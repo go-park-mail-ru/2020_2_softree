@@ -51,6 +51,14 @@ func (ur *UserMemoryRepo) UpdateUser(id uint64, u entity.User) (entity.User, err
 }
 
 func (ur *UserMemoryRepo) DeleteUser(id uint64) error {
+	var user entity.User
+	var i int
+	for i, user = range Users {
+		if user.ID == id {
+			Users = append(Users[:i], Users[i + 1:]...)
+		}
+	}
+
 	return nil
 }
 
