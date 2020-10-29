@@ -15,7 +15,7 @@ type RecorderUserMockRepository struct {
 	mock *UserRepositoryForMock
 }
 
-func NewRepositoryForMock(ctrl *gomock.Controller) *UserRepositoryForMock {
+func NewUserRepositoryForMock(ctrl *gomock.Controller) *UserRepositoryForMock {
 	mock := &UserRepositoryForMock{ctrl: ctrl}
 	mock.recorder = &RecorderUserMockRepository{mock: mock}
 	return mock
