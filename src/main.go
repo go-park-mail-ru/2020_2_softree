@@ -7,15 +7,15 @@ import (
 	"net/http"
 	"os"
 	"server/src/domain/entity/rates"
-	"server/src/handlers/authorization/auth"
-	"server/src/handlers/authorization/login"
-	"server/src/handlers/authorization/logout"
-	"server/src/handlers/authorization/signup"
-	"server/src/handlers/ratesInteraction"
-	"server/src/handlers/userInteraction"
 	"server/src/infrastructure/config"
 	"server/src/infrastructure/corsInteraction"
 	"server/src/infrastructure/log"
+	"server/src/interfaces/authorization/auth"
+	"server/src/interfaces/authorization/login"
+	"server/src/interfaces/authorization/logout"
+	"server/src/interfaces/authorization/signup"
+	"server/src/interfaces/ratesInteraction"
+	"server/src/interfaces/profile"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -53,11 +53,6 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 
 	initFlags()
-
-	if err := log.ConfigureLogger(); err != nil {
-		fmt.Fprintf(os.Stderr, "Cannot inizialize logger %v\n", err)
-		os.Exit(1)
-	}
 }
 
 func main() {
@@ -65,13 +60,27 @@ func main() {
 	router := mux.NewRouter()
 	r := router.PathPrefix("").Subrouter()
 
-	r.HandleFunc("/signin", login.Login).Methods("POST", "OPTIONS")
-	r.HandleFunc("/signup", signup.Signup).Methods("POST", "OPTIONS")
-	r.HandleFunc("/auth", auth.Authentication).Methods("GET", "OPTIONS")
-	r.HandleFunc("/logout", logout.Logout).Methods("POST", "OPTIONS")
-	r.HandleFunc("/rates", ratesInteraction.Rates).Methods("GET", "OPTIONS")
-	r.HandleFunc("/user", userInteraction.UpdateUserPartly).Methods("PATCH", "OPTIONS")
-	r.HandleFunc("/change-password", userInteraction.UpdatePassword).Methods("PATCH", "OPTIONS")
+	r.HandleFunc("/signin", login.Login).
+		Methods("POST", "OPTIONS")
+
+	r.HandleFunc("/signup", signup.Signup).
+		Methods("POST", "OPTIONS")
+
+	r.HandleFunc("/auth", auth.Authentication).
+		Methods("GET", "OPTIONS")
+
+	r.HandleFunc("/logout", logout.Logout).
+		Methods("POST", "OPTIONS")
+
+	r.HandleFunc("/rates", ratesInteraction.Rates).
+		Methods("GET", "OPTIONS")
+
+	r.HandleFunc("/user", profile.UpdateUserPartly).
+		Methods("PATCH", "OPTIONS")
+
+	r.HandleFunc("/change-password", profile.UpdatePassword).
+		Methods("PATCH", "OPTIONS")
+
 	r.Use(corsInteraction.CORSMiddleware())
 
 	server := &http.Server{

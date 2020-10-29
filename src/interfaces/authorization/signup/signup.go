@@ -6,8 +6,9 @@ import (
 	"net/http"
 	"server/src/domain/entity"
 	"server/src/domain/entity/jsonRealisation"
-	"server/src/handlers/authorization/utils"
+	"server/src/infrastructure/auth"
 	"server/src/infrastructure/security"
+	"server/src/interfaces/authorization/utils"
 	"strings"
 )
 
@@ -46,7 +47,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie, err := security.MakeCookie()
+	cookie, err := auth.CreateCookie()
 	if err != nil {
 		log.Println(err)
 		return

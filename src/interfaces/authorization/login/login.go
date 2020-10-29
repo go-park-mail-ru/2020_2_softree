@@ -5,9 +5,10 @@ import (
 	"log"
 	"net/http"
 	"server/src/domain/entity/jsonRealisation"
-	"server/src/handlers/authorization/auth"
-	"server/src/handlers/authorization/utils"
+	authInf "server/src/infrastructure/auth"
 	"server/src/infrastructure/security"
+	authAuth"server/src/interfaces/authorization/auth"
+	"server/src/interfaces/authorization/utils"
 )
 
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -30,7 +31,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie, err := security.MakeCookie()
+	cookie, err := authInf.CreateCookie()
 	if err != nil {
 		log.Println(err)
 		return
@@ -38,7 +39,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	utils.Sessions[loginJSON.Email] = cookie.Value
 	http.SetCookie(w, &cookie)
 
-	u, _ := auth.FindUserInSession(cookie.Value)
+	u, _ := authAuth.FindUserInSession(cookie.Value)
 	result, err := json.Marshal(&u)
 	if err != nil {
 		log.Println(err)

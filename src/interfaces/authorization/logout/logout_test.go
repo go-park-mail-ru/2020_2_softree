@@ -3,7 +3,7 @@ package logout
 import (
 	"net/http"
 	"net/http/httptest"
-	"server/src/infrastructure/security"
+	"server/src/infrastructure/auth"
 	"strings"
 	"testing"
 	"time"
@@ -30,7 +30,7 @@ func TestLogoutSuccess(t *testing.T) {
 	body := strings.NewReader(`{"email": "yandex@mail.ru", "password": "str"}`)
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
-	cookie, _ := security.MakeCookie()
+	cookie, _ := auth.CreateCookie()
 	req.AddCookie(&cookie)
 
 	Logout(w, req)

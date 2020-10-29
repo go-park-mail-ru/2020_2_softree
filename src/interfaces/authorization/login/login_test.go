@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"server/src/domain/entity/jsonRealisation"
-	"server/src/handlers/authorization/utils"
 	"server/src/infrastructure/security"
+	"server/src/interfaces/authorization/utils"
 	"strings"
 	"testing"
 )

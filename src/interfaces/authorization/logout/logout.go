@@ -3,9 +3,9 @@ package logout
 import (
 	"log"
 	"net/http"
-	"server/src/handlers/authorization/utils"
-	"server/src/handlers/userInteraction"
-	"server/src/infrastructure/security"
+	"server/src/infrastructure/auth"
+	"server/src/interfaces/authorization/utils"
+	"server/src/interfaces/profile"
 	"time"
 )
 
@@ -16,7 +16,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newCookie, err := security.MakeCookie()
+	newCookie, err := auth.CreateCookie()
 	if err != nil {
 		log.Println(err)
 		return
@@ -26,7 +26,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	newCookie.Value = ""
 	http.SetCookie(w, &newCookie)
 
-	email := userInteraction.FindEmailInSession(cookie.Value)
+	email := profile.FindEmailInSession(cookie.Value)
 	delete(utils.Sessions, email)
 
 	w.WriteHeader(http.StatusFound)

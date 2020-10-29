@@ -8,19 +8,24 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// GlobalLogger instance.
-var GlobalLogger = logrus.New()
+type LoggerLogrus struct {
+	logger logrus.Logger
+}
 
-func setLevel() error {
+func NewLogrusLogger() *LoggerLogrus {
+	return &LoggerLogrus{logger: *logrus.New()}
+}
+
+func (l *LoggerLogrus) setLevel() error {
 	level, error := logrus.ParseLevel(config.GlobalServerConfig.LogLevel)
 	if error != nil {
 		return error
 	}
-	GlobalLogger.SetLevel(level)
+	l.logger.SetLevel(level)
 	return nil
 }
 
-func setOutput() error {
+func (l *LoggerLogrus) setOutput() error {
 	var writer io.Writer
 	writer = os.Stdout
 	if config.GlobalServerConfig.LogFile != "" {
@@ -36,18 +41,22 @@ func setOutput() error {
 		})
 		writer = logFile
 	}
-	GlobalLogger.SetOutput(io.MultiWriter(os.Stderr, writer))
+	l.logger.SetOutput(io.MultiWriter(os.Stderr, writer))
 	return nil
 }
 
 // ConfigureLogger is setting logging level and output dist
-func ConfigureLogger() error {
-	if err := setLevel(); err != nil {
+func (l *LoggerLogrus) ConfigureLogger() error {
+	if err := l.setLevel(); err != nil {
 		return err
 	}
 
-	if err := setOutput(); err != nil {
+	if err := l.setOutput(); err != nil {
 		return err
 	}
 	return nil
+}
+
+func (l *LoggerLogrus) Print(err interface{}) {
+	l.logger.Println(err)
 }
