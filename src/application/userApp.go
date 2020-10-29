@@ -28,6 +28,6 @@ func (ua *userApp) DeleteUser(id uint64) error {
 	return ua.ur.DeleteUser(id)
 }
 
-func (ua *userApp) GetUser(id uint64) (*entity.User, error) {
+func (ua *userApp) GetUser(id uint64) (entity.User, error) {
 	return ua.ur.GetUser(id)
 }
