@@ -41,7 +41,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var err error
-	utils.UsersServerSession[signupJSON.Email], err = security.MakeShieldedHash(signupJSON.Password1)
+	utils.UsersServerSession[signupJSON.Email], err = security.MakeShieldedPassword(signupJSON.Password1)
 	if err != nil {
 		log.Println(err)
 		return

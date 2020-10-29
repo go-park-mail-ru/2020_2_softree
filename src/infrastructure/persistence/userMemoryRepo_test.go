@@ -15,7 +15,7 @@ func TestUserMemoryRepo_SaveUserSuccess(t *testing.T) {
 		Email: "yandex@mail.ru",
 		Password: "password",
 	}
-	password, _ := security.MakeShieldedHash(userToSave.Password)
+	password, _ := security.MakeShieldedPassword(userToSave.Password)
 	expectedUser := entity.User{
 		ID: 1,
 		Email: "yandex@mail.ru",

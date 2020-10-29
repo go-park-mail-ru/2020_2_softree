@@ -65,7 +65,7 @@ func createTestSignupAuthenticate(t *testing.T) *Authenticate {
 		Email: "hound@psina.ru",
 		Password: "str",
 	}
-	password, _ := security.MakeShieldedHash(userToSave.Password)
+	password, _ := security.MakeShieldedPassword(userToSave.Password)
 	expectedUser := entity.User{
 		ID: 1,
 		Email: userToSave.Email,

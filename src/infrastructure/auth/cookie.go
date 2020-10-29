@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net/http"
 	"server/src/infrastructure/config"
+	"server/src/infrastructure/security"
 	"strconv"
 	"time"
 )
@@ -48,10 +49,11 @@ func (t *Token) CreateCookie() (http.Cookie, error) {
 }
 
 func CreateCookie() (http.Cookie, error) {
-	hash, err := makeCookieHash()
+	hash, err := security.MakeShieldedCookie()
 	if err != nil {
 		return http.Cookie{}, err
 	}
+
 	return http.Cookie{
 		Name:     "session_id",
 		Value:    hash,

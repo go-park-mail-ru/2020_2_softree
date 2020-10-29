@@ -31,7 +31,7 @@ func TestLoginSuccess(t *testing.T) {
 	body := strings.NewReader(`{"email": "yandex@mail.ru", "password": "str"}`)
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
-	utils.UsersServerSession["yandex@mail.ru"], _ = security.MakeShieldedHash("str")
+	utils.UsersServerSession["yandex@mail.ru"], _ = security.MakeShieldedPassword("str")
 
 	Login(w, req)
 
@@ -87,7 +87,7 @@ func TestSignupFailPassword(t *testing.T) {
 	body := strings.NewReader(`{"email": "yandex@mail.ru", "password": "str"}`)
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
-	utils.UsersServerSession["yandex@mail.ru"], _ = security.MakeShieldedHash("string")
+	utils.UsersServerSession["yandex@mail.ru"], _ = security.MakeShieldedPassword("string")
 
 	Login(w, req)
 

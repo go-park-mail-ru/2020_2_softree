@@ -19,7 +19,7 @@ func (ur *UserMemoryRepo) SaveUser(u entity.User) (entity.User, error) {
 	u.ID = uint64(len(ur.Users) + 1)
 
 	var err error
-	u.Password, err = security.MakeShieldedHash(u.Password)
+	u.Password, err = security.MakeShieldedPassword(u.Password)
 	if err != nil {
 		return entity.User{}, err
 	}
@@ -38,8 +38,8 @@ func (ur *UserMemoryRepo) UpdateUser(id uint64, u entity.User) (entity.User, err
 	}
 
 	if !govalidator.IsNull(u.Password) {
-		ur.Users[i].Password, _ = security.MakeShieldedHash(u.Password)
-		user.Password, _ = security.MakeShieldedHash(u.Password)
+		ur.Users[i].Password, _ = security.MakeShieldedPassword(u.Password)
+		user.Password, _ = security.MakeShieldedPassword(u.Password)
 	}
 	if !govalidator.IsNull(u.Avatar) {
 		ur.Users[i].Avatar = u.Avatar

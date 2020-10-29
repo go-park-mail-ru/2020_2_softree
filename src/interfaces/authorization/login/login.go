@@ -25,7 +25,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userTryToLogin, _ := security.MakeShieldedHash(loginJSON.Password)
+	userTryToLogin, _ := security.MakeShieldedPassword(loginJSON.Password)
 	if utils.UsersServerSession[loginJSON.Email] != userTryToLogin {
 		w.WriteHeader(http.StatusBadRequest)
 		return
