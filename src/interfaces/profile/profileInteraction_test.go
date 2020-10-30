@@ -1,6 +1,7 @@
 package profile
 
 import (
+	"fmt"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -9,7 +10,7 @@ import (
 	"server/src/domain/entity"
 	"server/src/infrastructure/auth"
 	"server/src/infrastructure/log"
-	userMock "server/src/infrastructure/mock"
+	mocks "server/src/infrastructure/mock"
 	"server/src/infrastructure/security"
 	"strings"
 	"testing"
@@ -23,12 +24,17 @@ func TestUpdateUserAvatarSuccess(t *testing.T) {
 	w := httptest.NewRecorder()
 	testAuth := createTestUpdateUserAuthenticateSuccess(t)
 
+	cookie := http.Cookie{Value: "value"}
+	req.AddCookie(&cookie)
+
 	update := testAuth.Auth(testAuth.UpdateUser)
 	update(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Result().StatusCode)
 	assert.NotEmpty(t, w.Header().Get("Content-type"))
 	assert.NotEmpty(t, w.Body)
+
+	fmt.Println(w.Body)
 }
 
 func TestUpdateUserPasswordSuccess(t *testing.T) {
@@ -63,22 +69,18 @@ func TestUpdateUserFail(t *testing.T) {
 }
 
 func createTestUpdateUserAuthenticateSuccess(t *testing.T) *Profile {
-	userToSave := entity.User{
-		Email: "hound@psina.ru",
-		Password: "str",
-	}
-	password, _ := security.MakeShieldedPassword(userToSave.Password)
-	expectedUser := entity.User{
-		ID: 1,
-		Email: userToSave.Email,
-		Password: password,
-	}
-
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockUser := userMock.NewUserRepositoryForMock(ctrl)
-	mockUser.EXPECT().SaveUser(userToSave).Times(1).Return(expectedUser, nil)
+	expectedUser := createExpectedUser()
+	updatedUserFields := entity.User{Avatar: "fake_image"}
+
+	var id uint64 = 1
+	mockUser := mocks.NewUserRepositoryForMock(ctrl)
+	mockUser.EXPECT().UpdateUser(id, updatedUserFields).Times(1).Return(expectedUser, nil)
+
+	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
+	mockAuth.EXPECT().CheckAuth("value").Times(1).Return(id, nil)
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := auth.NewMemAuth()
@@ -86,4 +88,20 @@ func createTestUpdateUserAuthenticateSuccess(t *testing.T) *Profile {
 	servicesLog := log.NewLogrusLogger()
 
 	return NewProfile(*servicesDB, servicesAuth, servicesCookie, servicesLog)
+}
+
+func createExpectedUser() (expected entity.User) {
+	toSave := entity.User{
+		Email: "hound@psina.ru",
+		Password: "str",
+	}
+	password, _ := security.MakeShieldedPassword(toSave.Password)
+	expected = entity.User{
+		ID: 1,
+		Email: toSave.Email,
+		Password: password,
+		Avatar: "fake_image",
+	}
+
+	return
 }
