@@ -82,7 +82,7 @@ func createTestUpdateUserAuthenticateSuccess(t *testing.T) *Profile {
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := auth.NewMemAuth()
-	servicesCookie := auth.NewToken("token")
+	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
 	return NewProfile(*servicesDB, servicesAuth, servicesCookie, servicesLog)

@@ -14,6 +14,7 @@ func NewUserApp(userRepository repository.UserRepository) *UserApp {
 }
 
 func (ua *UserApp) SaveUser(u entity.User) (entity.User, error) {
+	//u.Validate()
 	return ua.ur.SaveUser(u)
 }
 

@@ -80,7 +80,7 @@ func createTestSignupAuthenticate(t *testing.T) *Authenticate {
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := auth.NewMemAuth()
-	servicesCookie := auth.NewToken("token")
+	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
 	return NewAuthenticate(*servicesDB, servicesAuth, servicesCookie, servicesLog)
