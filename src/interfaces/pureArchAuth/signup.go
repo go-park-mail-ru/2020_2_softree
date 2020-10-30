@@ -16,7 +16,7 @@ func (a *Authenticate) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	errors := user.Validate("signup")
+	errors := user.Validate()
 	if errors.NotEmpty {
 		a.createInternalServerError(&errors, w)
 		return
