@@ -2,9 +2,8 @@ package profile
 
 import (
 	"context"
-	"fmt"
 	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"server/src/application"
@@ -23,20 +22,15 @@ func TestUpdateUserAvatarSuccess(t *testing.T) {
 
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
-	testAuth := createTestUpdateUserAuthenticateSuccess(t)
+	testAuth, ctrl := createTestUpdateUserAuthenticateSuccess(t, entity.User{Avatar: "fake_image"})
+	defer ctrl.Finish()
 
-	cookie := http.Cookie{Value: "value"}
-	req.AddCookie(&cookie)
-
-	ctx := context.WithValue(req.Context(), "id", 1)
-	req = req.Clone(ctx)
+	createContext(&req)
 	testAuth.UpdateUser(w, req)
 
-	assert.Equal(t, http.StatusOK, w.Result().StatusCode)
-	assert.NotEmpty(t, w.Header().Get("Content-type"))
-	assert.NotEmpty(t, w.Body)
-
-	fmt.Println(w.Body)
+	require.Equal(t, http.StatusOK, w.Result().StatusCode)
+	require.NotEmpty(t, w.Header().Get("Content-type"))
+	require.NotEmpty(t, w.Body)
 }
 
 func TestUpdateUserPasswordSuccess(t *testing.T) {
@@ -46,48 +40,32 @@ func TestUpdateUserPasswordSuccess(t *testing.T) {
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
 
-	testAuth := createTestUpdateUserAuthenticateSuccess(t)
-
-	update := testAuth.Auth(testAuth.UpdateUser)
-	update(w, req)
-
-	assert.Equal(t, http.StatusOK, w.Result().StatusCode)
-	assert.NotEmpty(t, w.Header().Get("Content-type"))
-	assert.NotEmpty(t, w.Body)
-}
-
-func TestUpdateUserFail(t *testing.T) {
-	url := "http://127.0.0.1:8000/change-password"
-	body := strings.NewReader(`{"password": "new_password"}`)
-
-	req := httptest.NewRequest("POST", url, body)
-	w := httptest.NewRecorder()
-	testAuth := createTestUpdateUserAuthenticateSuccess(t)
-
-	update := testAuth.Auth(testAuth.UpdateUser)
-	update(w, req)
-
-	assert.Empty(t, w.Header().Get("Content-type"))
-	assert.Equal(t, http.StatusUnauthorized, w.Result().StatusCode)
-}
-
-func createTestUpdateUserAuthenticateSuccess(t *testing.T) *Profile {
-	ctrl := gomock.NewController(t)
+	testAuth, ctrl := createTestUpdateUserAuthenticateSuccess(t, entity.User{Password: "fake_password"})
 	defer ctrl.Finish()
 
+	createContext(&req)
+	testAuth.UpdateUser(w, req)
+
+	require.Equal(t, http.StatusOK, w.Result().StatusCode)
+	require.NotEmpty(t, w.Header().Get("Content-type"))
+	require.NotEmpty(t, w.Body)
+}
+
+func createTestUpdateUserAuthenticateSuccess(t *testing.T, toUpdate entity.User) (*Profile, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
 	expectedUser := createExpectedUser()
-	updatedUserFields := entity.User{Avatar: "fake_image"}
 
 	var id uint64 = 1
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
-	mockUser.EXPECT().UpdateUser(id, updatedUserFields).Return(expectedUser, nil)
+	mockUser.EXPECT().UpdateUser(id, toUpdate).Return(expectedUser, nil)
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := auth.NewMemAuth()
 	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewProfile(*servicesDB, servicesAuth, servicesCookie, servicesLog)
+	return NewProfile(*servicesDB, servicesAuth, servicesCookie, servicesLog), ctrl
 }
 
 func createExpectedUser() (expected entity.User) {
@@ -104,4 +82,9 @@ func createExpectedUser() (expected entity.User) {
 	}
 
 	return
+}
+
+func createContext(req **http.Request) {
+	ctx := context.WithValue((*req).Context(), "id", uint64(1))
+	*req = (*req).Clone(ctx)
 }
