@@ -1,6 +1,7 @@
 package profile
 
 import (
+	"context"
 	"fmt"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -27,8 +28,9 @@ func TestUpdateUserAvatarSuccess(t *testing.T) {
 	cookie := http.Cookie{Value: "value"}
 	req.AddCookie(&cookie)
 
-	update := testAuth.Auth(testAuth.UpdateUser)
-	update(w, req)
+	ctx := context.WithValue(req.Context(), "id", 1)
+	req = req.Clone(ctx)
+	testAuth.UpdateUser(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Result().StatusCode)
 	assert.NotEmpty(t, w.Header().Get("Content-type"))
@@ -43,6 +45,7 @@ func TestUpdateUserPasswordSuccess(t *testing.T) {
 
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
+
 	testAuth := createTestUpdateUserAuthenticateSuccess(t)
 
 	update := testAuth.Auth(testAuth.UpdateUser)
@@ -77,10 +80,7 @@ func createTestUpdateUserAuthenticateSuccess(t *testing.T) *Profile {
 
 	var id uint64 = 1
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
-	mockUser.EXPECT().UpdateUser(id, updatedUserFields).Times(1).Return(expectedUser, nil)
-
-	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
-	mockAuth.EXPECT().CheckAuth("value").Times(1).Return(id, nil)
+	mockUser.EXPECT().UpdateUser(id, updatedUserFields).Return(expectedUser, nil)
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := auth.NewMemAuth()
