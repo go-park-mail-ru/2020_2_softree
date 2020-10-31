@@ -79,20 +79,39 @@ func (r *RecorderUserMockRepository) DeleteUser(id interface{}) *gomock.Call {
 	)
 }
 
-func (m *UserRepositoryForMock) GetUser(id uint64) (entity.User, error) {
+func (m *UserRepositoryForMock) GetUserById(id uint64) (entity.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUser", id)
+	ret := m.ctrl.Call(m, "GetUserById", id)
 	user, _ := ret[0].(entity.User)
 	err, _ := ret[1].(error)
 	return user, err
 }
 
-func (r *RecorderUserMockRepository) GetUser(id interface{}) *gomock.Call {
+func (r *RecorderUserMockRepository) GetUserById(id interface{}) *gomock.Call {
 	r.mock.ctrl.T.Helper()
 	return r.mock.ctrl.RecordCallWithMethodType(
 		r.mock,
-		"GetUser",
-		reflect.TypeOf((*UserRepositoryForMock)(nil).GetUser),
+		"GetUserById",
+		reflect.TypeOf((*UserRepositoryForMock)(nil).GetUserById),
 		id,
+	)
+}
+
+func (m *UserRepositoryForMock) GetUserByLogin(email, password string) (entity.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserByLogin", email, password)
+	user, _ := ret[0].(entity.User)
+	err, _ := ret[1].(error)
+	return user, err
+}
+
+func (r *RecorderUserMockRepository) GetUserByLogin(email, password interface{}) *gomock.Call {
+	r.mock.ctrl.T.Helper()
+	return r.mock.ctrl.RecordCallWithMethodType(
+		r.mock,
+		"GetUserByLogin",
+		reflect.TypeOf((*UserRepositoryForMock)(nil).GetUserByLogin),
+		email,
+		password,
 	)
 }

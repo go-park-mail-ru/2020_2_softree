@@ -1,5 +1,7 @@
 package repository
 
+import "net/http"
+
 type AuthRepository interface {
 	AuthCreator
 	AuthChecker
@@ -7,7 +9,7 @@ type AuthRepository interface {
 }
 
 type AuthCreator interface {
-	CreateAuth(uint64, string) error
+	CreateAuth(uint64) (http.Cookie, error)
 }
 
 type AuthChecker interface {

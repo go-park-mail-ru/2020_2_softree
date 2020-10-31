@@ -1,6 +1,9 @@
 package application
 
-import "server/src/domain/repository"
+import (
+	"net/http"
+	"server/src/domain/repository"
+)
 
 type UserAuth struct {
 	ur repository.AuthRepository
@@ -10,8 +13,8 @@ func NewUserAuth(auth repository.AuthRepository) *UserAuth {
 	return &UserAuth{ur: auth}
 }
 
-func (ua *UserAuth) CreateAuth(id uint64, sessionValue string) error {
-	return ua.ur.CreateAuth(id, sessionValue)
+func (ua *UserAuth) CreateAuth(id uint64) (http.Cookie, error) {
+	return ua.ur.CreateAuth(id)
 }
 
 func (ua *UserAuth) CheckAuth(sessionValue string) (uint64, error) {

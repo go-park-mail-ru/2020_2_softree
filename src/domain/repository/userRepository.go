@@ -8,7 +8,8 @@ type UserRepository interface {
 	saver
 	updater
 	eraser
-	receiver
+	receiverById
+	receiverByFormData
 }
 
 type saver interface {
@@ -23,6 +24,10 @@ type eraser interface {
 	DeleteUser(uint64) error
 }
 
-type receiver interface {
-	GetUser(uint64) (entity.User, error)
+type receiverById interface {
+	GetUserById(uint64) (entity.User, error)
+}
+
+type receiverByFormData interface {
+	GetUserByLogin(string, string) (entity.User, error)
 }

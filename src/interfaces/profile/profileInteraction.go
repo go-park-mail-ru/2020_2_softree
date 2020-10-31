@@ -18,7 +18,7 @@ func (p *Profile) Auth(next http.HandlerFunc) http.HandlerFunc {
 		id, err := p.auth.CheckAuth(cookie.Value)
 		if err != nil {
 			p.log.Print(err)
-			w.WriteHeader(http.StatusInternalServerError)
+			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 

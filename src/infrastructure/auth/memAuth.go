@@ -2,32 +2,38 @@ package auth
 
 import (
 	"errors"
+	"net/http"
 	"server/src/domain/repository"
 )
 
 type MemAuth struct {
-	Sessions []Session
+	token    TokenHandler
+	sessions []session
 }
 
 func NewMemAuth() *MemAuth {
-	sessions := make([]Session, 1)
-	return &MemAuth{Sessions: sessions}
+	sessions := make([]session, 1)
+	return &MemAuth{sessions: sessions, token: NewToken()}
 }
 
-type Session struct {
-	ID    uint64
-	Value string
+type session struct {
+	id    uint64
+	value string
 }
 
-func (m *MemAuth) CreateAuth(id uint64, sessionValue string) error {
-	m.Sessions = append(m.Sessions, Session{ID: id, Value: sessionValue})
-	return nil
+func (m *MemAuth) CreateAuth(id uint64) (cookie http.Cookie, err error) {
+	if cookie, err = m.token.CreateCookie(); err != nil {
+		return http.Cookie{}, err
+	}
+
+	m.sessions = append(m.sessions, session{id: id, value: cookie.Value})
+	return
 }
 
 func (m *MemAuth) CheckAuth(sessionValue string) (uint64, error) {
-	for _, val := range m.Sessions {
-		if val.Value == sessionValue {
-			return val.ID, nil
+	for _, val := range m.sessions {
+		if val.value == sessionValue {
+			return val.id, nil
 		}
 	}
 
@@ -35,10 +41,11 @@ func (m *MemAuth) CheckAuth(sessionValue string) (uint64, error) {
 }
 
 func (m *MemAuth) DeleteAuth(details *repository.AccessDetails) error {
-	for i, val := range m.Sessions {
-		if val.Value == details.Value {
-			m.Sessions = append(m.Sessions[:i], m.Sessions[i+1:]...)
+	for i, val := range m.sessions {
+		if val.value == details.Value {
+			m.sessions = append(m.sessions[:i], m.sessions[i+1:]...)
 		}
 	}
+
 	return nil
 }

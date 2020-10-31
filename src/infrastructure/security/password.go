@@ -1,8 +1,9 @@
 package security
 
 import (
-	"crypto/md5"
 	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -15,10 +16,16 @@ func MakeShieldedPassword(stringToHash string) (string, error) {
 }
 
 func MakeShieldedCookie() (string, error) {
+	hash := sha256.New()
+
 	salt := make([]byte, 8)
 	if _, err := rand.Read(salt); err != nil {
 		return "", err
 	}
 
-	return string(md5.New().Sum(salt)), nil
+	if _, err := hash.Write(salt); err != nil {
+		return "", err
+	}
+
+	return hex.EncodeToString(hash.Sum(nil)), nil
 }

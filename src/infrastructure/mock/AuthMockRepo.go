@@ -2,6 +2,7 @@ package mock
 
 import (
 	"github.com/golang/mock/gomock"
+	"net/http"
 	"reflect"
 	"server/src/domain/repository"
 )
@@ -25,21 +26,21 @@ func (a *AuthRepositoryForMock) EXPECT() *RecorderAuthMockRepository {
 	return a.recorder
 }
 
-func (a *AuthRepositoryForMock) CreateAuth(id uint64, val string) error {
+func (a *AuthRepositoryForMock) CreateAuth(id uint64) (http.Cookie, error) {
 	a.ctrl.T.Helper()
-	ret := a.ctrl.Call(a, "CreateAuth", id, val)
-	err, _ := ret[0].(error)
-	return err
+	ret := a.ctrl.Call(a, "CreateAuth", id)
+	cookie, _ := ret[0].(http.Cookie)
+	err, _ := ret[1].(error)
+	return cookie, err
 }
 
-func (r *RecorderAuthMockRepository) CreateAuth(id, val interface{}) *gomock.Call {
+func (r *RecorderAuthMockRepository) CreateAuth(id interface{}) *gomock.Call {
 	r.mock.ctrl.T.Helper()
 	return r.mock.ctrl.RecordCallWithMethodType(
 		r.mock,
 		"CreateAuth",
 		reflect.TypeOf((*AuthRepositoryForMock)(nil).CreateAuth),
 		id,
-		val,
 	)
 }
 
