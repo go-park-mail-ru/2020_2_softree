@@ -1,6 +1,6 @@
-package auth
+package repository
 
-type AuthHandler interface {
+type AuthRepository interface {
 	AuthCreator
 	AuthChecker
 	AuthEraser

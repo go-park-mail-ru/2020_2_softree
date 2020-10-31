@@ -2,7 +2,7 @@ package pureArchAuth
 
 import (
 	"net/http"
-	"server/src/infrastructure/auth"
+	"server/src/domain/repository"
 	"time"
 )
 
@@ -13,7 +13,7 @@ func (a *Authenticate) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = a.auth.DeleteAuth(&auth.AccessDetails{Value: cookie.Value}); err != nil {
+	if err = a.auth.DeleteAuth(&repository.AccessDetails{Value: cookie.Value}); err != nil {
 		a.log.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return

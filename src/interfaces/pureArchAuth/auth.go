@@ -17,7 +17,7 @@ func (a *Authenticate) Auth(w http.ResponseWriter, r *http.Request) {
 	var user entity.User
 	if user, err = extractUserFromSession(cookie, a); err != nil {
 		a.log.Print(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 

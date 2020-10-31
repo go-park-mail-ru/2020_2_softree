@@ -9,12 +9,11 @@ type UserApp struct {
 	ur repository.UserRepository
 }
 
-func NewUserApp(userRepository repository.UserRepository) *UserApp {
-	return &UserApp{ur: userRepository}
+func NewUserApp(repo repository.UserRepository) *UserApp {
+	return &UserApp{ur: repo}
 }
 
 func (ua *UserApp) SaveUser(u entity.User) (entity.User, error) {
-	//u.Validate()
 	return ua.ur.SaveUser(u)
 }
 

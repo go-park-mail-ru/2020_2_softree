@@ -8,12 +8,12 @@ import (
 
 type Authenticate struct {
 	userApp application.UserApp
-	auth    auth.AuthHandler
+	auth    application.UserAuth
 	cookie  auth.TokenHandler
 	log     log.LogHandler
 }
 
 func NewAuthenticate(
-	uApp application.UserApp, auth auth.AuthHandler, cookie auth.TokenHandler, log log.LogHandler) *Authenticate {
+	uApp application.UserApp, auth application.UserAuth, cookie auth.TokenHandler, log log.LogHandler) *Authenticate {
 	return &Authenticate{userApp: uApp, auth: auth, cookie: cookie, log: log}
 }

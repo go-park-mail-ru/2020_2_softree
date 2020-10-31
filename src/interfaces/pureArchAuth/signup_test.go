@@ -62,13 +62,13 @@ func TestAuthenticate_SignupFailEmptyPassword(t *testing.T) {
 
 func createTestSignupAuthenticate(t *testing.T) *Authenticate {
 	userToSave := entity.User{
-		Email: "hound@psina.ru",
+		Email:    "hound@psina.ru",
 		Password: "str",
 	}
 	password, _ := security.MakeShieldedPassword(userToSave.Password)
 	expectedUser := entity.User{
-		ID: 1,
-		Email: userToSave.Email,
+		ID:       1,
+		Email:    userToSave.Email,
 		Password: password,
 	}
 
@@ -78,10 +78,12 @@ func createTestSignupAuthenticate(t *testing.T) *Authenticate {
 	mockUser := userMock.NewUserRepositoryForMock(ctrl)
 	mockUser.EXPECT().SaveUser(userToSave).Times(1).Return(expectedUser, nil)
 
+	memAuth := auth.NewMemAuth()
+
 	servicesDB := application.NewUserApp(mockUser)
-	servicesAuth := auth.NewMemAuth()
+	servicesAuth := application.NewUserAuth(memAuth)
 	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, servicesAuth, servicesCookie, servicesLog)
+	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog)
 }

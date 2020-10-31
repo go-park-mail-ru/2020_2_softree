@@ -3,7 +3,7 @@ package mock
 import (
 	"github.com/golang/mock/gomock"
 	"reflect"
-	"server/src/infrastructure/auth"
+	"server/src/domain/repository"
 )
 
 type AuthRepositoryForMock struct {
@@ -61,7 +61,7 @@ func (r *RecorderAuthMockRepository) CheckAuth(val interface{}) *gomock.Call {
 	)
 }
 
-func (a *AuthRepositoryForMock) DeleteAuth(details *auth.AccessDetails) error {
+func (a *AuthRepositoryForMock) DeleteAuth(details *repository.AccessDetails) error {
 	a.ctrl.T.Helper()
 	ret := a.ctrl.Call(a, "DeleteAuth", details)
 	err, _ := ret[0].(error)
