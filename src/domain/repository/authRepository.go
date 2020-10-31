@@ -3,20 +3,20 @@ package repository
 import "net/http"
 
 type AuthRepository interface {
-	AuthCreator
-	AuthChecker
-	AuthEraser
+	creator
+	check
+	delete
 }
 
-type AuthCreator interface {
+type creator interface {
 	CreateAuth(uint64) (http.Cookie, error)
 }
 
-type AuthChecker interface {
+type check interface {
 	CheckAuth(string) (uint64, error)
 }
 
-type AuthEraser interface {
+type delete interface {
 	DeleteAuth(*AccessDetails) error
 }
 
