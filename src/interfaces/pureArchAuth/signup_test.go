@@ -1,81 +1,98 @@
 package pureArchAuth
 
 import (
+	"errors"
 	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"server/src/application"
 	"server/src/domain/entity"
 	"server/src/infrastructure/auth"
 	"server/src/infrastructure/log"
-	userMock "server/src/infrastructure/mock"
-	"server/src/infrastructure/security"
+	mocks "server/src/infrastructure/mock"
 	"strings"
 	"testing"
 )
 
-func TestAuthenticate_SignupSuccess(t *testing.T) {
-	testAuth := createTestSignupAuthenticate(t)
+func TestSignup_Success(t *testing.T) {
 	url := "http://127.0.0.1:8000/signup"
 	body := strings.NewReader(`{"email": "hound@psina.ru", "password": "str"}`)
 
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
 
+	testAuth, ctrl := createSignupSuccess(t, entity.User{
+		Email:    "hound@psina.ru",
+		Password: "str",
+	})
+	defer ctrl.Finish()
+
 	testAuth.Signup(w, req)
 
-	assert.Empty(t, w.Header().Get("Content-type"))
-	assert.Empty(t, w.Body)
-	assert.Equal(t, http.StatusCreated, w.Result().StatusCode)
+	require.Empty(t, w.Header().Get("Content-type"))
+	require.Empty(t, w.Body)
+	require.Equal(t, http.StatusCreated, w.Result().StatusCode)
+	require.NotEmpty(t, w.Result().Cookies())
 }
 
-func TestAuthenticate_SignupFailEmail(t *testing.T) {
-	testAuth := createTestSignupAuthenticate(t)
+func TestSignup_FailEmail(t *testing.T) {
 	url := "http://127.0.0.1:8000/signup"
 	body := strings.NewReader(`{"email": "hound.ru", "password": "str"}`)
 
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
 
+	testAuth, ctrl := createSignupFail(t)
+	defer ctrl.Finish()
+
 	testAuth.Signup(w, req)
 
-	assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
-	assert.NotEmpty(t, w.Body)
-	assert.NotEmpty(t, w.Header().Get("Content-type"))
+	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+	require.NotEmpty(t, w.Body)
+	require.NotEmpty(t, w.Header().Get("Content-Type"))
 }
 
-func TestAuthenticate_SignupFailEmptyPassword(t *testing.T) {
-	testAuth := createTestSignupAuthenticate(t)
+func TestSignup_FailEmptyPassword(t *testing.T) {
 	url := "http://127.0.0.1:8000/signup"
 	body := strings.NewReader(`{"email": "hound@psina.ru"}`)
 
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
 
-	testAuth.Signup(w, req)
-
-	assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
-	assert.NotEmpty(t, w.Body)
-	assert.NotEmpty(t, w.Header().Get("Content-type"))
-}
-
-func createTestSignupAuthenticate(t *testing.T) *Authenticate {
-	userToSave := entity.User{
-		Email:    "hound@psina.ru",
-		Password: "str",
-	}
-	password, _ := security.MakeShieldedPassword(userToSave.Password)
-	expectedUser := entity.User{
-		ID:       1,
-		Email:    userToSave.Email,
-		Password: password,
-	}
-
-	ctrl := gomock.NewController(t)
+	testAuth, ctrl := createSignupFail(t)
 	defer ctrl.Finish()
 
-	mockUser := userMock.NewUserRepositoryForMock(ctrl)
+	testAuth.Signup(w, req)
+
+	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+	require.NotEmpty(t, w.Body)
+	require.NotEmpty(t, w.Header().Get("Content-Type"))
+}
+
+func TestSignup_FailBcrypt(t *testing.T) {
+	url := "http://127.0.0.1:8000/signup"
+	body := strings.NewReader(`{"email": "hound@psina.ru", "password": "str"}`)
+
+	req := httptest.NewRequest("POST", url, body)
+	w := httptest.NewRecorder()
+
+	testAuth, ctrl := createSignupFailBcrypt(t, entity.User{
+		Email:    "hound@psina.ru",
+		Password: "str",
+	})
+	defer ctrl.Finish()
+
+	testAuth.Signup(w, req)
+
+	require.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
+}
+
+func createSignupSuccess(t *testing.T, userToSave entity.User) (*Authenticate, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	expectedUser := createExpectedUser()
+	mockUser := mocks.NewUserRepositoryForMock(ctrl)
 	mockUser.EXPECT().SaveUser(userToSave).Times(1).Return(expectedUser, nil)
 
 	memAuth := auth.NewMemAuth()
@@ -85,5 +102,33 @@ func createTestSignupAuthenticate(t *testing.T) *Authenticate {
 	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog)
+	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+}
+
+func createSignupFail(t *testing.T) (*Authenticate, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+	mockUser := mocks.NewUserRepositoryForMock(ctrl)
+	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
+
+	servicesDB := application.NewUserApp(mockUser)
+	servicesAuth := application.NewUserAuth(mockAuth)
+	servicesCookie := auth.NewToken()
+	servicesLog := log.NewLogrusLogger()
+
+	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+}
+
+func createSignupFailBcrypt(t *testing.T, u entity.User) (*Authenticate, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
+
+	mockUser := mocks.NewUserRepositoryForMock(ctrl)
+	mockUser.EXPECT().SaveUser(u).Return(entity.User{}, errors.New("bcrypt: create password hash"))
+
+	servicesDB := application.NewUserApp(mockUser)
+	servicesAuth := application.NewUserAuth(mockAuth)
+	servicesCookie := auth.NewToken()
+	servicesLog := log.NewLogrusLogger()
+
+	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
 }

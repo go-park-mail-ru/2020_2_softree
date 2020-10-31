@@ -16,14 +16,14 @@ import (
 	"testing"
 )
 
-func TestAuthSuccess(t *testing.T) {
+func TestAuth_Success(t *testing.T) {
 	url := "http://127.0.0.1:8000/auth"
 	body := strings.NewReader(`{"email": "yandex@mail.ru", "password": "str"}`)
 
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
 
-	testAuth, ctrl := createTestAuthAuthenticateSuccess(t)
+	testAuth, ctrl := createAuthSuccess(t)
 	defer ctrl.Finish()
 
 	cookie := http.Cookie{
@@ -39,14 +39,14 @@ func TestAuthSuccess(t *testing.T) {
 	require.NotEmpty(t, w.Body)
 }
 
-func TestAuthFail_Unauthorized(t *testing.T) {
+func TestAuth_FailUnauthorized(t *testing.T) {
 	url := "http://127.0.0.1:8000/auth"
 	body := strings.NewReader(`{"email": "yandex@mail.ru", "password": "str"}`)
 
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
 
-	testAuth, ctrl := createTestAuthAuthenticateFailUnauthorized(t)
+	testAuth, ctrl := createAuthFailUnauthorized(t)
 	defer ctrl.Finish()
 
 	testAuth.Auth(w, req)
@@ -54,14 +54,14 @@ func TestAuthFail_Unauthorized(t *testing.T) {
 	require.Equal(t, http.StatusUnauthorized, w.Result().StatusCode)
 }
 
-func TestAuthFail_NoSession(t *testing.T) {
+func TestAuth_FailNoSession(t *testing.T) {
 	url := "http://127.0.0.1:8000/auth"
 	body := strings.NewReader(`{"email": "yandex@mail.ru", "password": "str"}`)
 
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
 
-	testAuth, ctrl := createTestAuthAuthenticateFailSession(t)
+	testAuth, ctrl := createAuthFailSession(t)
 	defer ctrl.Finish()
 
 	cookie := http.Cookie{
@@ -75,14 +75,14 @@ func TestAuthFail_NoSession(t *testing.T) {
 	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 }
 
-func TestAuthFail_NoUser(t *testing.T) {
+func TestAuth_FailNoUser(t *testing.T) {
 	url := "http://127.0.0.1:8000/auth"
 	body := strings.NewReader(`{"email": "yandex@mail.ru", "password": "str"}`)
 
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
 
-	testAuth, ctrl := createTestAuthAuthenticateFailUser(t)
+	testAuth, ctrl := createAuthFailUser(t)
 	defer ctrl.Finish()
 
 	cookie := http.Cookie{
@@ -96,14 +96,14 @@ func TestAuthFail_NoUser(t *testing.T) {
 	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 }
 
-func createTestAuthAuthenticateSuccess(t *testing.T) (*Authenticate, *gomock.Controller) {
+func createAuthSuccess(t *testing.T) (*Authenticate, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
 	expectedUser := createExpectedUser()
 
 	var id uint64 = 1
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
-	mockUser.EXPECT().GetUser(id).Return(expectedUser, nil)
+	mockUser.EXPECT().GetUserById(id).Return(expectedUser, nil)
 
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
 	mockAuth.EXPECT().CheckAuth("value").Return(id, nil)
@@ -116,7 +116,7 @@ func createTestAuthAuthenticateSuccess(t *testing.T) (*Authenticate, *gomock.Con
 	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
 }
 
-func createTestAuthAuthenticateFailUnauthorized(t *testing.T) (*Authenticate, *gomock.Controller) {
+func createAuthFailUnauthorized(t *testing.T) (*Authenticate, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
@@ -129,7 +129,7 @@ func createTestAuthAuthenticateFailUnauthorized(t *testing.T) (*Authenticate, *g
 	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
 }
 
-func createTestAuthAuthenticateFailSession(t *testing.T) (*Authenticate, *gomock.Controller) {
+func createAuthFailSession(t *testing.T) (*Authenticate, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
 
@@ -144,11 +144,11 @@ func createTestAuthAuthenticateFailSession(t *testing.T) (*Authenticate, *gomock
 	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
 }
 
-func createTestAuthAuthenticateFailUser(t *testing.T) (*Authenticate, *gomock.Controller) {
+func createAuthFailUser(t *testing.T) (*Authenticate, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
-	mockUser.EXPECT().GetUser(uint64(1)).Return(entity.User{}, errors.New("No user in database"))
+	mockUser.EXPECT().GetUserById(uint64(1)).Return(entity.User{}, errors.New("no user in database"))
 
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
 	mockAuth.EXPECT().CheckAuth("value").Return(uint64(1), nil)

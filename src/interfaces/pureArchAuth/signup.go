@@ -29,19 +29,13 @@ func (a *Authenticate) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie, err := a.cookie.CreateCookie()
-	if err != nil {
+	var cookie http.Cookie
+	if cookie, err = a.auth.CreateAuth(user.ID); err != nil {
 		a.log.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
 	http.SetCookie(w, &cookie)
-	if err := a.auth.CreateAuth(user.ID, cookie.Value); err != nil {
-		a.log.Print(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
 
 	w.WriteHeader(http.StatusCreated)
 }

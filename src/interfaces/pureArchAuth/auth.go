@@ -39,9 +39,9 @@ func extractUserFromSession(c *http.Cookie, a *Authenticate) (entity.User, error
 		return entity.User{}, errors.New("CheckAuth in extractUserFromSession")
 	}
 
-	user, err := a.userApp.GetUser(id)
+	user, err := a.userApp.GetUserById(id)
 	if err != nil {
-		return entity.User{}, errors.New("GetUser in extractUserFromSession")
+		return entity.User{}, errors.New("GetUserById in extractUserFromSession")
 	}
 
 	return user, nil
