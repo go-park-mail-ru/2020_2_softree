@@ -1,20 +1,35 @@
 package ratesInteraction
 
 import (
+	"context"
 	"encoding/json"
-	"log"
+	"fmt"
+	"github.com/Finnhub-Stock-API/finnhub-go"
+	"github.com/antihax/optional"
 	"net/http"
-	"server/src/domain/entity/rates"
+	"server/src/domain/entity"
 )
 
 func Rates(w http.ResponseWriter, r *http.Request) {
-	result, _ := json.Marshal(rates.Currencies)
+	api := finnhub.NewAPIClient(finnhub.NewConfiguration()).DefaultApi
+	auth := context.WithValue(context.Background(), finnhub.ContextAPIKey, finnhub.APIKey{
+		Key: "bttn28748v6ojt2hev60",
+	})
 
-	w.Header().Set("content-type", "application/json")
+	var rate entity.Rate
+	var rates entity.Rates
+	forexRates, _, _ := api.ForexRates(auth, &finnhub.ForexRatesOpts{Base: optional.NewString("RUB")})
+	for name, quote := range forexRates.Quote {
+		rate.Name = fmt.Sprintf("%s/%s", forexRates.Base, name)
+		rate.Value = fmt.Sprintf("%.6f", quote.(float64))
+
+		rates.Values = append(rates.Values, rate)
+	}
+
+	result, _ := json.Marshal(rates)
+
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	if _, err := w.Write(result); err != nil {
-		log.Println(err)
-		return
-	}
+	w.Write(result)
 }
