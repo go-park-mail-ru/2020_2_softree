@@ -1,4 +1,4 @@
-package pureArchAuth
+package authorization
 
 import (
 	"errors"
@@ -99,7 +99,7 @@ func TestAuth_FailNoUser(t *testing.T) {
 func createAuthSuccess(t *testing.T) (*Authenticate, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	expectedUser := createExpectedUser()
+	expectedUser := createExpectedUser("yandex@mail.ru", "str")
 
 	var id uint64 = 1
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
@@ -161,10 +161,10 @@ func createAuthFailUser(t *testing.T) (*Authenticate, *gomock.Controller) {
 	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
 }
 
-func createExpectedUser() (expected entity.User) {
+func createExpectedUser(email, pass string) (expected entity.User) {
 	toSave := entity.User{
-		Email:    "yandex@mail.ru",
-		Password: "str",
+		Email:    email,
+		Password: pass,
 	}
 	password, _ := security.MakeShieldedPassword(toSave.Password)
 	expected = entity.User{

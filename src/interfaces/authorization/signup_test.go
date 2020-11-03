@@ -1,4 +1,4 @@
-package pureArchAuth
+package authorization
 
 import (
 	"errors"
@@ -50,7 +50,7 @@ func TestSignup_FailEmail(t *testing.T) {
 
 	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 	require.NotEmpty(t, w.Body)
-	require.NotEmpty(t, w.Header().Get("Content-Type"))
+	require.NotEmpty(t, w.Header().Get("Content-type"))
 }
 
 func TestSignup_FailEmptyPassword(t *testing.T) {
@@ -67,7 +67,7 @@ func TestSignup_FailEmptyPassword(t *testing.T) {
 
 	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 	require.NotEmpty(t, w.Body)
-	require.NotEmpty(t, w.Header().Get("Content-Type"))
+	require.NotEmpty(t, w.Header().Get("Content-type"))
 }
 
 func TestSignup_FailBcrypt(t *testing.T) {
@@ -91,7 +91,7 @@ func TestSignup_FailBcrypt(t *testing.T) {
 func createSignupSuccess(t *testing.T, userToSave entity.User) (*Authenticate, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	expectedUser := createExpectedUser()
+	expectedUser := createExpectedUser("hound@psina.ru", "str")
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
 	mockUser.EXPECT().SaveUser(userToSave).Times(1).Return(expectedUser, nil)
 

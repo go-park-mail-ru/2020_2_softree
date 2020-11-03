@@ -2,7 +2,6 @@ package entity
 
 import (
 	"github.com/asaskevich/govalidator"
-	"server/src/domain/entity/jsonRealisation"
 )
 
 type User struct {
@@ -26,7 +25,7 @@ func (u *User) MakePublicUser() PublicUser {
 	}
 }
 
-func (u *User) Validate() (errors jsonRealisation.ErrorJSON) {
+func (u *User) Validate() (errors ErrorJSON) {
 	if !govalidator.IsEmail(u.Email) {
 		errors.Email = append(errors.Email, "некорректный email")
 		errors.NotEmpty = true

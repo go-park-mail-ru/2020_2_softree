@@ -28,3 +28,7 @@ func (ua *UserApp) DeleteUser(id uint64) error {
 func (ua *UserApp) GetUserById(id uint64) (entity.User, error) {
 	return ua.ur.GetUserById(id)
 }
+
+func (ua *UserApp) GetUserByLogin(email, password string) (entity.User, error) {
+	return ua.ur.GetUserByLogin(email, password)
+}

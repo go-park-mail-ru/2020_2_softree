@@ -1,4 +1,4 @@
-package pureArchAuth
+package authorization
 
 import (
 	"encoding/json"

@@ -1,10 +1,9 @@
-package pureArchAuth
+package authorization
 
 import (
 	"encoding/json"
 	"net/http"
 	"server/src/domain/entity"
-	"server/src/domain/entity/jsonRealisation"
 )
 
 func (a *Authenticate) Signup(w http.ResponseWriter, r *http.Request) {
@@ -40,7 +39,7 @@ func (a *Authenticate) Signup(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func (a *Authenticate) createInternalServerError(errors *jsonRealisation.ErrorJSON, w http.ResponseWriter) {
+func (a *Authenticate) createInternalServerError(errors *entity.ErrorJSON, w http.ResponseWriter) {
 	res, err := json.Marshal(errors)
 	if err != nil {
 		a.log.Print(err)
@@ -48,6 +47,6 @@ func (a *Authenticate) createInternalServerError(errors *jsonRealisation.ErrorJS
 	}
 
 	w.WriteHeader(http.StatusBadRequest)
-	w.Header().Add("Content-Type", "application/json")
+	w.Header().Add("Content-type", "application/json")
 	w.Write(res)
 }

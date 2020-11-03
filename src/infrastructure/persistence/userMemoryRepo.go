@@ -1,6 +1,7 @@
 package persistence
 
 import (
+	"errors"
 	"github.com/asaskevich/govalidator"
 	"golang.org/x/crypto/bcrypt"
 	"server/src/domain/entity"
@@ -77,9 +78,9 @@ func (ur *UserMemoryRepo) GetUserByLogin(email, password string) (entity.User, e
 	var user entity.User
 	for _, user = range ur.users {
 		if user.Email == email && bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) == nil {
-			break
+			return user, nil
 		}
 	}
 
-	return user, nil
+	return entity.User{}, errors.New("no user")
 }
