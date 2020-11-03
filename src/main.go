@@ -6,15 +6,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
-	"server/src/domain/entity/rates"
 	"server/src/infrastructure/config"
-	"server/src/infrastructure/corsInteraction"
-	"server/src/interfaces/authorization/auth"
-	"server/src/interfaces/authorization/login"
-	"server/src/interfaces/authorization/logout"
-	"server/src/interfaces/authorization/signup"
-	"server/src/interfaces/profile"
-	"server/src/interfaces/ratesInteraction"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -59,25 +51,25 @@ func main() {
 	router := mux.NewRouter()
 	r := router.PathPrefix("").Subrouter()
 
-	r.HandleFunc("/signin", login.Login).
+	r.HandleFunc("/signin", ).
 		Methods("POST", "OPTIONS")
 
-	r.HandleFunc("/signup", signup.Signup).
+	r.HandleFunc("/signup", ).
 		Methods("POST", "OPTIONS")
 
-	r.HandleFunc("/auth", auth.Authentication).
+	r.HandleFunc("/auth", ).
 		Methods("GET", "OPTIONS")
 
-	r.HandleFunc("/logout", logout.Logout).
+	r.HandleFunc("/logout", ).
 		Methods("POST", "OPTIONS")
 
-	r.HandleFunc("/rates", ratesInteraction.Rates).
+	r.HandleFunc("/rates", ).
 		Methods("GET", "OPTIONS")
 
-	r.HandleFunc("/user", profile.UpdateUserPartly).
+	r.HandleFunc("/user", ).
 		Methods("PATCH", "OPTIONS")
 
-	r.HandleFunc("/change-password", profile.UpdatePassword).
+	r.HandleFunc("/change-password", ).
 		Methods("PATCH", "OPTIONS")
 
 	r.Use(corsInteraction.CORSMiddleware())
