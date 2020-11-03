@@ -9,13 +9,12 @@ import (
 	"server/src/domain/entity/rates"
 	"server/src/infrastructure/config"
 	"server/src/infrastructure/corsInteraction"
-	"server/src/infrastructure/log"
 	"server/src/interfaces/authorization/auth"
 	"server/src/interfaces/authorization/login"
 	"server/src/interfaces/authorization/logout"
 	"server/src/interfaces/authorization/signup"
-	"server/src/interfaces/ratesInteraction"
 	"server/src/interfaces/profile"
+	"server/src/interfaces/ratesInteraction"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -90,5 +89,5 @@ func main() {
 		ReadTimeout:  10 * time.Second,
 	}
 
-	log.GlobalLogger.Error(server.ListenAndServe())
+	server.ListenAndServe()
 }

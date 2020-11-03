@@ -4,7 +4,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"net/http"
 	"reflect"
-	"server/src/infrastructure/auth"
+	"server/src/domain/repository"
 )
 
 type TokenRepositoryForMock struct {
@@ -43,10 +43,10 @@ func (r *RecorderTokenMockRepository) CreateCookie() *gomock.Call {
 	)
 }
 
-func (t *TokenRepositoryForMock) ExtractData(req *http.Request) (auth.AccessDetails, error) {
+func (t *TokenRepositoryForMock) ExtractData(req *http.Request) (repository.AccessDetails, error) {
 	t.ctrl.T.Helper()
 	ret := t.ctrl.Call(t, "ExtractData", req)
-	details, _ := ret[0].(auth.AccessDetails)
+	details, _ := ret[0].(repository.AccessDetails)
 	err, _ := ret[1].(error)
 	return details, err
 }

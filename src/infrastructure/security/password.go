@@ -1,21 +1,29 @@
 package security
 
 import (
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
+	"golang.org/x/crypto/bcrypt"
 )
 
-func MakeShieldedHash(stringToHash string) (string, error) {
+var defaultCost = 10
+
+func MakeShieldedPassword(stringToHash string) (string, error) {
+	pass, err := bcrypt.GenerateFromPassword([]byte(stringToHash), defaultCost)
+
+	return string(pass), err
+}
+
+func MakeShieldedCookie() (string, error) {
 	hash := sha256.New()
-	salt := "someSalt"
 
-	stringPlusSalt := stringToHash + salt
-
-	if _, err := hash.Write([]byte(stringPlusSalt)); err != nil {
+	salt := make([]byte, 8)
+	if _, err := rand.Read(salt); err != nil {
 		return "", err
 	}
 
-	if _, err := hash.Write([]byte(hex.EncodeToString(hash.Sum(nil)))); err != nil {
+	if _, err := hash.Write(salt); err != nil {
 		return "", err
 	}
 

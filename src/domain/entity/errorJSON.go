@@ -1,4 +1,4 @@
-package jsonRealisation
+package entity
 
 import (
 	"encoding/json"

@@ -1,10 +1,9 @@
-package pureArchAuth
+package authorization
 
 import (
 	"encoding/json"
 	"net/http"
 	"server/src/domain/entity"
-	"server/src/domain/entity/jsonRealisation"
 )
 
 func (a *Authenticate) Signup(w http.ResponseWriter, r *http.Request) {
@@ -16,7 +15,7 @@ func (a *Authenticate) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	errors := user.Validate("signup")
+	errors := user.Validate()
 	if errors.NotEmpty {
 		a.createInternalServerError(&errors, w)
 		return
@@ -29,24 +28,18 @@ func (a *Authenticate) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie, err := a.cookie.CreateCookie()
-	if err != nil {
+	var cookie http.Cookie
+	if cookie, err = a.auth.CreateAuth(user.ID); err != nil {
 		a.log.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
 	http.SetCookie(w, &cookie)
-	if err := a.auth.CreateAuth(user.ID, cookie.Value); err != nil {
-		a.log.Print(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
 
 	w.WriteHeader(http.StatusCreated)
 }
 
-func (a *Authenticate) createInternalServerError(errors *jsonRealisation.ErrorJSON, w http.ResponseWriter) {
+func (a *Authenticate) createInternalServerError(errors *entity.ErrorJSON, w http.ResponseWriter) {
 	res, err := json.Marshal(errors)
 	if err != nil {
 		a.log.Print(err)
@@ -54,6 +47,6 @@ func (a *Authenticate) createInternalServerError(errors *jsonRealisation.ErrorJS
 	}
 
 	w.WriteHeader(http.StatusBadRequest)
-	w.Header().Add("Content-Type", "application/json")
+	w.Header().Add("Content-type", "application/json")
 	w.Write(res)
 }

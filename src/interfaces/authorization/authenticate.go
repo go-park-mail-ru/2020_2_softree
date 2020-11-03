@@ -1,4 +1,4 @@
-package pureArchAuth
+package authorization
 
 import (
 	"server/src/application"
@@ -7,13 +7,13 @@ import (
 )
 
 type Authenticate struct {
-	userApp application.UserAppHandler
-	auth    auth.AuthHandler
-	cookie  auth.CookieHandler
+	userApp application.UserApp
+	auth    application.UserAuth
+	cookie  auth.TokenHandler
 	log     log.LogHandler
 }
 
 func NewAuthenticate(
-	uApp application.UserAppHandler, auth auth.AuthHandler, cookie auth.CookieHandler, log log.LogHandler) *Authenticate {
+	uApp application.UserApp, auth application.UserAuth, cookie auth.TokenHandler, log log.LogHandler) *Authenticate {
 	return &Authenticate{userApp: uApp, auth: auth, cookie: cookie, log: log}
 }

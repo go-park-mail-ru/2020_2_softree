@@ -1,4 +1,4 @@
-package pureArchAuth
+package authorization
 
 import (
 	"encoding/json"
@@ -17,7 +17,7 @@ func (a *Authenticate) Auth(w http.ResponseWriter, r *http.Request) {
 	var user entity.User
 	if user, err = extractUserFromSession(cookie, a); err != nil {
 		a.log.Print(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -39,10 +39,10 @@ func extractUserFromSession(c *http.Cookie, a *Authenticate) (entity.User, error
 		return entity.User{}, errors.New("CheckAuth in extractUserFromSession")
 	}
 
-	user, err := a.userApp.GetUser(id)
+	user, err := a.userApp.GetUserById(id)
 	if err != nil {
-		return entity.User{}, errors.New("GetUser in extractUserFromSession")
+		return entity.User{}, errors.New("GetUserById in extractUserFromSession")
 	}
 
-	return *user, nil
+	return user, nil
 }

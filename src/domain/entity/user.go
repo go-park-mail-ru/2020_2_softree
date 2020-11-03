@@ -2,7 +2,6 @@ package entity
 
 import (
 	"github.com/asaskevich/govalidator"
-	"server/src/domain/entity/jsonRealisation"
 )
 
 type User struct {
@@ -26,23 +25,20 @@ func (u *User) MakePublicUser() PublicUser {
 	}
 }
 
-func (u *User) Validate(action string) (errors jsonRealisation.ErrorJSON) {
-	switch action {
-	case "signup":
-		if !govalidator.IsEmail(u.Email) {
-			errors.Email = append(errors.Email, "некорректный email")
-			errors.NotEmpty = true
-		}
+func (u *User) Validate() (errors ErrorJSON) {
+	if !govalidator.IsEmail(u.Email) {
+		errors.Email = append(errors.Email, "некорректный email")
+		errors.NotEmpty = true
+	}
 
-		if u.Password == "" {
-			errors.Password = append(errors.Email, "некорректный пароль")
-			errors.NotEmpty = true
-		}
+	if u.Password == "" {
+		errors.Password = append(errors.Email, "некорректный пароль")
+		errors.NotEmpty = true
+	}
 
-		if govalidator.IsNull(u.Password) {
-			errors.Password = append(errors.Email, "некорректный пароль")
-			errors.NotEmpty = true
-		}
+	if govalidator.IsNull(u.Password) {
+		errors.Password = append(errors.Email, "некорректный пароль")
+		errors.NotEmpty = true
 	}
 
 	return errors
