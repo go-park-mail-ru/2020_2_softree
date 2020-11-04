@@ -8,7 +8,6 @@ import (
 	"net/http/httptest"
 	"server/src/application"
 	"server/src/domain/entity"
-	"server/src/infrastructure/auth"
 	"server/src/infrastructure/log"
 	mocks "server/src/infrastructure/mock"
 	"strings"
@@ -93,10 +92,9 @@ func createLoginSuccess(t *testing.T) (*Authenticate, *gomock.Controller) {
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
 func createLoginFailValidation(t *testing.T) (*Authenticate, *gomock.Controller) {
@@ -106,10 +104,9 @@ func createLoginFailValidation(t *testing.T) (*Authenticate, *gomock.Controller)
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
 func createLoginFailNoUser(t *testing.T) (*Authenticate, *gomock.Controller) {
@@ -121,10 +118,9 @@ func createLoginFailNoUser(t *testing.T) (*Authenticate, *gomock.Controller) {
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
 func createLoginFailCreateAuth(t *testing.T) (*Authenticate, *gomock.Controller) {
@@ -139,8 +135,7 @@ func createLoginFailCreateAuth(t *testing.T) (*Authenticate, *gomock.Controller)
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }

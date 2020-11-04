@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"server/src/application"
-	"server/src/domain/repository"
-	"server/src/infrastructure/auth"
 	"server/src/infrastructure/log"
 	mocks "server/src/infrastructure/mock"
 	"strings"
@@ -25,7 +23,7 @@ func TestLogout_Success(t *testing.T) {
 	testAuth, ctrl := createLogoutSuccess(t)
 	defer ctrl.Finish()
 
-	cookie, _ := testAuth.cookie.CreateCookie()
+	cookie, _ := testAuth.auth.CreateCookie()
 	cookie.Value = "value"
 	req.AddCookie(&cookie)
 
@@ -64,7 +62,7 @@ func TestLogout_FailDeleteAuth(t *testing.T) {
 	testAuth, ctrl := createLogoutFailDeleteAuth(t)
 	defer ctrl.Finish()
 
-	cookie, _ := testAuth.cookie.CreateCookie()
+	cookie, _ := testAuth.auth.CreateCookie()
 	cookie.Value = "value"
 	req.AddCookie(&cookie)
 
@@ -78,14 +76,13 @@ func createLogoutSuccess(t *testing.T) (*Authenticate, *gomock.Controller) {
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
 
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
-	mockAuth.EXPECT().DeleteAuth(&repository.AccessDetails{Value: "value"}).Return(nil)
+	mockAuth.EXPECT().DeleteAuth("value").Return(nil)
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
 func createLogoutFailNoCookie(t *testing.T) (*Authenticate, *gomock.Controller) {
@@ -95,10 +92,9 @@ func createLogoutFailNoCookie(t *testing.T) (*Authenticate, *gomock.Controller) 
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
 func createLogoutFailDeleteAuth(t *testing.T) (*Authenticate, *gomock.Controller) {
@@ -106,12 +102,11 @@ func createLogoutFailDeleteAuth(t *testing.T) (*Authenticate, *gomock.Controller
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
 
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
-	mockAuth.EXPECT().DeleteAuth(&repository.AccessDetails{Value: "value"}).Return(errors.New("delete auth"))
+	mockAuth.EXPECT().DeleteAuth("value").Return(errors.New("delete auth"))
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }

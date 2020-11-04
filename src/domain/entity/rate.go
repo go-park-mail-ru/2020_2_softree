@@ -1,10 +1,8 @@
 package entity
 
-type Rates struct {
-	Values []Rate
-}
-
 type Rate struct {
-	Name  string
-	Value string
+	ID       uint64
+	Base     string
+	Currency string
+	Value    string
 }

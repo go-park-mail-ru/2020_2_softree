@@ -3,7 +3,8 @@ module server
 go 1.15
 
 require (
-	github.com/Finnhub-Stock-API/finnhub-go v1.2.1 // indirect
+	github.com/Finnhub-Stock-API/finnhub-go v1.2.1
+	github.com/antihax/optional v1.0.0
 	github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.4.3 // indirect

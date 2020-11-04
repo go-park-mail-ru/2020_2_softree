@@ -3,17 +3,18 @@ package auth
 import (
 	"errors"
 	"net/http"
-	"server/src/domain/repository"
+	"server/src/infrastructure/config"
+	"server/src/infrastructure/security"
+	"time"
 )
 
 type MemAuth struct {
-	token    TokenHandler
 	sessions []session
 }
 
 func NewMemAuth() *MemAuth {
 	sessions := make([]session, 1)
-	return &MemAuth{sessions: sessions, token: NewToken()}
+	return &MemAuth{sessions: sessions}
 }
 
 type session struct {
@@ -22,7 +23,7 @@ type session struct {
 }
 
 func (m *MemAuth) CreateAuth(id uint64) (cookie http.Cookie, err error) {
-	if cookie, err = m.token.CreateCookie(); err != nil {
+	if cookie, err = m.CreateCookie(); err != nil {
 		return http.Cookie{}, err
 	}
 
@@ -40,12 +41,28 @@ func (m *MemAuth) CheckAuth(sessionValue string) (uint64, error) {
 	return 0, errors.New("no session")
 }
 
-func (m *MemAuth) DeleteAuth(details *repository.AccessDetails) error {
+func (m *MemAuth) DeleteAuth(value string) error {
 	for i, val := range m.sessions {
-		if val.value == details.Value {
+		if val.value == value {
 			m.sessions = append(m.sessions[:i], m.sessions[i+1:]...)
 		}
 	}
 
 	return nil
+}
+
+func (m *MemAuth) CreateCookie() (http.Cookie, error) {
+	hash, err := security.MakeShieldedCookie()
+	if err != nil {
+		return http.Cookie{}, err
+	}
+	return http.Cookie{
+		Name:     "session_id",
+		Value:    hash,
+		Expires:  time.Now().Add(24 * time.Hour),
+		Domain:   config.GlobalServerConfig.Domain,
+		Secure:   config.GlobalServerConfig.Secure,
+		HttpOnly: true,
+		Path:     "/",
+	}, nil
 }

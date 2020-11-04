@@ -99,10 +99,9 @@ func createSignupSuccess(t *testing.T, userToSave entity.User) (*Authenticate, *
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(memAuth)
-	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
 func createSignupFail(t *testing.T) (*Authenticate, *gomock.Controller) {
@@ -112,10 +111,9 @@ func createSignupFail(t *testing.T) (*Authenticate, *gomock.Controller) {
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
 func createSignupFailBcrypt(t *testing.T, u entity.User) (*Authenticate, *gomock.Controller) {
@@ -127,8 +125,7 @@ func createSignupFailBcrypt(t *testing.T, u entity.User) (*Authenticate, *gomock
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }

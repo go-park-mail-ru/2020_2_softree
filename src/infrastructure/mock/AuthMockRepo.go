@@ -4,7 +4,6 @@ import (
 	"github.com/golang/mock/gomock"
 	"net/http"
 	"reflect"
-	"server/src/domain/repository"
 )
 
 type AuthRepositoryForMock struct {
@@ -62,7 +61,7 @@ func (r *RecorderAuthMockRepository) CheckAuth(val interface{}) *gomock.Call {
 	)
 }
 
-func (a *AuthRepositoryForMock) DeleteAuth(details *repository.AccessDetails) error {
+func (a *AuthRepositoryForMock) DeleteAuth(details string) error {
 	a.ctrl.T.Helper()
 	ret := a.ctrl.Call(a, "DeleteAuth", details)
 	err, _ := ret[0].(error)
@@ -76,5 +75,22 @@ func (r *RecorderAuthMockRepository) DeleteAuth(details interface{}) *gomock.Cal
 		"DeleteAuth",
 		reflect.TypeOf((*AuthRepositoryForMock)(nil).DeleteAuth),
 		details,
+	)
+}
+
+func (a *AuthRepositoryForMock) CreateCookie() (http.Cookie, error) {
+	a.ctrl.T.Helper()
+	ret := a.ctrl.Call(a, "CreateCookie")
+	cookie, _ := ret[0].(http.Cookie)
+	err, _ := ret[1].(error)
+	return cookie, err
+}
+
+func (r *RecorderAuthMockRepository) CreateCookie() *gomock.Call {
+	r.mock.ctrl.T.Helper()
+	return r.mock.ctrl.RecordCallWithMethodType(
+		r.mock,
+		"CreateCookie",
+		reflect.TypeOf((*AuthRepositoryForMock)(nil).CreateCookie),
 	)
 }

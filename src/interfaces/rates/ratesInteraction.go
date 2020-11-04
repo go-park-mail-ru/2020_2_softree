@@ -1,4 +1,4 @@
-package ratesInteraction
+package rates
 
 import (
 	"context"
@@ -10,25 +10,36 @@ import (
 	"server/src/domain/entity"
 )
 
-func Rates(w http.ResponseWriter, r *http.Request) {
+func (rates *Rates) GetRates(w http.ResponseWriter, r *http.Request) {
 	api := finnhub.NewAPIClient(finnhub.NewConfiguration()).DefaultApi
 	auth := context.WithValue(context.Background(), finnhub.ContextAPIKey, finnhub.APIKey{
 		Key: "bttn28748v6ojt2hev60",
 	})
 
 	var rate entity.Rate
-	var rates entity.Rates
 	forexRates, _, _ := api.ForexRates(auth, &finnhub.ForexRatesOpts{Base: optional.NewString("RUB")})
 	for name, quote := range forexRates.Quote {
-		rate.Name = fmt.Sprintf("%s/%s", forexRates.Base, name)
+		rate.Base = forexRates.Base
+		rate.Currency = name
 		rate.Value = fmt.Sprintf("%.6f", quote.(float64))
 
-		rates.Values = append(rates.Values, rate)
+		var err error
+		if rate, err = rates.rateApp.SaveRate(rate); err != nil {
+			rates.log.Print(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
 	}
 
-	result, _ := json.Marshal(rates)
+	resRates, err := rates.rateApp.GetRates()
+	if err != nil {
+		rates.log.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	result, _ := json.Marshal(resRates)
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
 	w.Write(result)

@@ -5,29 +5,29 @@ import (
 )
 
 type UserRepository interface {
-	saver
-	updater
-	eraser
-	receiverById
-	receiverByFormData
+	userSaver
+	userUpdater
+	userEraser
+	userReceiverById
+	userReceiverByFormData
 }
 
-type saver interface {
+type userSaver interface {
 	SaveUser(entity.User) (entity.User, error)
 }
 
-type updater interface {
+type userUpdater interface {
 	UpdateUser(uint64, entity.User) (entity.User, error)
 }
 
-type eraser interface {
+type userEraser interface {
 	DeleteUser(uint64) error
 }
 
-type receiverById interface {
+type userReceiverById interface {
 	GetUserById(uint64) (entity.User, error)
 }
 
-type receiverByFormData interface {
+type userReceiverByFormData interface {
 	GetUserByLogin(string, string) (entity.User, error)
 }

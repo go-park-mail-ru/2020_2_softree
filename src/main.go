@@ -6,7 +6,15 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"server/src/application"
+	"server/src/infrastructure/auth"
 	"server/src/infrastructure/config"
+	"server/src/infrastructure/corsInteraction"
+	"server/src/infrastructure/log"
+	"server/src/infrastructure/persistence"
+	"server/src/interfaces/authorization"
+	"server/src/interfaces/profile"
+	"server/src/interfaces/rates"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -46,30 +54,66 @@ func init() {
 	initFlags()
 }
 
+func createAuthenticate() *authorization.Authenticate {
+	memoryRepo := persistence.NewUserRepository()
+	memoryAuth := auth.NewMemAuth()
+
+	servicesDB := application.NewUserApp(memoryRepo)
+	servicesAuth := application.NewUserAuth(memoryAuth)
+	servicesLog := log.NewLogrusLogger()
+
+	return authorization.NewAuthenticate(*servicesDB, *servicesAuth, servicesLog)
+}
+
+func createProfile() *profile.Profile {
+	memoryRepo := persistence.NewUserRepository()
+	memoryAuth := auth.NewMemAuth()
+
+	servicesDB := application.NewUserApp(memoryRepo)
+	servicesAuth := application.NewUserAuth(memoryAuth)
+	servicesLog := log.NewLogrusLogger()
+
+	return profile.NewProfile(*servicesDB, *servicesAuth, servicesLog)
+}
+
+func createRates() *rates.Rates {
+	memoryRepo := persistence.NewRateRepository()
+	memoryAuth := auth.NewMemAuth()
+
+	servicesDB := application.NewRateApp(memoryRepo)
+	servicesAuth := application.NewUserAuth(memoryAuth)
+	servicesLog := log.NewLogrusLogger()
+
+	return rates.NewRates(*servicesDB, *servicesAuth, servicesLog)
+}
+
 func main() {
-	go rates.StartTicker()
+	userAuthenticate := createAuthenticate()
+	userProfile := createProfile()
+	rateRates := createRates()
+
 	router := mux.NewRouter()
 	r := router.PathPrefix("").Subrouter()
 
-	r.HandleFunc("/signin", ).
+	r.HandleFunc("/signin", userAuthenticate.Login).
 		Methods("POST", "OPTIONS")
 
-	r.HandleFunc("/signup", ).
+	r.HandleFunc("/signup", userAuthenticate.Signup).
 		Methods("POST", "OPTIONS")
 
-	r.HandleFunc("/auth", ).
+	r.HandleFunc("/auth", userAuthenticate.Auth).
 		Methods("GET", "OPTIONS")
 
-	r.HandleFunc("/logout", ).
+	r.HandleFunc("/logout", userAuthenticate.Logout).
 		Methods("POST", "OPTIONS")
 
-	r.HandleFunc("/rates", ).
+	r.HandleFunc("/rates", rateRates.GetRates).
 		Methods("GET", "OPTIONS")
 
-	r.HandleFunc("/user", ).
+	r.HandleFunc("/user", userProfile.Auth(userProfile.UpdateUser)).
 		Methods("PATCH", "OPTIONS")
 
-	r.HandleFunc("/change-password", ).
+	r.HandleFunc("/change-password", userProfile.Auth(userProfile.UpdateUser)).
 		Methods("PATCH", "OPTIONS")
 
 	r.Use(corsInteraction.CORSMiddleware())
