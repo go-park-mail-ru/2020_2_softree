@@ -17,7 +17,7 @@ func (rates *Rates) GetRates(w http.ResponseWriter, r *http.Request) {
 	})
 
 	var rate entity.Rate
-	forexRates, _, _ := api.ForexRates(auth, &finnhub.ForexRatesOpts{Base: optional.NewString("RUB")})
+	forexRates, _, _ := api.ForexRates(auth, &finnhub.ForexRatesOpts{Base: optional.NewString("USD")})
 	for name, quote := range forexRates.Quote {
 		rate.Base = forexRates.Base
 		rate.Currency = name
@@ -39,7 +39,7 @@ func (rates *Rates) GetRates(w http.ResponseWriter, r *http.Request) {
 	}
 	result, _ := json.Marshal(resRates)
 
-	w.Header().Set("Content-type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
 	w.Write(result)
