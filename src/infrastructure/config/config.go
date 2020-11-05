@@ -32,6 +32,12 @@ var GlobalCORSConfig = CORSConfig{
 	ExposedHeaders: []string{"Content-Length", "Content-Range"},
 }
 
+type RedisConfig struct {
+	Address string
+}
+
+var SessionDatabaseConfig = RedisConfig{}
+
 func ParseConfig() error {
 	yamlFile, err := ioutil.ReadFile(GlobalServerConfig.ConfigFile)
 	if err != nil {
