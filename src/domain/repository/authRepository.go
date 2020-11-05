@@ -1,6 +1,8 @@
 package repository
 
-import "net/http"
+import (
+	"net/http"
+)
 
 type AuthRepository interface {
 	creator
