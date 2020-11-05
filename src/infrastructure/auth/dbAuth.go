@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gomodule/redigo/redis"
@@ -48,11 +49,13 @@ func (sm *SessionManager) CheckAuth(sessionValue string) (uint64, error) {
 	if err != nil {
 		return 0, errors.New("redis error during checking session")
 	}
-	if data == "nil" {
+	strRes := string(data)
+	if strRes == "(nil)" {
 		return 0, errors.New("no session")
 	}
+	uintRes, _ := strconv.ParseUint(res, 10, 64)
 
-	return uint64(data), nil
+	return uintRes, nil
 }
 
 func (sm *SessionManager) DeleteAuth(sessionValue string) error {
