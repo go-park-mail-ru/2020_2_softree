@@ -32,6 +32,9 @@ func initFlags() {
 	flag.StringVar(&config.GlobalServerConfig.LogFile, "lf", "", "-lf set log file")
 	flag.BoolVar(&helpFlag, "h", false, "-h get usage message")
 
+	flag.StringVar(&config.SessionDatabaseConfig.Address, "redis", "redis://user:@localhost:6379/0",
+		"set redis session database addr")
+
 	flag.Parse()
 
 	if helpFlag {
