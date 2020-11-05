@@ -7,7 +7,7 @@ import (
 	"server/src/domain/entity"
 )
 
-func (a *Authenticate) Auth(w http.ResponseWriter, r *http.Request) {
+func (a *Authentication) Auth(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("session_id")
 	if err == http.ErrNoCookie {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -33,7 +33,7 @@ func (a *Authenticate) Auth(w http.ResponseWriter, r *http.Request) {
 	w.Write(res)
 }
 
-func extractUserFromSession(c *http.Cookie, a *Authenticate) (entity.User, error) {
+func extractUserFromSession(c *http.Cookie, a *Authentication) (entity.User, error) {
 	id, err := a.auth.CheckAuth(c.Value)
 	if err != nil {
 		return entity.User{}, errors.New("CheckAuth in extractUserFromSession")

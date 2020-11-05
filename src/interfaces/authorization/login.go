@@ -6,7 +6,7 @@ import (
 	"server/src/domain/entity"
 )
 
-func (a *Authenticate) Login(w http.ResponseWriter, r *http.Request) {
+func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 	var user entity.User
 	var err error
 	if err = json.NewDecoder(r.Body).Decode(&user); err != nil {

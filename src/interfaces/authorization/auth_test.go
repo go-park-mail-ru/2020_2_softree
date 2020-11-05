@@ -95,7 +95,7 @@ func TestAuth_FailNoUser(t *testing.T) {
 	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 }
 
-func createAuthSuccess(t *testing.T) (*Authenticate, *gomock.Controller) {
+func createAuthSuccess(t *testing.T) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
 	expectedUser := createExpectedUser("yandex@mail.ru", "str")
@@ -114,7 +114,7 @@ func createAuthSuccess(t *testing.T) (*Authenticate, *gomock.Controller) {
 	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
-func createAuthFailUnauthorized(t *testing.T) (*Authenticate, *gomock.Controller) {
+func createAuthFailUnauthorized(t *testing.T) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
@@ -126,7 +126,7 @@ func createAuthFailUnauthorized(t *testing.T) (*Authenticate, *gomock.Controller
 	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
-func createAuthFailSession(t *testing.T) (*Authenticate, *gomock.Controller) {
+func createAuthFailSession(t *testing.T) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
 
@@ -140,7 +140,7 @@ func createAuthFailSession(t *testing.T) (*Authenticate, *gomock.Controller) {
 	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
-func createAuthFailUser(t *testing.T) (*Authenticate, *gomock.Controller) {
+func createAuthFailUser(t *testing.T) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)

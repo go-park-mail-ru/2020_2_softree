@@ -71,7 +71,7 @@ func TestLogout_FailDeleteAuth(t *testing.T) {
 	require.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
 }
 
-func createLogoutSuccess(t *testing.T) (*Authenticate, *gomock.Controller) {
+func createLogoutSuccess(t *testing.T) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
 
@@ -85,7 +85,7 @@ func createLogoutSuccess(t *testing.T) (*Authenticate, *gomock.Controller) {
 	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
-func createLogoutFailNoCookie(t *testing.T) (*Authenticate, *gomock.Controller) {
+func createLogoutFailNoCookie(t *testing.T) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
@@ -97,7 +97,7 @@ func createLogoutFailNoCookie(t *testing.T) (*Authenticate, *gomock.Controller) 
 	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
-func createLogoutFailDeleteAuth(t *testing.T) (*Authenticate, *gomock.Controller) {
+func createLogoutFailDeleteAuth(t *testing.T) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
 

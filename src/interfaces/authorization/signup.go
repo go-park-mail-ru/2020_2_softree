@@ -6,7 +6,7 @@ import (
 	"server/src/domain/entity"
 )
 
-func (a *Authenticate) Signup(w http.ResponseWriter, r *http.Request) {
+func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
 	var user entity.User
 	var err error
 	if err = json.NewDecoder(r.Body).Decode(&user); err != nil {
@@ -39,7 +39,7 @@ func (a *Authenticate) Signup(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func (a *Authenticate) createInternalServerError(errors *entity.ErrorJSON, w http.ResponseWriter) {
+func (a *Authentication) createInternalServerError(errors *entity.ErrorJSON, w http.ResponseWriter) {
 	res, err := json.Marshal(errors)
 	if err != nil {
 		a.log.Print(err)

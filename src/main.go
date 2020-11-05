@@ -54,7 +54,7 @@ func init() {
 	initFlags()
 }
 
-func createAuthenticate() *authorization.Authenticate {
+func createAuthenticate() *authorization.Authentication {
 	memoryRepo := persistence.NewUserRepository()
 	memoryAuth := auth.NewMemAuth()
 

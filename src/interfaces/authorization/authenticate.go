@@ -5,12 +5,12 @@ import (
 	"server/src/infrastructure/log"
 )
 
-type Authenticate struct {
+type Authentication struct {
 	userApp application.UserApp
 	auth    application.UserAuth
 	log     log.LogHandler
 }
 
-func NewAuthenticate(uApp application.UserApp, auth application.UserAuth, log log.LogHandler) *Authenticate {
-	return &Authenticate{userApp: uApp, auth: auth, log: log}
+func NewAuthenticate(uApp application.UserApp, auth application.UserAuth, log log.LogHandler) *Authentication {
+	return &Authentication{userApp: uApp, auth: auth, log: log}
 }

@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func (a *Authenticate) Logout(w http.ResponseWriter, r *http.Request) {
+func (a *Authentication) Logout(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("session_id")
 	if err == http.ErrNoCookie {
 		w.WriteHeader(http.StatusFound)

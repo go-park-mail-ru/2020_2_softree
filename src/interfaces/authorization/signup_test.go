@@ -88,7 +88,7 @@ func TestSignup_FailBcrypt(t *testing.T) {
 	require.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
 }
 
-func createSignupSuccess(t *testing.T, userToSave entity.User) (*Authenticate, *gomock.Controller) {
+func createSignupSuccess(t *testing.T, userToSave entity.User) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
 	expectedUser := createExpectedUser("hound@psina.ru", "str")
@@ -104,7 +104,7 @@ func createSignupSuccess(t *testing.T, userToSave entity.User) (*Authenticate, *
 	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
-func createSignupFail(t *testing.T) (*Authenticate, *gomock.Controller) {
+func createSignupFail(t *testing.T) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
@@ -116,7 +116,7 @@ func createSignupFail(t *testing.T) (*Authenticate, *gomock.Controller) {
 	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
-func createSignupFailBcrypt(t *testing.T, u entity.User) (*Authenticate, *gomock.Controller) {
+func createSignupFailBcrypt(t *testing.T, u entity.User) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
 
