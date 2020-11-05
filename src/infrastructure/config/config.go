@@ -32,6 +32,14 @@ var GlobalCORSConfig = CORSConfig{
 	ExposedHeaders: []string{"Content-Length", "Content-Range"},
 }
 
+type RedisConfig struct {
+	Address string
+}
+
+var SessionDatabaseConfig = RedisConfig{
+	Address: "redis://user:@localhost:6379/0",
+}
+
 func ParseConfig() error {
 	yamlFile, err := ioutil.ReadFile(GlobalServerConfig.ConfigFile)
 	if err != nil {
