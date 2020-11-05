@@ -2,12 +2,14 @@ package persistence
 
 import (
 	"errors"
+	"fmt"
 	"github.com/asaskevich/govalidator"
 	"server/src/domain/entity"
+	"server/src/domain/repository"
 )
 
 type RateMemoryRepo struct {
-	rates []entity.Rate
+	rates     []entity.Rate
 }
 
 func NewRateRepository() *RateMemoryRepo {
@@ -15,11 +17,19 @@ func NewRateRepository() *RateMemoryRepo {
 	return &RateMemoryRepo{rates: rates}
 }
 
-func (rr *RateMemoryRepo) SaveRate(rate entity.Rate) (entity.Rate, error) {
-	rate.ID = uint64(len(rr.rates) + 1)
+func (rr *RateMemoryRepo) SaveRates(financial repository.FinancialRepository) ([]entity.Rate, error) {
+	for name, quote := range financial.GetQuote() {
+		var rate entity.Rate
 
-	rr.rates = append(rr.rates, rate)
-	return rate, nil
+		rate.ID = uint64(len(rr.rates) + 1)
+		rate.Base = financial.GetBase()
+		rate.Currency = name
+		rate.Value = fmt.Sprintf("%.6f", quote.(float64))
+
+		rr.rates = append(rr.rates, rate)
+	}
+
+	return rr.rates, nil
 }
 
 func (rr *RateMemoryRepo) UpdateRate(id uint64, data entity.Rate) (rate entity.Rate, err error) {
@@ -41,7 +51,7 @@ func (rr *RateMemoryRepo) UpdateRate(id uint64, data entity.Rate) (rate entity.R
 func (rr *RateMemoryRepo) DeleteRate(id uint64) error {
 	for i, rate := range rr.rates {
 		if rate.ID == id {
-			rr.rates = append(rr.rates[:i], rr.rates[i + 1:]...)
+			rr.rates = append(rr.rates[:i], rr.rates[i+1:]...)
 		}
 	}
 

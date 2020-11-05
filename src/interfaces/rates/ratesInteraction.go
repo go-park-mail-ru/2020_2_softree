@@ -3,35 +3,34 @@ package rates
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/Finnhub-Stock-API/finnhub-go"
 	"github.com/antihax/optional"
 	"net/http"
-	"server/src/domain/entity"
+	"server/src/domain/repository"
+	"server/src/infrastructure/financial"
 )
 
-func (rates *Rates) GetRates(w http.ResponseWriter, r *http.Request) {
-	api := finnhub.NewAPIClient(finnhub.NewConfiguration()).DefaultApi
-	auth := context.WithValue(context.Background(), finnhub.ContextAPIKey, finnhub.APIKey{
-		Key: "bttn28748v6ojt2hev60",
-	})
+func (rates *Rates) ForexRates(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		api := finnhub.NewAPIClient(finnhub.NewConfiguration()).DefaultApi
+		auth := context.WithValue(context.Background(), finnhub.ContextAPIKey, finnhub.APIKey{
+			Key: "bttn28748v6ojt2hev60",
+		})
 
-	var rate entity.Rate
-	forexRates, _, _ := api.ForexRates(auth, &finnhub.ForexRatesOpts{Base: optional.NewString("USD")})
-	for name, quote := range forexRates.Quote {
-		rate.Base = forexRates.Base
-		rate.Currency = name
-		rate.Value = fmt.Sprintf("%.6f", quote.(float64))
+		forexRates, _, _ := api.ForexRates(auth, &finnhub.ForexRatesOpts{Base: optional.NewString("USD")})
+		finance := financial.NewForexRepository(forexRates)
 
-		var err error
-		if rate, err = rates.rateApp.SaveRate(rate); err != nil {
-			rates.log.Print(err)
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
+		ctx := context.WithValue(r.Context(), "finance", finance)
+		r = r.Clone(ctx)
+
+		next.ServeHTTP(w, r)
 	}
+}
 
-	resRates, err := rates.rateApp.GetRates()
+func (rates *Rates) GetRates(w http.ResponseWriter, r *http.Request) {
+	finance := r.Context().Value("finance").(repository.FinancialRepository)
+
+	resRates, err := rates.rateApp.SaveRates(finance)
 	if err != nil {
 		rates.log.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)

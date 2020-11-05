@@ -13,8 +13,8 @@ func NewRateApp(repo repository.RateRepository) *RateApp {
 	return &RateApp{rr: repo}
 }
 
-func (ra *RateApp) SaveRate(rate entity.Rate) (entity.Rate, error) {
-	return ra.rr.SaveRate(rate)
+func (ra *RateApp) SaveRates(financial repository.FinancialRepository) ([]entity.Rate, error) {
+	return ra.rr.SaveRates(financial)
 }
 
 func (ra *RateApp) UpdateRate(id uint64, rate entity.Rate) (entity.Rate, error) {
