@@ -36,9 +36,7 @@ type RedisConfig struct {
 	Address string
 }
 
-var SessionDatabaseConfig = RedisConfig{
-	Address: "redis://user:@localhost:6379/0",
-}
+var SessionDatabaseConfig = RedisConfig{}
 
 func ParseConfig() error {
 	yamlFile, err := ioutil.ReadFile(GlobalServerConfig.ConfigFile)
