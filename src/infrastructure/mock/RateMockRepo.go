@@ -43,3 +43,19 @@ func (r *RecorderRateMockRepository) SaveRates(financial interface{}) *gomock.Ca
 		financial,
 	)
 }
+
+func (a *RateRepositoryForMock) UpdateRate(u uint64, rate entity.Rate) (entity.Rate, error) {
+	panic("implement me")
+}
+
+func (a *RateRepositoryForMock) DeleteRate(u uint64) error {
+	panic("implement me")
+}
+
+func (a *RateRepositoryForMock) GetRates() ([]entity.Rate, error) {
+	panic("implement me")
+}
+
+func (a *RateRepositoryForMock) GetRate(u uint64) (entity.Rate, error) {
+	panic("implement me")
+}

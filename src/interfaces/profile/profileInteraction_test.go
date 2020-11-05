@@ -9,7 +9,6 @@ import (
 	"net/http/httptest"
 	"server/src/application"
 	"server/src/domain/entity"
-	"server/src/infrastructure/auth"
 	"server/src/infrastructure/log"
 	mocks "server/src/infrastructure/mock"
 	"server/src/infrastructure/security"
@@ -30,7 +29,7 @@ func TestProfileAvatar_UpdateUserSuccess(t *testing.T) {
 	testAuth.UpdateUser(w, req)
 
 	require.Equal(t, http.StatusOK, w.Result().StatusCode)
-	require.NotEmpty(t, w.Header().Get("Content-type"))
+	require.NotEmpty(t, w.Header().Get("Content-Type"))
 	require.NotEmpty(t, w.Body)
 }
 
@@ -48,7 +47,7 @@ func TestProfilePassword_UpdateUserSuccess(t *testing.T) {
 	testAuth.UpdateUser(w, req)
 
 	require.Equal(t, http.StatusOK, w.Result().StatusCode)
-	require.NotEmpty(t, w.Header().Get("Content-type"))
+	require.NotEmpty(t, w.Header().Get("Content-Type"))
 	require.NotEmpty(t, w.Body)
 }
 
@@ -88,7 +87,7 @@ func TestProfile_AuthSuccess(t *testing.T) {
 	update(w, req)
 
 	require.Equal(t, http.StatusOK, w.Result().StatusCode)
-	require.NotEmpty(t, w.Header().Get("Content-type"))
+	require.NotEmpty(t, w.Header().Get("Content-Type"))
 	require.NotEmpty(t, w.Body)
 }
 
@@ -143,10 +142,9 @@ func createUpdateSuccess(t *testing.T, toUpdate entity.User) (*Profile, *gomock.
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewProfile(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+	return NewProfile(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
 func createUpdateFail(t *testing.T, toUpdate entity.User) (*Profile, *gomock.Controller) {
@@ -160,10 +158,9 @@ func createUpdateFail(t *testing.T, toUpdate entity.User) (*Profile, *gomock.Con
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewProfile(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+	return NewProfile(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
 func createAuthSuccess(t *testing.T, toUpdate entity.User) (*Profile, *gomock.Controller) {
@@ -180,10 +177,9 @@ func createAuthSuccess(t *testing.T, toUpdate entity.User) (*Profile, *gomock.Co
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewProfile(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+	return NewProfile(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
 func createAuthFailUnauthorized(t *testing.T) (*Profile, *gomock.Controller) {
@@ -193,10 +189,9 @@ func createAuthFailUnauthorized(t *testing.T) (*Profile, *gomock.Controller) {
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewProfile(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+	return NewProfile(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
 func createAuthFailNoSession(t *testing.T) (*Profile, *gomock.Controller) {
@@ -208,10 +203,9 @@ func createAuthFailNoSession(t *testing.T) (*Profile, *gomock.Controller) {
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewProfile(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+	return NewProfile(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
 func createExpectedUser() (expected entity.User) {
