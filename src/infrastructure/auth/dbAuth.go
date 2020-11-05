@@ -3,8 +3,9 @@ package auth
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
+	"server/src/infrastructure/config"
+	"server/src/infrastructure/security"
 	"strconv"
 	"time"
 
@@ -53,7 +54,7 @@ func (sm *SessionManager) CheckAuth(sessionValue string) (uint64, error) {
 	if strRes == "(nil)" {
 		return 0, errors.New("no session")
 	}
-	uintRes, _ := strconv.ParseUint(res, 10, 64)
+	uintRes, _ := strconv.ParseUint(strRes, 10, 64)
 
 	return uintRes, nil
 }
