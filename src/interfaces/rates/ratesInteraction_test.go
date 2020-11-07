@@ -47,7 +47,9 @@ func createForexRateSuccess(t *testing.T) (*Rates, *gomock.Controller) {
 	rateMock := mocks.NewRateRepositoryForMock(ctrl)
 	rateMock.EXPECT().GetRates().Return(createRates(), nil)
 
-	servicesDB := application.NewRateApp(rateMock)
+	dayCurrMock := mocks.NewDayCurrencyRepositoryForMock(ctrl)
+
+	servicesDB := application.NewRateApp(rateMock, dayCurrMock)
 	servicesLog := log.NewLogrusLogger()
 
 	return NewRates(*servicesDB, servicesLog), ctrl
@@ -59,7 +61,9 @@ func createForexRateFail(t *testing.T) (*Rates, *gomock.Controller) {
 	rateMock := mocks.NewRateRepositoryForMock(ctrl)
 	rateMock.EXPECT().GetRates().Return(createRates(), errors.New("get rates"))
 
-	servicesDB := application.NewRateApp(rateMock)
+	dayCurrMock := mocks.NewDayCurrencyRepositoryForMock(ctrl)
+
+	servicesDB := application.NewRateApp(rateMock, dayCurrMock)
 	servicesLog := log.NewLogrusLogger()
 
 	return NewRates(*servicesDB, servicesLog), ctrl

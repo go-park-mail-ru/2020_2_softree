@@ -26,11 +26,12 @@ func (a *RateRepositoryForMock) EXPECT() *RecorderRateMockRepository {
 	return a.recorder
 }
 
-func (a *RateRepositoryForMock) SaveRates(financial repository.FinancialRepository) error {
+func (a *RateRepositoryForMock) SaveRates(financial repository.FinancialRepository) ([]entity.Currency, error) {
 	a.ctrl.T.Helper()
 	ret := a.ctrl.Call(a, "SaveRates", financial)
-	err, _ := ret[0].(error)
-	return err
+	currencies, _ := ret[0].([]entity.Currency)
+	err, _ := ret[1].(error)
+	return currencies, err
 }
 
 func (r *RecorderRateMockRepository) SaveRates(financial interface{}) *gomock.Call {
