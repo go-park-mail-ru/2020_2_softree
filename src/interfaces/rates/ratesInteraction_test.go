@@ -1,7 +1,6 @@
 package rates
 
 import (
-	"context"
 	"errors"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
@@ -9,7 +8,6 @@ import (
 	"net/http/httptest"
 	"server/src/application"
 	"server/src/domain/entity"
-	"server/src/domain/repository"
 	"server/src/infrastructure/log"
 	mocks "server/src/infrastructure/mock"
 	"testing"
@@ -20,11 +18,8 @@ func TestGetRates_Success(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, url, nil)
 	w := httptest.NewRecorder()
-	testRate, repo, ctrl := createForexRateSuccess(t)
+	testRate, ctrl := createForexRateSuccess(t)
 	defer ctrl.Finish()
-
-	ctx := context.WithValue(req.Context(), "finance", repo)
-	req = req.Clone(ctx)
 
 	testRate.GetRates(w, req)
 
@@ -38,51 +33,36 @@ func TestGetRates_Fail(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, url, nil)
 	w := httptest.NewRecorder()
-	testRate, repo, ctrl := createForexRateFail(t)
+	testRate, ctrl := createForexRateFail(t)
 	defer ctrl.Finish()
-
-	ctx := context.WithValue(req.Context(), "finance", repo)
-	req = req.Clone(ctx)
 
 	testRate.GetRates(w, req)
 
 	require.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
-	require.Empty(t, w.Header().Get("Content-Type"))
-	require.Empty(t, w.Body)
 }
 
-func createForexRateSuccess(t *testing.T) (*Rates, repository.FinancialRepository, *gomock.Controller) {
+func createForexRateSuccess(t *testing.T) (*Rates, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
-	financeMock := mocks.NewFinanceRepositoryForMock(ctrl)
 
 	rateMock := mocks.NewRateRepositoryForMock(ctrl)
-	rateMock.EXPECT().SaveRates(financeMock).Return(createRates(), nil)
+	rateMock.EXPECT().GetRates().Return(createRates(), nil)
 
 	servicesDB := application.NewRateApp(rateMock)
 	servicesLog := log.NewLogrusLogger()
 
-	return NewRates(*servicesDB, servicesLog), financeMock, ctrl
+	return NewRates(*servicesDB, servicesLog), ctrl
 }
 
-func createForexRateFail(t *testing.T) (*Rates, repository.FinancialRepository, *gomock.Controller) {
+func createForexRateFail(t *testing.T) (*Rates, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
-	financeMock := mocks.NewFinanceRepositoryForMock(ctrl)
 
 	rateMock := mocks.NewRateRepositoryForMock(ctrl)
-	rateMock.EXPECT().SaveRates(financeMock).Return(createRates(), errors.New("error"))
+	rateMock.EXPECT().GetRates().Return(createRates(), errors.New("get rates"))
 
 	servicesDB := application.NewRateApp(rateMock)
 	servicesLog := log.NewLogrusLogger()
 
-	return NewRates(*servicesDB, servicesLog), financeMock, ctrl
-}
-
-func createFinanceMap() map[string]interface{} {
-	financeMap := make(map[string]interface{}, 1)
-	financeMap["EUR"] = 1.10
-	financeMap["RUB"] = 0.23
-
-	return financeMap
+	return NewRates(*servicesDB, servicesLog), ctrl
 }
 
 func createRates() []entity.Rate {

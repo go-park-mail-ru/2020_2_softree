@@ -26,12 +26,11 @@ func (a *RateRepositoryForMock) EXPECT() *RecorderRateMockRepository {
 	return a.recorder
 }
 
-func (a *RateRepositoryForMock) SaveRates(financial repository.FinancialRepository) ([]entity.Rate, error) {
+func (a *RateRepositoryForMock) SaveRates(financial repository.FinancialRepository) error {
 	a.ctrl.T.Helper()
 	ret := a.ctrl.Call(a, "SaveRates", financial)
-	rates, _ := ret[0].([]entity.Rate)
-	err, _ := ret[1].(error)
-	return rates, err
+	err, _ := ret[0].(error)
+	return err
 }
 
 func (r *RecorderRateMockRepository) SaveRates(financial interface{}) *gomock.Call {
@@ -53,7 +52,20 @@ func (a *RateRepositoryForMock) DeleteRate(u uint64) error {
 }
 
 func (a *RateRepositoryForMock) GetRates() ([]entity.Rate, error) {
-	panic("implement me")
+	a.ctrl.T.Helper()
+	ret := a.ctrl.Call(a, "GetRates")
+	rates, _ := ret[0].([]entity.Rate)
+	err, _ := ret[1].(error)
+	return rates, err
+}
+
+func (r *RecorderRateMockRepository) GetRates() *gomock.Call {
+	r.mock.ctrl.T.Helper()
+	return r.mock.ctrl.RecordCallWithMethodType(
+		r.mock,
+		"GetRates",
+		reflect.TypeOf((*RateRepositoryForMock)(nil).GetRates),
+	)
 }
 
 func (a *RateRepositoryForMock) GetRate(u uint64) (entity.Rate, error) {
