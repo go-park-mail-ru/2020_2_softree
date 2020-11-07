@@ -2,8 +2,6 @@ package persistence
 
 import (
 	"errors"
-	"fmt"
-	"github.com/asaskevich/govalidator"
 	"server/src/domain/entity"
 	"server/src/domain/repository"
 )
@@ -17,34 +15,22 @@ func NewRateRepository() *RateMemoryRepo {
 	return &RateMemoryRepo{rates: rates}
 }
 
-func (rr *RateMemoryRepo) SaveRates(financial repository.FinancialRepository) ([]entity.Rate, error) {
+func (rr *RateMemoryRepo) SaveRates(financial repository.FinancialRepository) error {
 	for name, quote := range financial.GetQuote() {
 		var rate entity.Rate
 
 		rate.ID = uint64(len(rr.rates) + 1)
 		rate.Base = financial.GetBase()
 		rate.Currency = name
-		rate.Value = fmt.Sprintf("%.6f", quote.(float64))
+		rate.Value = quote.(float64)
 
 		rr.rates = append(rr.rates, rate)
 	}
 
-	return rr.rates, nil
+	return nil
 }
 
 func (rr *RateMemoryRepo) UpdateRate(id uint64, data entity.Rate) (rate entity.Rate, err error) {
-	var i int
-	for i, rate = range rr.rates {
-		if rate.ID == id {
-			break
-		}
-	}
-
-	if !govalidator.IsNull(data.Value) {
-		rr.rates[i].Value = data.Value
-		rate.Value = data.Value
-	}
-
 	return
 }
 

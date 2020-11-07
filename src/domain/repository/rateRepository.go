@@ -11,7 +11,7 @@ type RateRepository interface {
 }
 
 type ratesSaver interface {
-	SaveRates(financial FinancialRepository) ([]entity.Rate, error)
+	SaveRates(financial FinancialRepository) error
 }
 
 type rateUpdater interface {

@@ -81,19 +81,19 @@ func createProfile() *profile.Profile {
 
 func createRates() *rates.Rates {
 	memoryRepo := persistence.NewRateRepository()
-	memoryAuth := auth.NewMemAuth()
 
 	servicesDB := application.NewRateApp(memoryRepo)
-	servicesAuth := application.NewUserAuth(memoryAuth)
 	servicesLog := log.NewLogrusLogger()
 
-	return rates.NewRates(*servicesDB, *servicesAuth, servicesLog)
+	return rates.NewRates(*servicesDB, servicesLog)
 }
 
 func main() {
 	userAuthenticate := createAuthenticate()
 	userProfile := createProfile()
 	rateRates := createRates()
+
+	go rateRates.GetRatesFromApi()
 
 	router := mux.NewRouter()
 	r := router.PathPrefix("").Subrouter()
