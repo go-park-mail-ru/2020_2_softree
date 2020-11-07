@@ -47,14 +47,17 @@ func (sm *SessionManager) CreateAuth(id uint64) (cookie http.Cookie, err error) 
 func (sm *SessionManager) CheckAuth(sessionValue string) (uint64, error) {
 	mkey := "sessions:" + sessionValue
 	data, err := redis.Bytes(sm.redisConn.Do("GET", mkey))
-	if err != nil {
+	if err == redis.ErrNil {
+		return 0, errors.New("no session")
+	} else if err != nil {
 		return 0, errors.New("redis error during checking session")
 	}
+
 	strRes := string(data)
-	if strRes == "(nil)" {
-		return 0, errors.New("no session")
+	uintRes, parseErr := strconv.ParseUint(strRes, 10, 64)
+	if parseErr != nil {
+		return 0, errors.New("internal server error")
 	}
-	uintRes, _ := strconv.ParseUint(strRes, 10, 64)
 
 	return uintRes, nil
 }
