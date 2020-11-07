@@ -39,13 +39,16 @@ func (ur *UserMemoryRepo) UpdateUser(id uint64, u entity.User) (entity.User, err
 		}
 	}
 
-	if !govalidator.IsNull(u.Password) {
-		ur.users[i].Password, _ = security.MakeShieldedPassword(u.Password)
-		user.Password, _ = security.MakeShieldedPassword(u.Password)
-	}
 	if !govalidator.IsNull(u.Avatar) {
 		ur.users[i].Avatar = u.Avatar
 		user.Avatar = u.Avatar
+	}
+
+	if !govalidator.IsNull(u.OldPassword) && !govalidator.IsNull(u.NewPassword) {
+		if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(u.OldPassword)) == nil {
+			ur.users[i].Password, _ = security.MakeShieldedPassword(u.NewPassword)
+			user.Password, _ = security.MakeShieldedPassword(u.NewPassword)
+		}
 	}
 
 	return user, nil

@@ -5,10 +5,12 @@ import (
 )
 
 type User struct {
-	ID       uint64 `json:"id"`
-	Email    string `json:"email" valid:"email"`
-	Password string `json:"password" valid:"required"`
-	Avatar   string `json:"avatar"`
+	ID          uint64 `json:"id"`
+	Email       string `json:"email" valid:"email"`
+	Password    string `json:"password" valid:"required"`
+	OldPassword string `json:"old_password"`
+	NewPassword string `json:"new_password"`
+	Avatar      string `json:"avatar"`
 }
 
 type PublicUser struct {
