@@ -14,6 +14,7 @@ type User struct {
 }
 
 type PublicUser struct {
+	ID     uint64 `json:"id"`
 	Email  string `json:"email"`
 	Avatar string `json:"avatar"`
 }
@@ -22,6 +23,7 @@ var Users []PublicUser
 
 func (u *User) MakePublicUser() PublicUser {
 	return PublicUser{
+		ID:     u.ID,
 		Email:  u.Email,
 		Avatar: u.Avatar,
 	}

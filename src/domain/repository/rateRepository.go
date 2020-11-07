@@ -15,7 +15,7 @@ type ratesSaver interface {
 }
 
 type rateUpdater interface {
-	UpdateRate(uint64, entity.Rate) (entity.Rate, error)
+	UpdateRate(uint64, entity.Currency) (entity.Currency, error)
 }
 
 type rateEraser interface {
@@ -23,9 +23,9 @@ type rateEraser interface {
 }
 
 type ratesReceiver interface {
-	GetRates() ([]entity.Rate, error)
+	GetRates() ([]entity.Currency, error)
 }
 
 type rateReceiver interface {
-	GetRate(uint64) (entity.Rate, error)
+	GetRate(uint64) (entity.Currency, error)
 }

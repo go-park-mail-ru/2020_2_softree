@@ -65,14 +65,14 @@ func createForexRateFail(t *testing.T) (*Rates, *gomock.Controller) {
 	return NewRates(*servicesDB, servicesLog), ctrl
 }
 
-func createRates() []entity.Rate {
+func createRates() []entity.Currency {
 	base := "USD"
 	currency := [...]string{"EUR", "RUB"}
 	values := [...]float64{1.10, 0.23}
 
-	rates := make([]entity.Rate, 0)
-	rates = append(rates, entity.Rate{Base: base, Currency: currency[0], Value: values[0], ID: 1})
-	rates = append(rates, entity.Rate{Base: base, Currency: currency[1], Value: values[1], ID: 2})
+	rates := make([]entity.Currency, 0)
+	rates = append(rates, entity.Currency{Base: base, Title: currency[0], Value: values[0], ID: 1})
+	rates = append(rates, entity.Currency{Base: base, Title: currency[1], Value: values[1], ID: 2})
 
 	return rates
 }

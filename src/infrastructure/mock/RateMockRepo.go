@@ -43,7 +43,7 @@ func (r *RecorderRateMockRepository) SaveRates(financial interface{}) *gomock.Ca
 	)
 }
 
-func (a *RateRepositoryForMock) UpdateRate(u uint64, rate entity.Rate) (entity.Rate, error) {
+func (a *RateRepositoryForMock) UpdateRate(u uint64, rate entity.Currency) (entity.Currency, error) {
 	panic("implement me")
 }
 
@@ -51,10 +51,10 @@ func (a *RateRepositoryForMock) DeleteRate(u uint64) error {
 	panic("implement me")
 }
 
-func (a *RateRepositoryForMock) GetRates() ([]entity.Rate, error) {
+func (a *RateRepositoryForMock) GetRates() ([]entity.Currency, error) {
 	a.ctrl.T.Helper()
 	ret := a.ctrl.Call(a, "GetRates")
-	rates, _ := ret[0].([]entity.Rate)
+	rates, _ := ret[0].([]entity.Currency)
 	err, _ := ret[1].(error)
 	return rates, err
 }
@@ -68,6 +68,6 @@ func (r *RecorderRateMockRepository) GetRates() *gomock.Call {
 	)
 }
 
-func (a *RateRepositoryForMock) GetRate(u uint64) (entity.Rate, error) {
+func (a *RateRepositoryForMock) GetRate(u uint64) (entity.Currency, error) {
 	panic("implement me")
 }
