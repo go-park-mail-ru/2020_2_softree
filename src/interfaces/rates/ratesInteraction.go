@@ -23,10 +23,17 @@ func (rates *Rates) GetRatesFromApi() {
 		forexRates, _, _ := api.ForexRates(auth, &finnhub.ForexRatesOpts{Base: optional.NewString("USD")})
 		finance := financial.NewForexRepository(forexRates)
 
-		err := rates.rateApp.SaveRates(finance)
+		savedRates, err := rates.rateApp.SaveRates(finance)
 		if err != nil {
 			rates.log.Print(err)
 			return
+		}
+
+		if time.Now().Hour() == 10 && time.Now().Minute() == 2 {  // 10:02
+			if err = rates.rateApp.SaveCurrency(savedRates);  err != nil {
+				rates.log.Print(err)
+				return
+			}
 		}
 	}
 }

@@ -6,14 +6,23 @@ import (
 )
 
 type RateApp struct {
-	rr repository.RateRepository
+	rr  repository.RateRepository
+	dcr repository.DayCurrencyRepository
 }
 
-func NewRateApp(repo repository.RateRepository) *RateApp {
-	return &RateApp{rr: repo}
+func NewRateApp(repo repository.RateRepository, dcr repository.DayCurrencyRepository) *RateApp {
+	return &RateApp{rr: repo, dcr: dcr}
 }
 
-func (ra *RateApp) SaveRates(financial repository.FinancialRepository) error {
+func (ra *RateApp) SaveCurrency(currencies []entity.Currency) error {
+	return ra.dcr.SaveCurrency(currencies)
+}
+
+func (ra *RateApp) GetInitialCurrency() ([]entity.Currency, error) {
+	return ra.dcr.GetInitialCurrency()
+}
+
+func (ra *RateApp) SaveRates(financial repository.FinancialRepository) ([]entity.Currency, error) {
 	return ra.rr.SaveRates(financial)
 }
 

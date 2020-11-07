@@ -15,7 +15,7 @@ func NewRateRepository() *RateMemoryRepo {
 	return &RateMemoryRepo{rates: rates}
 }
 
-func (rr *RateMemoryRepo) SaveRates(financial repository.FinancialRepository) error {
+func (rr *RateMemoryRepo) SaveRates(financial repository.FinancialRepository) ([]entity.Currency, error) {
 	for name, quote := range financial.GetQuote() {
 		var rate entity.Currency
 
@@ -27,7 +27,7 @@ func (rr *RateMemoryRepo) SaveRates(financial repository.FinancialRepository) er
 		rr.rates = append(rr.rates, rate)
 	}
 
-	return nil
+	return rr.rates, nil
 }
 
 func (rr *RateMemoryRepo) UpdateRate(id uint64, data entity.Currency) (rate entity.Currency, err error) {
