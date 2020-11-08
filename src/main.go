@@ -111,26 +111,38 @@ func main() {
 	router := mux.NewRouter()
 	r := router.PathPrefix("").Subrouter()
 
-	r.HandleFunc("/signin", userAuthenticate.Login).
-		Methods("POST", "OPTIONS")
+	r.HandleFunc("/sessions", userAuthenticate.Login).
+		Methods(http.MethodPost, http.MethodOptions)
 
-	r.HandleFunc("/signup", userAuthenticate.Signup).
-		Methods("POST", "OPTIONS")
+	r.HandleFunc("/users", userAuthenticate.Signup).
+		Methods(http.MethodPost, http.MethodOptions)
 
 	r.HandleFunc("/auth", userAuthenticate.Auth).
-		Methods("GET", "OPTIONS")
+		Methods(http.MethodGet, http.MethodOptions)
 
 	r.HandleFunc("/logout", userAuthenticate.Logout).
-		Methods("POST", "OPTIONS")
+		Methods(http.MethodPost, http.MethodOptions)
 
 	r.HandleFunc("/rates", rateRates.GetRates).
-		Methods("GET", "OPTIONS")
+		Methods(http.MethodGet, http.MethodOptions)
 
-	r.HandleFunc("/user", userProfile.Auth(userProfile.UpdateUser)).
-		Methods("PATCH", "OPTIONS")
+	// #TODO
+	r.HandleFunc("/rates/{title}", rateRates.GetRates).
+		Methods(http.MethodGet, http.MethodOptions)
 
-	r.HandleFunc("/change-password", userProfile.Auth(userProfile.UpdateUser)).
-		Methods("PATCH", "OPTIONS")
+	r.HandleFunc("/users", userProfile.Auth(userProfile.UpdateUser)).
+		Methods(http.MethodPut, http.MethodOptions)
+
+	// #TODO
+	r.HandleFunc("/users", userProfile.Auth()).
+		Methods(http.MethodGet, http.MethodOptions)
+
+	// #TODO
+	r.HandleFunc("/watchers", userProfile.Auth()).
+		Methods(http.MethodGet, http.MethodOptions)
+
+	r.HandleFunc("/users/change-password", userProfile.Auth(userProfile.UpdateUser)).
+		Methods(http.MethodPut, http.MethodOptions)
 
 	r.Use(corsInteraction.CORSMiddleware())
 
