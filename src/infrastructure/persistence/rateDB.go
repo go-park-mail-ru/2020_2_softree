@@ -10,7 +10,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-var listOfCurrencies = [...]string{
+var ListOfCurrencies = [...]string{
 	"USD",
 	"RUB",
 	"EUR",
@@ -65,7 +65,7 @@ func NewRateDBManager() (*RateDBManager, error) {
 func (rm *RateDBManager) SaveRates(financial repository.FinancialRepository) error {
 	currentTime := time.Now()
 
-	for _, name := range listOfCurrencies {
+	for _, name := range ListOfCurrencies {
 		quote := financial.GetQuote()[name]
 		_, err := rm.DB.Exec(
 			"INSERT INTO HistoryCurrencByMinute (`title`, `value`, `updated_at`) VALUES (?, ?, ?)",
@@ -85,14 +85,14 @@ func (rm *RateDBManager) SaveRates(financial repository.FinancialRepository) err
 func (rm *RateDBManager) GetRates() ([]entity.Currency, error) {
 	result, err := rm.DB.Query(
 		"SELECT title, value, updated_at FROM HistoryCurrencByMinute LIMIT ? ORDER BY id DESC",
-		len(listOfCurrencies),
+		len(ListOfCurrencies),
 	)
 	defer result.Close()
 	if err != nil {
 		return nil, err
 	}
 
-	currencies := make([]entity.Currency, len(listOfCurrencies))
+	currencies := make([]entity.Currency, len(ListOfCurrencies))
 	for result.Next() {
 		var currency entity.Currency
 		if err := result.Scan(currency.Title, currency.Value, currency.UpdatedAt); err != nil {

@@ -33,8 +33,10 @@ func initFlags() {
 	flag.BoolVar(&helpFlag, "h", false, "-h get usage message")
 
 	// Databases configs
-	flag.StringVar(&config.SessionDatabaseConfig.Address, "redis", "redis://user:@localhost:6379/0",
-		"set redis session database addr")
+	flag.StringVar(&config.SessionDatabaseConfig.AddressSessions, "redisSessions",
+		"redis://user:@localhost:6379/1", "set redis session database addr")
+	flag.StringVar(&config.SessionDatabaseConfig.AddressDayCurrency, "redisDayCurrency",
+		"redis://user:@localhost:6379/2", "set redis day currency database addr")
 
 	flag.StringVar(&config.RateDatabaseConfig.User, "rate_db_user", "", "rate DB user")
 	flag.StringVar(&config.RateDatabaseConfig.Password, "rate_db_password", "", "rate DB password")

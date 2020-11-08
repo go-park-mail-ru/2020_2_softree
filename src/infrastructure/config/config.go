@@ -33,7 +33,8 @@ var GlobalCORSConfig = CORSConfig{
 }
 
 type RedisConfig struct {
-	Address string
+	AddressSessions    string
+	AddressDayCurrency string
 }
 
 var SessionDatabaseConfig = RedisConfig{}

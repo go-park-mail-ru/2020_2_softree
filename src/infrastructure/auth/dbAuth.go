@@ -18,12 +18,12 @@ type Session struct {
 }
 
 type SessionManager struct {
-	redisConn redis.Conn
+	RedisConn redis.Conn
 }
 
 func NewSessionManager(conn redis.Conn) *SessionManager {
 	return &SessionManager{
-		redisConn: conn,
+		RedisConn: conn,
 	}
 }
 
@@ -33,7 +33,7 @@ func (sm *SessionManager) CreateAuth(id uint64) (cookie http.Cookie, err error) 
 	}
 
 	mkey := "sessions:" + cookie.Value
-	result, err := redis.String(sm.redisConn.Do("SET", mkey, id, "EX", 60*60*24)) // Expires in 24 hours
+	result, err := redis.String(sm.RedisConn.Do("SET", mkey, id, "EX", 60*60*24)) // Expires in 24 hours
 	if err != nil {
 		return http.Cookie{}, err
 	}
@@ -46,7 +46,7 @@ func (sm *SessionManager) CreateAuth(id uint64) (cookie http.Cookie, err error) 
 
 func (sm *SessionManager) CheckAuth(sessionValue string) (uint64, error) {
 	mkey := "sessions:" + sessionValue
-	data, err := redis.Bytes(sm.redisConn.Do("GET", mkey))
+	data, err := redis.Bytes(sm.RedisConn.Do("GET", mkey))
 	if err == redis.ErrNil {
 		return 0, errors.New("no session")
 	} else if err != nil {
@@ -64,7 +64,7 @@ func (sm *SessionManager) CheckAuth(sessionValue string) (uint64, error) {
 
 func (sm *SessionManager) DeleteAuth(sessionValue string) error {
 	mkey := "sessions:" + sessionValue
-	_, err := redis.Int(sm.redisConn.Do("DEL", mkey))
+	_, err := redis.Int(sm.RedisConn.Do("DEL", mkey))
 	if err != nil {
 		return errors.New("redis error during session delete")
 	}
