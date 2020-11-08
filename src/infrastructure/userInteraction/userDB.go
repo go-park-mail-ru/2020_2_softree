@@ -4,17 +4,21 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/asaskevich/govalidator"
+	_ "github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
 	"server/src/domain/entity"
 	"server/src/infrastructure/security"
-	_ "github.com/lib/pq"
 )
 
-type Handler struct {
+type UserDBManager struct {
 	DB   *sql.DB
 }
 
-func (h *Handler) GetUserById(id uint64) (entity.User, error) {
+/*func NewUserDBManager() {
+
+}*/
+
+func (h *UserDBManager) GetUserById(id uint64) (entity.User, error) {
 	user := entity.User{}
 
 	row := h.DB.QueryRow("SELECT id, email, password FROM user WHERE id = ?", id)
@@ -29,7 +33,7 @@ func (h *Handler) GetUserById(id uint64) (entity.User, error) {
 	return user, nil
 }
 
-func (h *Handler) SaveUser(user entity.User) (entity.User, error) {
+func (h *UserDBManager) SaveUser(user entity.User) (entity.User, error) {
 	row := h.DB.QueryRow("SELECT COUNT(*) FROM user WHERE email = ?", user.Email)
 
 	var exists int
@@ -66,7 +70,7 @@ func (h *Handler) SaveUser(user entity.User) (entity.User, error) {
 	return newUser, nil
 }
 
-func (h *Handler) UpdateUser(id uint64, user entity.User) (entity.User, error) {
+func (h *UserDBManager) UpdateUser(id uint64, user entity.User) (entity.User, error) {
 	currentUser, err := h.GetUserById(id)
 	if err != nil {
 		return entity.User{}, err
@@ -100,7 +104,7 @@ func (h *Handler) UpdateUser(id uint64, user entity.User) (entity.User, error) {
 	return resUser, nil
 }
 
-func (h *Handler) DeleteUser(id uint64) error {
+func (h *UserDBManager) DeleteUser(id uint64) error {
 	_, err := h.DB.Exec(
 		"DELETE FROM user WHERE id = ?",
 		id,
@@ -109,7 +113,7 @@ func (h *Handler) DeleteUser(id uint64) error {
 	return err
 }
 
-func (h *Handler) GetUserByLogin(email string, password string) (entity.User, error) {
+func (h *UserDBManager) GetUserByLogin(email string, password string) (entity.User, error) {
 	user := entity.User{Email: email}
 
 	row := h.DB.QueryRow("SELECT id, password FROM user WHERE email = ?", email)
