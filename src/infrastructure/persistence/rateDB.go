@@ -77,7 +77,7 @@ func (rm *RateDBManager) SaveRates(financial repository.FinancialRepository) err
 	for _, name := range ListOfCurrencies {
 		quote := financial.GetQuote()[name]
 		_, err := rm.DB.Exec(
-			"INSERT INTO HistoryCurrencByMinute (`title`, `value`, `updated_at`) VALUES (?, ?, ?)",
+			"INSERT INTO HistoryCurrencByMinute (`title`, `value`, `updated_at`) VALUES ($1, $2, $3)",
 			name,
 			quote.(float64),
 			currentTime,
@@ -93,7 +93,7 @@ func (rm *RateDBManager) SaveRates(financial repository.FinancialRepository) err
 
 func (rm *RateDBManager) GetRates() ([]entity.Currency, error) {
 	result, err := rm.DB.Query(
-		"SELECT title, value, updated_at FROM HistoryCurrencByMinute LIMIT ? ORDER BY id DESC",
+		"SELECT title, value, updated_at FROM HistoryCurrencByMinute LIMIT $1 ORDER BY id DESC",
 		len(ListOfCurrencies),
 	)
 	defer result.Close()
