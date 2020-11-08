@@ -14,15 +14,15 @@ func NewRateApp(repo repository.RateRepository, dcr repository.DayCurrencyReposi
 	return &RateApp{rr: repo, dcr: dcr}
 }
 
-func (ra *RateApp) SaveCurrency(currencies []entity.Currency) error {
-	return ra.dcr.SaveCurrency(currencies)
+func (ra *RateApp) SaveCurrency(financial repository.FinancialRepository) error {
+	return ra.dcr.SaveCurrency(financial)
 }
 
 func (ra *RateApp) GetInitialCurrency() ([]entity.Currency, error) {
 	return ra.dcr.GetInitialCurrency()
 }
 
-func (ra *RateApp) SaveRates(financial repository.FinancialRepository) ([]entity.Currency, error) {
+func (ra *RateApp) SaveRates(financial repository.FinancialRepository) error {
 	return ra.rr.SaveRates(financial)
 }
 

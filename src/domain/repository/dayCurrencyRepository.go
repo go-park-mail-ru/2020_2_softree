@@ -8,7 +8,7 @@ type DayCurrencyRepository interface {
 }
 
 type dayCurrencySaver interface {
-	SaveCurrency([]entity.Currency) error
+	SaveCurrency(financial FinancialRepository) error
 }
 
 type dayCurrencyReceiver interface {

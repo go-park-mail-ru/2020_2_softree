@@ -4,6 +4,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"reflect"
 	"server/src/domain/entity"
+	"server/src/domain/repository"
 )
 
 type DayCurrencyRepositoryForMock struct {
@@ -25,9 +26,9 @@ func (d *DayCurrencyRepositoryForMock) EXPECT() *RecorderDayCurrencyMockReposito
 	return d.recorder
 }
 
-func (d *DayCurrencyRepositoryForMock) SaveCurrency(currencies []entity.Currency) error {
+func (d *DayCurrencyRepositoryForMock) SaveCurrency(financial repository.FinancialRepository) error {
 	d.ctrl.T.Helper()
-	ret := d.ctrl.Call(d, "SaveCurrency", currencies)
+	ret := d.ctrl.Call(d, "SaveCurrency", financial)
 	err, _ := ret[0].(error)
 	return err
 }
