@@ -69,6 +69,20 @@ func createForexRateFail(t *testing.T) (*Rates, *gomock.Controller) {
 	return NewRates(*servicesDB, servicesLog), ctrl
 }
 
+func createGetURLRateSuccess(t *testing.T) (*Rates, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	rateMock := mocks.NewRateRepositoryForMock(ctrl)
+	rateMock.EXPECT().GetRate("USD").Return(createRates(), nil)
+
+	dayCurrMock := mocks.NewDayCurrencyRepositoryForMock(ctrl)
+
+	servicesDB := application.NewRateApp(rateMock, dayCurrMock)
+	servicesLog := log.NewLogrusLogger()
+
+	return NewRates(*servicesDB, servicesLog), ctrl
+}
+
 func createRates() []entity.Currency {
 	base := "USD"
 	currency := [...]string{"EUR", "RUB"}

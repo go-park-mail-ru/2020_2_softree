@@ -165,7 +165,7 @@ func main() {
 	r.HandleFunc("/rates", rateRates.GetRates).
 		Methods(http.MethodGet, http.MethodOptions)
 
-	r.HandleFunc("/rates/{title}", rateRates.GetURLRate).
+	r.HandleFunc("/rates/{title}/", rateRates.GetURLRate).
 		Methods(http.MethodGet, http.MethodOptions)
 
 	r.HandleFunc("/users", userAuthenticate.Signup).

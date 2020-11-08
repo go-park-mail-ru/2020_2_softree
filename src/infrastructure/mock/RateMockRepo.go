@@ -68,6 +68,20 @@ func (r *RecorderRateMockRepository) GetRates() *gomock.Call {
 	)
 }
 
-func (a *RateRepositoryForMock) GetRate(u string) ([]entity.Currency, error) {
-	panic("implement me")
+func (a *RateRepositoryForMock) GetRate(title string) ([]entity.Currency, error) {
+	a.ctrl.T.Helper()
+	ret := a.ctrl.Call(a, "GetRate", title)
+	rates, _ := ret[0].([]entity.Currency)
+	err, _ := ret[1].(error)
+	return rates, err
+}
+
+func (r *RecorderRateMockRepository) GetRate(title interface{}) *gomock.Call {
+	r.mock.ctrl.T.Helper()
+	return r.mock.ctrl.RecordCallWithMethodType(
+		r.mock,
+		"GetRate",
+		reflect.TypeOf((*RateRepositoryForMock)(nil).GetRate),
+		title,
+	)
 }
