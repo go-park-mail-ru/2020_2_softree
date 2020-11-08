@@ -51,9 +51,9 @@ func NewUserDBManager() (*UserDBManager, error) {
 func (h *UserDBManager) GetUserById(id uint64) (entity.User, error) {
 	user := entity.User{}
 
-	row := h.DB.QueryRow("SELECT id, email, password FROM user WHERE id = $1", id)
+	row := h.DB.QueryRow("SELECT id, email, password FROM user_trade WHERE id = $1", id)
 
-	err := row.Scan(user.ID, user.Email, user.Password)
+	err := row.Scan(&user.ID, &user.Email, &user.Password)
 	if err != nil {
 		return entity.User{}, err
 	}
@@ -64,10 +64,10 @@ func (h *UserDBManager) GetUserById(id uint64) (entity.User, error) {
 }
 
 func (h *UserDBManager) SaveUser(user entity.User) (entity.User, error) {
-	row := h.DB.QueryRow("SELECT COUNT(*) FROM user WHERE email = $1", user.Email)
+	row := h.DB.QueryRow("SELECT COUNT(id) FROM user_trade WHERE email = $1", user.Email)
 
 	var exists int
-	err := row.Scan(exists)
+	err := row.Scan(&exists)
 	if err != nil {
 		return entity.User{}, err
 	}
@@ -81,7 +81,7 @@ func (h *UserDBManager) SaveUser(user entity.User) (entity.User, error) {
 	}
 
 	result, err := h.DB.Exec(
-		"INSERT INTO user (`email`, `password`) VALUES ($1, $2)",
+		"INSERT INTO user_trade (`email`, `password`) VALUES ($1, $2)",
 		user.Email,
 		password,
 	)
@@ -118,7 +118,7 @@ func (h *UserDBManager) UpdateUser(id uint64, user entity.User) (entity.User, er
 				return entity.User{}, err
 			}
 			_, err = h.DB.Exec(
-				"UPDATE user SET password = $1 WHERE id = $2",
+				"UPDATE user_trade SET password = $1 WHERE id = $2",
 				newPassword,
 				id,
 			)
@@ -136,7 +136,7 @@ func (h *UserDBManager) UpdateUser(id uint64, user entity.User) (entity.User, er
 
 func (h *UserDBManager) DeleteUser(id uint64) error {
 	_, err := h.DB.Exec(
-		"DELETE FROM user WHERE id = $1",
+		"DELETE FROM user_trade WHERE id = $1",
 		id,
 	)
 
@@ -146,18 +146,44 @@ func (h *UserDBManager) DeleteUser(id uint64) error {
 func (h *UserDBManager) GetUserByLogin(email string, password string) (entity.User, error) {
 	user := entity.User{Email: email}
 
-	row := h.DB.QueryRow("SELECT id, password FROM user WHERE email = $1", email)
+	row := h.DB.QueryRow("SELECT id, password FROM user_trade WHERE email = $1", email)
 
-	err := row.Scan(user.ID, user.Password)
+	err := row.Scan(&user.ID, &user.Password)
+	if govalidator.IsNull(user.Password) {
+		return entity.User{}, errors.New("user does not exist")
+	}
 	if err != nil {
 		return entity.User{}, err
 	}
 
 	if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) != nil {
-		return entity.User{}, errors.New("user does not exist in DB")
+		return entity.User{}, errors.New("wrong password")
 	}
 
 	// ADD AVATAR
 
 	return user, nil
+}
+
+func (h *UserDBManager) GetUserWatchlist(id uint64) ([]entity.Currency, error) {
+	result, err := h.DB.Query(
+		"SELECT base_title, currency_title FROM watchlist WHERE user_id = $1",
+		id,
+	)
+	defer result.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	currencies := make([]entity.Currency, 0)
+	for result.Next() {
+		var currency entity.Currency
+		if err := result.Scan(&currency.Base, &currency.Title); err != nil {
+			return nil, err
+		}
+
+		currencies = append(currencies, currency)
+	}
+
+	return currencies, nil
 }

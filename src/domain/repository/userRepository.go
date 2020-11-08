@@ -10,6 +10,7 @@ type UserRepository interface {
 	userEraser
 	userReceiverById
 	userReceiverByFormData
+	userReceiverWatchlist
 }
 
 type userSaver interface {
@@ -30,4 +31,8 @@ type userReceiverById interface {
 
 type userReceiverByFormData interface {
 	GetUserByLogin(string, string) (entity.User, error)
+}
+
+type userReceiverWatchlist interface {
+	GetUserWatchlist(uint64) ([]entity.Currency, error)
 }

@@ -156,30 +156,27 @@ func main() {
 	r.HandleFunc("/sessions", userAuthenticate.Login).
 		Methods(http.MethodPost, http.MethodOptions)
 
-	r.HandleFunc("/users", userAuthenticate.Signup).
-		Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/sessions", userAuthenticate.Logout).
+		Methods(http.MethodDelete, http.MethodOptions)
 
-	r.HandleFunc("/auth", userAuthenticate.Auth).
+	r.HandleFunc("/sessions", userAuthenticate.Auth).
 		Methods(http.MethodGet, http.MethodOptions)
-
-	r.HandleFunc("/logout", userAuthenticate.Logout).
-		Methods(http.MethodPost, http.MethodOptions)
 
 	r.HandleFunc("/rates", rateRates.GetRates).
 		Methods(http.MethodGet, http.MethodOptions)
 
-	// #TODO
-	r.HandleFunc("/rates/{title}", rateRates.GetRates).
+	r.HandleFunc("/rates/{title}", rateRates.GetURLRate).
 		Methods(http.MethodGet, http.MethodOptions)
+
+	r.HandleFunc("/users", userAuthenticate.Signup).
+		Methods(http.MethodPost, http.MethodOptions)
 
 	r.HandleFunc("/users", userProfile.Auth(userProfile.UpdateUser)).
 		Methods(http.MethodPut, http.MethodOptions)
 
-	// #TODO
-	r.HandleFunc("/users", userProfile.Auth(userProfile.UpdateUser)).
+	r.HandleFunc("/users", userProfile.Auth(userProfile.GetUser)).
 		Methods(http.MethodGet, http.MethodOptions)
 
-	// #TODO
 	r.HandleFunc("/watchers", userProfile.Auth(userProfile.UpdateUser)).
 		Methods(http.MethodGet, http.MethodOptions)
 

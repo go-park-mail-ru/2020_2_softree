@@ -68,6 +68,6 @@ func (r *RecorderRateMockRepository) GetRates() *gomock.Call {
 	)
 }
 
-func (a *RateRepositoryForMock) GetRate(u uint64) (entity.Currency, error) {
+func (a *RateRepositoryForMock) GetRate(u string) ([]entity.Currency, error) {
 	panic("implement me")
 }
