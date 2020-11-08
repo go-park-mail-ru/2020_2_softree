@@ -2,6 +2,7 @@ package authorization
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"server/src/domain/entity"
 )
@@ -21,8 +22,9 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var errs entity.ErrorJSON
-	errs, user = a.checkGetUserByLoginErrors()
+	user, err = a.userApp.GetUserByLogin(user.Email, user.Password)
+	errs := a.checkGetUserByLoginErrors(err)
+
 	if errs.NotEmpty {
 		a.log.Print(err)
 		res, err := json.Marshal(errs)
@@ -32,6 +34,7 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.WriteHeader(http.StatusBadRequest)
+		w.Header().Add("Content-Type", "application/json")
 		w.Write(res)
 		return
 	}
@@ -55,18 +58,16 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 	w.Write(res)
 }
 
-func (a *Authentication) checkGetUserByLoginErrors() (errs entity.ErrorJSON, user entity.User) {
-	var err error
-	user, err = a.userApp.GetUserByLogin(user.Email, user.Password)
-
-	switch err.Error() {
-	case "user does not exist":
+func (a *Authentication) checkGetUserByLoginErrors(err error) (errs entity.ErrorJSON) {
+	if err == errors.New("user does not exist") {
 		errs.NotEmpty = true
-		errs.NonFieldError = append(errs.NonFieldError, err.Error())
-	case "wrong password":
+		errs.NonFieldError = append(errs.NonFieldError, "такой пользователь не существует")
+	}
+	if err == errors.New("wrong password") {
 		errs.NotEmpty = true
-		errs.Password = append(errs.Password, err.Error())
-	default:
+		errs.Password = append(errs.Password, "неправильный пароль")
+	}
+	if err != nil {
 		errs.NotEmpty = true
 		errs.NonFieldError = append(errs.NonFieldError, err.Error())
 	}

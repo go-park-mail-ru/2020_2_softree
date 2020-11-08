@@ -15,7 +15,7 @@ import (
 )
 
 func TestLogin_Success(t *testing.T) {
-	url := "http://127.0.0.1:8000/login"
+	url := "http://127.0.0.1:8000/sessions"
 	body := strings.NewReader(`{"email": "yandex@mail.ru", "password": "str"}`)
 
 	req := httptest.NewRequest("POST", url, body)
@@ -60,8 +60,8 @@ func TestLogin_FailNoUser(t *testing.T) {
 	testAuth.Login(w, req)
 
 	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
-	require.Empty(t, w.Body)
-	require.Empty(t, w.Header().Get("Content-type"))
+	require.NotEmpty(t, w.Body)
+	require.NotEmpty(t, w.Header().Get("Content-Type"))
 }
 
 func TestLogin_FailCreateAuth(t *testing.T) {
