@@ -2,7 +2,6 @@ package auth
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"server/src/infrastructure/config"
 	"server/src/infrastructure/security"
@@ -38,7 +37,7 @@ func (sm *SessionManager) CreateAuth(id uint64) (cookie http.Cookie, err error) 
 		return http.Cookie{}, err
 	}
 	if result != "OK" {
-		return http.Cookie{}, fmt.Errorf("result not OK")
+		return http.Cookie{}, errors.New("result not OK")
 	}
 
 	return cookie, nil
