@@ -38,6 +38,6 @@ func (ra *RateApp) GetRates() ([]entity.Currency, error) {
 	return ra.rr.GetRates()
 }
 
-func (ra *RateApp) GetRate(id uint64) (entity.Currency, error) {
+func (ra *RateApp) GetRate(id string) ([]entity.Currency, error) {
 	return ra.rr.GetRate(id)
 }

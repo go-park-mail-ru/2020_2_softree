@@ -27,5 +27,5 @@ type ratesReceiver interface {
 }
 
 type rateReceiver interface {
-	GetRate(uint64) (entity.Currency, error)
+	GetRate(string) ([]entity.Currency, error)
 }

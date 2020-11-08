@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/Finnhub-Stock-API/finnhub-go"
 	"github.com/antihax/optional"
+	"github.com/gorilla/mux"
 	"net/http"
 	"server/src/infrastructure/financial"
 	"time"
@@ -40,6 +41,23 @@ func (rates *Rates) GetRatesFromApi() {
 
 func (rates *Rates) GetRates(w http.ResponseWriter, r *http.Request) {
 	resRates, err := rates.rateApp.GetRates()
+	if err != nil {
+		rates.log.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	result, _ := json.Marshal(resRates)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	w.Write(result)
+}
+
+func (rates *Rates) GetURLRate(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	resRates, err := rates.rateApp.GetRate(vars["title"])
 	if err != nil {
 		rates.log.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
