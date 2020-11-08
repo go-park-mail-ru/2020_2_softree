@@ -42,7 +42,7 @@ var SessionDatabaseConfig = RedisConfig{}
 type RateBDConfig struct {
 	User     string
 	Password string
-	Port     string
+	Host     string
 	Schema   string
 }
 
@@ -51,7 +51,7 @@ var RateDatabaseConfig = RateBDConfig{}
 type UserBDConfig struct {
 	User     string
 	Password string
-	Port     string
+	Host     string
 	Schema   string
 }
 

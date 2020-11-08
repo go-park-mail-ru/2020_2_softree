@@ -3,6 +3,7 @@ package userInteraction
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"github.com/asaskevich/govalidator"
 	_ "github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
@@ -16,18 +17,26 @@ type UserDBManager struct {
 }
 
 func NewUserDBManager() (*UserDBManager, error) {
-	dsn := config.UserDatabaseConfig.User +
+	/*dsn := config.UserDatabaseConfig.User +
 		":" + config.UserDatabaseConfig.Password +
 		"@" + config.UserDatabaseConfig.Port +
 		"/" + config.UserDatabaseConfig.Schema
 	dsn += "&charset=utf8"
-	dsn += "&interpolateParams=true"
+	dsn += "&interpolateParams=true"*/
+
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		config.UserDatabaseConfig.Host,
+		5432,
+		config.UserDatabaseConfig.User,
+		config.UserDatabaseConfig.Password,
+		config.UserDatabaseConfig.Schema)
 
 	/*dsn := "root:1234@tcp(localhost:3306)/tech?"
 	dsn += "&charset=utf8"
 	dsn += "&interpolateParams=true"*/
 
-	db, err := sql.Open("postgres", dsn)
+	db, err := sql.Open("postgres", psqlInfo)
 
 	db.SetMaxOpenConns(10)
 
