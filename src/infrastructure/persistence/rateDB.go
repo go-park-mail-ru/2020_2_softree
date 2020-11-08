@@ -9,28 +9,73 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type RateDBManager struct {
-	DB   *sql.DB
+var listOfCurrencies = [...]string{
+	"USD",
+	"RUB",
+	"EUR",
+	"JPY",
+	"GBP",
+	"AUD",
+	"CAD",
+	"CHF",
+	"CNY",
+	"HKD",
+	"NZD",
+	"SEK",
+	"KRW",
+	"SGD",
+	"NOK",
+	"MXN",
+	"INR",
+	"ZAR",
+	"TRY",
+	"BRL",
+	"ILS",
 }
 
-func (rm *RateDBManager) SaveRates(financial repository.FinancialRepository) ([]entity.Currency, error) {
-	for name, quote := range financial.GetQuote() {
-		var rate entity.Currency
+type RateDBManager struct {
+	DB *sql.DB
+}
 
-		rate.ID = uint64(len(rr.rates) + 1)
-		rate.Base = financial.GetBase()
-		rate.Title = name
-		rate.Value = quote.(float64)
+func (rm *RateDBManager) SaveRates(financial repository.FinancialRepository) error {
+	currentTime := time.Now()
 
-		rates = append(rr.rates, rate)
-
-		result, err := rm.DB.Exec(
+	for _, name := range listOfCurrencies {
+		quote := financial.GetQuote()[name]
+		_, err := rm.DB.Exec(
 			"INSERT INTO HistoryCurrencByMinute (`title`, `value`, `updated_at`) VALUES (?, ?, ?)",
-			rate.Title,
+			name,
 			quote.(float64),
-			time.Now(),
+			currentTime,
 		)
+
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
+}
+
+func (rm *RateDBManager) GetRates() ([]entity.Currency, error) {
+	result, err := rm.DB.Query(
+		"SELECT title, value, updated_at FROM HistoryCurrencByMinute LIMIT ? ORDER BY id DESC",
+		len(listOfCurrencies),
+	)
+	defer result.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	currencies := make([]entity.Currency, len(listOfCurrencies))
+	for result.Next() {
+		var currency entity.Currency
+		if err := result.Scan(currency.Title, currency.Value, currency.UpdatedAt); err != nil {
+			return nil, err
+		}
+
+		currencies = append(currencies, currency)
+	}
+
+	return currencies, nil
 }
