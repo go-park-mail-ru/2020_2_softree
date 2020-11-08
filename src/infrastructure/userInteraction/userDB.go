@@ -64,7 +64,7 @@ func (h *UserDBManager) GetUserById(id uint64) (entity.User, error) {
 }
 
 func (h *UserDBManager) SaveUser(user entity.User) (entity.User, error) {
-	row := h.DB.QueryRow("SELECT COUNT(*) FROM user_trade WHERE email = $1", user.Email)
+	row := h.DB.QueryRow("SELECT COUNT(id) FROM user_trade WHERE email = $1", user.Email)
 
 	var exists int
 	err := row.Scan(&exists)

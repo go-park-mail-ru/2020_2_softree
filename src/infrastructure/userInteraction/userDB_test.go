@@ -49,3 +49,25 @@ func TestUserDBManager_GetUserByLogin(t *testing.T) {
 	require.Equal(t, nil, mock.ExpectationsWereMet())
 	require.Equal(t, true, reflect.DeepEqual(row, expected))
 }
+
+func TestUserDBManager_GetUserWatchlist(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	require.Equal(t, nil, err)
+	defer db.Close()
+
+	rows := sqlmock.NewRows([]string{"base_title", "currency_title"})
+	expected := entity.Currency{Base: "USD", Title: "EUR"}
+	rows = rows.AddRow(expected.Base, expected.Title)
+
+	mock.
+		ExpectQuery("SELECT base_title, currency_title FROM watchlist WHERE").
+		WithArgs(uint64(1)).
+		WillReturnRows(rows)
+
+	repo := &UserDBManager{DB: db}
+	row, err := repo.GetUserWatchlist(uint64(1))
+
+	require.Equal(t, nil, err)
+	require.Equal(t, nil, mock.ExpectationsWereMet())
+	require.Equal(t, true, reflect.DeepEqual(row[0], expected))
+}
