@@ -51,7 +51,7 @@ func NewUserDBManager() (*UserDBManager, error) {
 func (h *UserDBManager) GetUserById(id uint64) (entity.User, error) {
 	user := entity.User{}
 
-	row := h.DB.QueryRow("SELECT id, email, password FROM user WHERE id = ?", id)
+	row := h.DB.QueryRow("SELECT id, email, password FROM user WHERE id = $1", id)
 
 	err := row.Scan(user.ID, user.Email, user.Password)
 	if err != nil {
@@ -64,7 +64,7 @@ func (h *UserDBManager) GetUserById(id uint64) (entity.User, error) {
 }
 
 func (h *UserDBManager) SaveUser(user entity.User) (entity.User, error) {
-	row := h.DB.QueryRow("SELECT COUNT(*) FROM user WHERE email = ?", user.Email)
+	row := h.DB.QueryRow("SELECT COUNT(*) FROM user WHERE email = $1", user.Email)
 
 	var exists int
 	err := row.Scan(exists)
@@ -81,7 +81,7 @@ func (h *UserDBManager) SaveUser(user entity.User) (entity.User, error) {
 	}
 
 	result, err := h.DB.Exec(
-		"INSERT INTO user (`email`, `password`) VALUES (?, ?)",
+		"INSERT INTO user (`email`, `password`) VALUES ($1, $2)",
 		user.Email,
 		password,
 	)
@@ -118,7 +118,7 @@ func (h *UserDBManager) UpdateUser(id uint64, user entity.User) (entity.User, er
 				return entity.User{}, err
 			}
 			_, err = h.DB.Exec(
-				"UPDATE user SET password = ? WHERE id = ?",
+				"UPDATE user SET password = $1 WHERE id = $2",
 				newPassword,
 				id,
 			)
@@ -136,7 +136,7 @@ func (h *UserDBManager) UpdateUser(id uint64, user entity.User) (entity.User, er
 
 func (h *UserDBManager) DeleteUser(id uint64) error {
 	_, err := h.DB.Exec(
-		"DELETE FROM user WHERE id = ?",
+		"DELETE FROM user WHERE id = $1",
 		id,
 	)
 
@@ -146,7 +146,7 @@ func (h *UserDBManager) DeleteUser(id uint64) error {
 func (h *UserDBManager) GetUserByLogin(email string, password string) (entity.User, error) {
 	user := entity.User{Email: email}
 
-	row := h.DB.QueryRow("SELECT id, password FROM user WHERE email = ?", email)
+	row := h.DB.QueryRow("SELECT id, password FROM user WHERE email = $1", email)
 
 	err := row.Scan(user.ID, user.Password)
 	if err != nil {
