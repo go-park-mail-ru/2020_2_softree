@@ -115,3 +115,7 @@ func (r *RecorderUserMockRepository) GetUserByLogin(email, password interface{})
 		password,
 	)
 }
+
+func (m *UserRepositoryForMock) GetUserWatchlist(id uint64) ([]entity.Currency, error) {
+	return nil, nil
+}

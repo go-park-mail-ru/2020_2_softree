@@ -35,5 +35,13 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 	}
 	http.SetCookie(w, &cookie)
 
+	res, err := json.Marshal(user.MakePublicUser())
+	if err != nil {
+		a.log.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
+	w.Write(res)
 }

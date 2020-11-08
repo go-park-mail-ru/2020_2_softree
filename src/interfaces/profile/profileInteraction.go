@@ -57,3 +57,48 @@ func (p *Profile) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	w.Write(res)
 }
+
+func (p *Profile) GetUser(w http.ResponseWriter, r *http.Request) {
+	id := r.Context().Value("id").(uint64)
+
+	var user entity.User
+	var err error
+	if user, err = p.userApp.GetUserById(id); err != nil {
+		p.log.Print(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	res, err := json.Marshal(user.MakePublicUser())
+	if err != nil {
+		p.log.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(res)
+}
+
+func (p *Profile) GetUserWatchlist(w http.ResponseWriter, r *http.Request) {
+	id := r.Context().Value("id").(uint64)
+
+	currencies, err := p.userApp.GetUserWatchlist(id)
+	if err != nil {
+		p.log.Print(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	res, err := json.Marshal(currencies)
+	if err != nil {
+		p.log.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(res)
+}

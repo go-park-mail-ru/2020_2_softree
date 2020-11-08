@@ -32,3 +32,7 @@ func (ua *UserApp) GetUserById(id uint64) (entity.User, error) {
 func (ua *UserApp) GetUserByLogin(email, password string) (entity.User, error) {
 	return ua.ur.GetUserByLogin(email, password)
 }
+
+func (ua *UserApp) GetUserWatchlist(id uint64) ([]entity.Currency, error) {
+	return ua.ur.GetUserWatchlist(id)
+}

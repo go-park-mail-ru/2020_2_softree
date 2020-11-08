@@ -161,3 +161,26 @@ func (h *UserDBManager) GetUserByLogin(email string, password string) (entity.Us
 
 	return user, nil
 }
+
+func (h *UserDBManager) GetUserWatchlist(id uint64) ([]entity.Currency, error) {
+	result, err := h.DB.Query(
+		"SELECT base_title, currency_title FROM watchlist WHERE user_id = $1",
+		id,
+	)
+	defer result.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	currencies := make([]entity.Currency, 0)
+	for result.Next() {
+		var currency entity.Currency
+		if err := result.Scan(currency.Base, currency.Title); err != nil {
+			return nil, err
+		}
+
+		currencies = append(currencies, currency)
+	}
+
+	return currencies, nil
+}
