@@ -1,14 +1,26 @@
 package financial
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gomodule/redigo/redis"
+	"server/src/domain/entity"
 	"server/src/domain/repository"
-	"server/src/infrastructure/auth"
 	"server/src/infrastructure/persistence"
+	"strconv"
 )
 
-func (sm *auth.SessionManager) SaveCurrency(financial repository.FinancialRepository) error {
+type CurrencyManager struct {
+	RedisConn redis.Conn
+}
+
+func NewSessionManager(conn redis.Conn) *CurrencyManager {
+	return &CurrencyManager{
+		RedisConn: conn,
+	}
+}
+
+func (sm *CurrencyManager) SaveCurrency(financial repository.FinancialRepository) error {
 	for _, name := range persistence.ListOfCurrencies {
 		quote := financial.GetQuote()[name]
 		mkey := name
@@ -23,4 +35,30 @@ func (sm *auth.SessionManager) SaveCurrency(financial repository.FinancialReposi
 	}
 
 	return nil
+}
+
+func (sm *CurrencyManager) GetInitialCurrency() ([]entity.Currency, error) {
+	result := make([]entity.Currency, len(persistence.ListOfCurrencies))
+	for _, name := range persistence.ListOfCurrencies {
+		var currency entity.Currency
+		currency.Title = name
+		data, err := redis.Bytes(sm.RedisConn.Do("GET", name))
+
+		if err == redis.ErrNil {
+			return []entity.Currency{}, errors.New("no session")
+		} else if err != nil {
+			return []entity.Currency{}, errors.New("redis error during checking session")
+		}
+
+		strRes := string(data)
+		uintRes, parseErr := strconv.ParseFloat(strRes, 64)
+		if parseErr != nil {
+			return []entity.Currency{}, errors.New("internal server error")
+		}
+		currency.Value = uintRes
+
+		result = append(result, currency)
+	}
+
+	return result, nil
 }
