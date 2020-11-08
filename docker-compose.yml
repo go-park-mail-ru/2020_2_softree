@@ -4,7 +4,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    #image: softree/moneycat:master
     container_name: moneycat
     ports:
     - 9000:80
@@ -12,3 +11,14 @@ services:
     - ./configs:/etc/moneycat
     command: ["-f", "/etc/moneycat/local.yml"]
     restart: on-failure
+
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD: 'this_is_secret'
+      POSTGRES_DB: moneycat
+    volumes:
+      - 'postgres-data:/var/lib/postgresql/data/'
+
+volumes:
+  postgres-data:
