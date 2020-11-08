@@ -5,6 +5,7 @@ import (
 	"server/src/domain/entity"
 	"server/src/domain/repository"
 	"time"
+	"server/src/infrastructure/config"
 
 	_ "github.com/lib/pq"
 )
@@ -35,6 +36,30 @@ var listOfCurrencies = [...]string{
 
 type RateDBManager struct {
 	DB *sql.DB
+}
+
+func NewRateDBManager() (*RateDBManager, error) {
+	dsn := config.RateDatabaseConfig.User +
+		":" + config.RateDatabaseConfig.Password +
+		"@" + config.RateDatabaseConfig.Port +
+		"/" + config.RateDatabaseConfig.Schema
+	dsn += "&charset=utf8"
+	dsn += "&interpolateParams=true"
+
+	/*dsn := "root:1234@tcp(localhost:3306)/tech?"
+	dsn += "&charset=utf8"
+	dsn += "&interpolateParams=true"*/
+
+	db, err := sql.Open("postgres", dsn)
+
+	db.SetMaxOpenConns(10)
+
+	err = db.Ping() // вот тут будет первое подключение к базе
+	if err != nil {
+		return nil, err
+	}
+
+	return &RateDBManager{DB: db}, nil
 }
 
 func (rm *RateDBManager) SaveRates(financial repository.FinancialRepository) error {

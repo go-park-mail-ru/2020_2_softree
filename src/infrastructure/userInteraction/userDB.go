@@ -7,6 +7,7 @@ import (
 	_ "github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
 	"server/src/domain/entity"
+	"server/src/infrastructure/config"
 	"server/src/infrastructure/security"
 )
 
@@ -14,9 +15,29 @@ type UserDBManager struct {
 	DB   *sql.DB
 }
 
-/*func NewUserDBManager() {
+func NewUserDBManager() (*UserDBManager, error) {
+	dsn := config.UserDatabaseConfig.User +
+		":" + config.UserDatabaseConfig.Password +
+		"@" + config.UserDatabaseConfig.Port +
+		"/" + config.UserDatabaseConfig.Schema
+	dsn += "&charset=utf8"
+	dsn += "&interpolateParams=true"
 
-}*/
+	/*dsn := "root:1234@tcp(localhost:3306)/tech?"
+	dsn += "&charset=utf8"
+	dsn += "&interpolateParams=true"*/
+
+	db, err := sql.Open("postgres", dsn)
+
+	db.SetMaxOpenConns(10)
+
+	err = db.Ping()
+	if err != nil {
+		return nil, err
+	}
+
+	return &UserDBManager{DB: db}, nil
+}
 
 func (h *UserDBManager) GetUserById(id uint64) (entity.User, error) {
 	user := entity.User{}

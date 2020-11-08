@@ -32,8 +32,19 @@ func initFlags() {
 	flag.StringVar(&config.GlobalServerConfig.LogFile, "lf", "", "-lf set log file")
 	flag.BoolVar(&helpFlag, "h", false, "-h get usage message")
 
+	// Databases configs
 	flag.StringVar(&config.SessionDatabaseConfig.Address, "redis", "redis://user:@localhost:6379/0",
 		"set redis session database addr")
+
+	flag.StringVar(&config.RateDatabaseConfig.User, "rate_db_user", "", "rate DB user")
+	flag.StringVar(&config.RateDatabaseConfig.Password, "rate_db_password", "", "rate DB password")
+	flag.StringVar(&config.RateDatabaseConfig.Port, "rate_db_port", "5432", "rate DB port")
+	flag.StringVar(&config.RateDatabaseConfig.Schema, "rate_db_schema", "rates", "rate DB schema")
+
+	flag.StringVar(&config.UserDatabaseConfig.User, "user_db_user", "", "User DB user")
+	flag.StringVar(&config.UserDatabaseConfig.Password, "user_db_password", "", "User DB password")
+	flag.StringVar(&config.UserDatabaseConfig.Port, "user_db_port", "5432", "User DB port")
+	flag.StringVar(&config.UserDatabaseConfig.Schema, "user_db_schema", "users", "User DB schema")
 
 	flag.Parse()
 

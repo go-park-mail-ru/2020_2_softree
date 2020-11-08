@@ -38,6 +38,24 @@ type RedisConfig struct {
 
 var SessionDatabaseConfig = RedisConfig{}
 
+type RateBDConfig struct {
+	User     string
+	Password string
+	Port     string
+	Schema   string
+}
+
+var RateDatabaseConfig = RateBDConfig{}
+
+type UserBDConfig struct {
+	User     string
+	Password string
+	Port     string
+	Schema   string
+}
+
+var UserDatabaseConfig = UserBDConfig{}
+
 func ParseConfig() error {
 	yamlFile, err := ioutil.ReadFile(GlobalServerConfig.ConfigFile)
 	if err != nil {
