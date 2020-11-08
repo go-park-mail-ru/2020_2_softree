@@ -104,7 +104,7 @@ func (rm *RateDBManager) GetRates() ([]entity.Currency, error) {
 	currencies := make([]entity.Currency, len(ListOfCurrencies))
 	for result.Next() {
 		var currency entity.Currency
-		if err := result.Scan(currency.Title, currency.Value, currency.UpdatedAt); err != nil {
+		if err := result.Scan(&currency.Title, &currency.Value, &currency.UpdatedAt); err != nil {
 			return nil, err
 		}
 
@@ -115,7 +115,27 @@ func (rm *RateDBManager) GetRates() ([]entity.Currency, error) {
 }
 
 func (rm *RateDBManager) GetRate(title string) ([]entity.Currency, error) {
-	return []entity.Currency{}, nil
+	result, err := rm.DB.Query(
+		"SELECT value, updated_at FROM HistoryCurrencByMinute WHERE title = $1",
+		title,
+	)
+	defer result.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	currencies := make([]entity.Currency, len(ListOfCurrencies))
+	for result.Next() {
+		var currency entity.Currency
+		currency.Title = title
+		if err := result.Scan(&currency.Value, &currency.UpdatedAt); err != nil {
+			return nil, err
+		}
+
+		currencies = append(currencies, currency)
+	}
+
+	return currencies, nil
 }
 
 func (rm *RateDBManager) DeleteRate(uint64) error {
