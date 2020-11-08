@@ -14,7 +14,7 @@ type CurrencyManager struct {
 	RedisConn redis.Conn
 }
 
-func NewSessionManager(conn redis.Conn) *CurrencyManager {
+func NewCurrencyManager(conn redis.Conn) *CurrencyManager {
 	return &CurrencyManager{
 		RedisConn: conn,
 	}
