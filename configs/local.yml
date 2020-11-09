@@ -6,11 +6,6 @@ domain: 'self.ru'
 secure: False
 logLevel: 'Debug'
 
-user_rate: app_rates
-password_rate: 'NeverGonnaGiveYouUp'
-host_rate: localhost
-schema_rate: rates
-
 user_user: app_user
 password_user: 'NeverGonnaGiveYouUp'
 host_user: localhost

@@ -41,11 +41,6 @@ func initFlags() {
 	flag.StringVar(&config.SessionDatabaseConfig.AddressDayCurrency, "redisDayCurrency",
 		"redis://user:@localhost:6379/2", "set redis day currency database addr")
 
-	flag.StringVar(&config.RateDatabaseConfig.User, "rate_db_user", "app_rates", "rate DB user")
-	flag.StringVar(&config.RateDatabaseConfig.Password, "rate_db_password", "NeverGonnaGiveYouUp", "rate DB password")
-	flag.StringVar(&config.RateDatabaseConfig.Host, "rate_db_host", "localhost", "rate DB port")
-	flag.StringVar(&config.RateDatabaseConfig.Schema, "rate_db_schema", "rates", "rate DB schema")
-
 	flag.StringVar(&config.UserDatabaseConfig.User, "user_db_user", "app_user", "User DB user")
 	flag.StringVar(&config.UserDatabaseConfig.Password, "user_db_password", "NeverGonnaGiveYouUp", "User DB password")
 	flag.StringVar(&config.UserDatabaseConfig.Host, "user_db_host", "localhost", "User DB port")
