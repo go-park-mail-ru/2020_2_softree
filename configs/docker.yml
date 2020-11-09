@@ -5,3 +5,13 @@ port: 80
 domain: 'softree.group'
 secure: False
 logLevel: 'Info'
+
+user_rate: app_rates
+password_rate: 'NeverGonnaGiveYouUp'
+host_rate: localhost
+schema_rate: rates
+
+user_user: app_user
+password_user: 'NeverGonnaGiveYouUp'
+host_user: localhost
+schema_user: users

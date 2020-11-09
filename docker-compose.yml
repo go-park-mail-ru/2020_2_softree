@@ -12,3 +12,16 @@ services:
     - ./configs:/etc/moneycat
     command: ["-f", "/etc/moneycat/local.yml"]
     restart: on-failure
+
+  db:
+    image: postgres:latest
+    restart: on-failure
+    volumes:
+    - /postgres-data:/var/lib/postgresql/data/
+
+  redis:
+    image: redis
+    restart: on-failure
+    volumes:
+      - $PWD/redis-data:/var/lib/redis
+      - ./configs/redis.conf:/usr/local/etc/redis/redis.conf

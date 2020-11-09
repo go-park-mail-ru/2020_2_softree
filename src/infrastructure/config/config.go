@@ -40,19 +40,19 @@ type RedisConfig struct {
 var SessionDatabaseConfig = RedisConfig{}
 
 type RateBDConfig struct {
-	User     string
-	Password string
-	Host     string
-	Schema   string
+	User     string `yml:"user_rate"`
+	Password string `yml:"password_rate"`
+	Host     string `yml:"host_rate"`
+	Schema   string `yml:"schema_rate"`
 }
 
 var RateDatabaseConfig = RateBDConfig{}
 
 type UserBDConfig struct {
-	User     string
-	Password string
-	Host     string
-	Schema   string
+	User     string `yml:"user_user"`
+	Password string `yml:"password_user"`
+	Host     string `yml:"host_user"`
+	Schema   string `yml:"schema_user"`
 }
 
 var UserDatabaseConfig = UserBDConfig{}
@@ -67,5 +67,16 @@ func ParseConfig() error {
 	if err != nil {
 		return err
 	}
+
+	err = yaml.Unmarshal(yamlFile, &UserDatabaseConfig)
+	if err != nil {
+		return err
+	}
+
+	err = yaml.Unmarshal(yamlFile, &RateDatabaseConfig)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
