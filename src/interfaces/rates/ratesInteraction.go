@@ -7,6 +7,7 @@ import (
 	"github.com/antihax/optional"
 	"github.com/gorilla/mux"
 	"net/http"
+	"server/src/domain/entity"
 	"server/src/infrastructure/financial"
 	"time"
 )
@@ -63,6 +64,16 @@ func (rates *Rates) GetURLRate(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	result, _ := json.Marshal(resRates)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	w.Write(result)
+}
+
+func (rates *Rates) GetMarkets(w http.ResponseWriter, r *http.Request) {
+	resRates := entity.Currency{Base: "USD", Title: "EUR"}
 	result, _ := json.Marshal(resRates)
 
 	w.Header().Set("Content-Type", "application/json")

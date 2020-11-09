@@ -183,6 +183,9 @@ func main() {
 	r.HandleFunc("/users/change-password", userProfile.Auth(userProfile.UpdateUser)).
 		Methods(http.MethodPut, http.MethodOptions)
 
+	r.HandleFunc("/markets", rateRates.GetMarkets).
+		Methods(http.MethodGet, http.MethodOptions)
+
 	r.Use(corsInteraction.CORSMiddleware())
 
 	server := &http.Server{
