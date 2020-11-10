@@ -75,7 +75,7 @@ func (rm *RateDBManager) SaveRates(financial repository.FinancialRepository) err
 	for _, name := range ListOfCurrencies {
 		quote := financial.GetQuote()[name]
 		_, err := tx.Exec(
-			"INSERT INTO HistoryCurrencByMinute (`title`, `value`, `updated_at`) VALUES ($1, $2, $3)",
+			"INSERT INTO history_currency_by_minutes ('title', value, 'updated_at') VALUES ($1, $2, $3)",
 			name,
 			quote.(float64),
 			currentTime,
@@ -86,8 +86,7 @@ func (rm *RateDBManager) SaveRates(financial repository.FinancialRepository) err
 		}
 	}
 
-	err = tx.Commit()
-	if err != nil {
+	if err = tx.Commit(); err != nil {
 		return err
 	}
 
@@ -105,7 +104,7 @@ func (rm *RateDBManager) GetRates() ([]entity.Currency, error) {
 	defer tx.Rollback()
 
 	result, err := tx.Query(
-		"SELECT title, value, updated_at FROM HistoryCurrencByMinute LIMIT $1 ORDER BY id DESC",
+		"SELECT title, value, updated_at FROM history_currency_by_minutes ORDER BY updated_at DESC LIMIT $1",
 		len(ListOfCurrencies),
 	)
 	if err != nil {
@@ -143,7 +142,7 @@ func (rm *RateDBManager) GetRate(title string) ([]entity.Currency, error) {
 	}
 	defer tx.Rollback()
 
-	result, err := tx.Query("SELECT value, updated_at FROM HistoryCurrencByMinute WHERE title = $1", title)
+	result, err := tx.Query("SELECT value, updated_at FROM history_currency_by_minutes WHERE title = $1", title)
 	defer result.Close()
 	if err != nil {
 		return nil, err

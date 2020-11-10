@@ -103,12 +103,10 @@ func (h *UserDBManager) SaveUser(user entity.User) (entity.User, error) {
 		return entity.User{}, err
 	}
 
-	result, err := tx.Exec("INSERT INTO user_trade (`email`, `password`) VALUES ($1, $2)", user.Email, password)
-	if err != nil {
-		return entity.User{}, err
-	}
-
-	lastID, err := result.LastInsertId()
+	var lastID int64
+	err = tx.
+		QueryRow("INSERT INTO user_trade (email, password) VALUES ($1, $2)  RETURNING id", user.Email, password).
+		Scan(&lastID)
 	if err != nil {
 		return entity.User{}, err
 	}
