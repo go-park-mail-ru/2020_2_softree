@@ -15,9 +15,22 @@ func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	errors := user.Validate()
-	if errors.NotEmpty {
-		a.createInternalServerError(&errors, w)
+	errs := user.Validate()
+	if errs.NotEmpty {
+		a.createInternalServerError(&errs, w)
+		return
+	}
+
+	var exist bool
+	if exist, err = a.userApp.CheckExistence(user.Email); err != nil {
+		a.log.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if exist {
+		errs.NonFieldError = append(errs.NonFieldError, "пользователь с таким email'ом уже существует")
+		a.createInternalServerError(&errs, w)
 		return
 	}
 

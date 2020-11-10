@@ -36,3 +36,7 @@ func (ua *UserApp) GetUserByLogin(email, password string) (entity.User, error) {
 func (ua *UserApp) GetUserWatchlist(id uint64) ([]entity.Currency, error) {
 	return ua.ur.GetUserWatchlist(id)
 }
+
+func (ua *UserApp) CheckExistence(email string) (bool, error) {
+	return ua.ur.CheckExistence(email)
+}

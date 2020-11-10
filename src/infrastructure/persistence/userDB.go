@@ -65,6 +65,29 @@ func (h *UserDBManager) GetUserById(id uint64) (entity.User, error) {
 	return user, nil
 }
 
+func (h *UserDBManager)  CheckExistence(email string) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	tx, err := h.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return false, err
+	}
+	defer tx.Rollback()
+
+	row := tx.QueryRow("SELECT COUNT(id) FROM user_trade WHERE email = $1", email)
+
+	var exists int
+	if err = row.Scan(&exists); err != nil {
+		return false, err
+	}
+	if err = tx.Commit(); err != nil {
+		return false, err
+	}
+
+	return exists != 0, nil
+}
+
 func (h *UserDBManager) SaveUser(user entity.User) (entity.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -75,49 +98,25 @@ func (h *UserDBManager) SaveUser(user entity.User) (entity.User, error) {
 	}
 	defer tx.Rollback()
 
-	row := tx.QueryRow("SELECT COUNT(id) FROM user_trade WHERE email = $1", user.Email)
-
-	var exists int
-	if err = row.Scan(&exists); err != nil {
-		return entity.User{}, err
-	}
-	if err = tx.Commit(); err != nil {
+	var password string
+	if password, err = security.MakeShieldedPassword(user.Password); err != nil {
 		return entity.User{}, err
 	}
 
-	if exists != 0 {
-		return entity.User{}, errors.New("user already exists")
-	}
-
-	tx, err = h.DB.BeginTx(ctx, nil)
+	result, err := tx.Exec("INSERT INTO user_trade (`email`, `password`) VALUES ($1, $2)", user.Email, password)
 	if err != nil {
 		return entity.User{}, err
 	}
-	password, err := security.MakeShieldedPassword(user.Password)
-	if err != nil {
-		return entity.User{}, err
-	}
-
-	result, err := tx.Exec(
-		"INSERT INTO user_trade (`email`, `password`) VALUES ($1, $2)",
-		user.Email,
-		password,
-	)
 
 	lastID, err := result.LastInsertId()
 	if err != nil {
 		return entity.User{}, err
 	}
-
-	newUser := entity.User{
-		ID: uint64(lastID),
-		Email: user.Email,
-		Password: password,
-	}
-
 	if err = tx.Commit(); err != nil {
 		return entity.User{}, err
 	}
+
+	newUser := entity.User{ID: uint64(lastID), Email: user.Email, Password: password}
 
 	return newUser, nil
 }
@@ -208,9 +207,6 @@ func (h *UserDBManager) GetUserByLogin(email string, password string) (entity.Us
 
 	if govalidator.IsNull(user.Password) {
 		return entity.User{}, errors.New("user does not exist")
-	}
-	if err != nil {
-		return entity.User{}, err
 	}
 
 	if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) != nil {

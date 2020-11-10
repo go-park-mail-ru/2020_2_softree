@@ -11,6 +11,7 @@ type UserRepository interface {
 	userReceiverById
 	userReceiverByFormData
 	userReceiverWatchlist
+	userCheckExistence
 }
 
 type userSaver interface {
@@ -35,4 +36,8 @@ type userReceiverByFormData interface {
 
 type userReceiverWatchlist interface {
 	GetUserWatchlist(uint64) ([]entity.Currency, error)
+}
+
+type userCheckExistence interface {
+	CheckExistence(string) (bool, error)
 }
