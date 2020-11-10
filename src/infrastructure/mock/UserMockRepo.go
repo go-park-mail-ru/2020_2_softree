@@ -116,6 +116,38 @@ func (r *RecorderUserMockRepository) GetUserByLogin(email, password interface{})
 	)
 }
 
+func (m *UserRepositoryForMock) CheckExistence(email string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckExistence", email)
+	user, _ := ret[0].(bool)
+	err, _ := ret[1].(error)
+	return user, err
+}
+
+func (r *RecorderUserMockRepository) CheckExistence(email interface{}) *gomock.Call {
+	r.mock.ctrl.T.Helper()
+	return r.mock.ctrl.RecordCallWithMethodType(
+		r.mock,
+		"CheckExistence",
+		reflect.TypeOf((*UserRepositoryForMock)(nil).CheckExistence),
+		email,
+	)
+}
+
 func (m *UserRepositoryForMock) GetUserWatchlist(id uint64) ([]entity.Currency, error) {
-	return nil, nil
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveUser", id)
+	currencies, _ := ret[0].([]entity.Currency)
+	err, _ := ret[1].(error)
+	return currencies, err
+}
+
+func (r *RecorderUserMockRepository) GetUserWatchlist(id interface{}) *gomock.Call {
+	r.mock.ctrl.T.Helper()
+	return r.mock.ctrl.RecordCallWithMethodType(
+		r.mock,
+		"SaveUser",
+		reflect.TypeOf((*UserRepositoryForMock)(nil).GetUserWatchlist),
+		id,
+	)
 }
