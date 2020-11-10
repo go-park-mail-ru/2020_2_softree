@@ -11,6 +11,8 @@ import (
 	"github.com/gomodule/redigo/redis"
 )
 
+const day = 60*60*24
+
 type Session struct {
 	id    uint64
 	value string
@@ -32,7 +34,7 @@ func (sm *SessionManager) CreateAuth(id uint64) (cookie http.Cookie, err error) 
 	}
 
 	mkey := "sessions:" + cookie.Value
-	result, err := redis.String(sm.RedisConn.Do("SET", mkey, id, "EX", 60*60*24)) // Expires in 24 hours
+	result, err := redis.String(sm.RedisConn.Do("SET", mkey, id, "EX", day)) // Expires in 24 hours
 	if err != nil {
 		return http.Cookie{}, err
 	}

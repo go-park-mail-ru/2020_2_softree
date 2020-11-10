@@ -40,13 +40,6 @@ type RateDBManager struct {
 }
 
 func NewRateDBManager() (*RateDBManager, error) {
-	/*dsn := config.RateDatabaseConfig.User +
-		":" + config.RateDatabaseConfig.Password +
-		"@" + config.RateDatabaseConfig.Host +
-		"/" + config.RateDatabaseConfig.Schema
-	dsn += "&charset=utf8"
-	dsn += "&interpolateParams=true"*/
-
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		config.UserDatabaseConfig.Host,
@@ -54,10 +47,6 @@ func NewRateDBManager() (*RateDBManager, error) {
 		config.UserDatabaseConfig.User,
 		config.UserDatabaseConfig.Password,
 		config.UserDatabaseConfig.Schema)
-
-	/*dsn := "root:1234@tcp(localhost:3306)/tech?"
-	dsn += "&charset=utf8"
-	dsn += "&interpolateParams=true"*/
 
 	db, err := sql.Open("postgres", psqlInfo)
 

@@ -22,6 +22,10 @@ func (rates *Rates) GetRatesFromApi() {
 	})
 
 	for range ticker.C {
+		// exchange works 10:00-20:00
+		if time.Now().Hour() > 20 || time.Now().Hour() < 10 {
+			continue
+		}
 		forexRates, _, _ := api.ForexRates(auth, &finnhub.ForexRatesOpts{Base: optional.NewString("USD")})
 		finance := financial.NewForexRepository(forexRates)
 

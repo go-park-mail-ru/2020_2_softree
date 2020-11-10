@@ -17,13 +17,6 @@ type UserDBManager struct {
 }
 
 func NewUserDBManager() (*UserDBManager, error) {
-	/*dsn := config.UserDatabaseConfig.User +
-		":" + config.UserDatabaseConfig.Password +
-		"@" + config.UserDatabaseConfig.Port +
-		"/" + config.UserDatabaseConfig.Schema
-	dsn += "&charset=utf8"
-	dsn += "&interpolateParams=true"*/
-
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		config.UserDatabaseConfig.Host,
@@ -31,10 +24,6 @@ func NewUserDBManager() (*UserDBManager, error) {
 		config.UserDatabaseConfig.User,
 		config.UserDatabaseConfig.Password,
 		config.UserDatabaseConfig.Schema)
-
-	/*dsn := "root:1234@tcp(localhost:3306)/tech?"
-	dsn += "&charset=utf8"
-	dsn += "&interpolateParams=true"*/
 
 	db, err := sql.Open("postgres", psqlInfo)
 
@@ -58,7 +47,7 @@ func (h *UserDBManager) GetUserById(id uint64) (entity.User, error) {
 		return entity.User{}, err
 	}
 
-	// ADD AVATAR
+	// #TODO ADD AVATAR
 
 	return user, nil
 }
@@ -86,7 +75,6 @@ func (h *UserDBManager) SaveUser(user entity.User) (entity.User, error) {
 		password,
 	)
 
-	//affected, err := result.RowsAffected()
 	lastID, err := result.LastInsertId()
 	if err != nil {
 		return entity.User{}, err
@@ -107,7 +95,7 @@ func (h *UserDBManager) UpdateUser(id uint64, user entity.User) (entity.User, er
 	}
 
 	if !govalidator.IsNull(user.Avatar) {
-		// TO DO
+		// #TODO
 	}
 
 	var newPassword string
@@ -160,7 +148,7 @@ func (h *UserDBManager) GetUserByLogin(email string, password string) (entity.Us
 		return entity.User{}, errors.New("wrong password")
 	}
 
-	// ADD AVATAR
+	// #TODO ADD AVATAR
 
 	return user, nil
 }
