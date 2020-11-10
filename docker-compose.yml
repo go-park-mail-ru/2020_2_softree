@@ -18,10 +18,14 @@ services:
     restart: on-failure
     volumes:
     - /postgres-data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_USER: app_user
+      POSTGRES_PASSWORD: NeverGonnaGiveYouUp
+      POSTGRES_DB: users
 
   redis:
     image: redis
     restart: on-failure
     volumes:
-      - $PWD/redis-data:/var/lib/redis
+      - ./redis-data:/var/lib/redis
       - ./configs/redis.conf:/usr/local/etc/redis/redis.conf
