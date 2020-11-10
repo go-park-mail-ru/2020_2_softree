@@ -1,14 +1,13 @@
 package persistence
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"server/src/domain/entity"
 	"server/src/domain/repository"
-	"time"
 	"server/src/infrastructure/config"
-
-	_ "github.com/lib/pq"
+	"time"
 )
 
 var ListOfCurrencies = [...]string{
@@ -63,9 +62,19 @@ func NewRateDBManager() (*RateDBManager, error) {
 func (rm *RateDBManager) SaveRates(financial repository.FinancialRepository) error {
 	currentTime := time.Now()
 
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	tx, err := rm.DB.BeginTx(ctx, nil)
+
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
 	for _, name := range ListOfCurrencies {
 		quote := financial.GetQuote()[name]
-		_, err := rm.DB.Exec(
+		_, err := tx.Exec(
 			"INSERT INTO HistoryCurrencByMinute (`title`, `value`, `updated_at`) VALUES ($1, $2, $3)",
 			name,
 			quote.(float64),
@@ -77,15 +86,37 @@ func (rm *RateDBManager) SaveRates(financial repository.FinancialRepository) err
 		}
 	}
 
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (rm *RateDBManager) GetRates() ([]entity.Currency, error) {
-	result, err := rm.DB.Query(
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	tx, err := rm.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	result, err := tx.Query(
 		"SELECT title, value, updated_at FROM HistoryCurrencByMinute LIMIT $1 ORDER BY id DESC",
 		len(ListOfCurrencies),
 	)
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
 	defer result.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	err = tx.Commit()
 	if err != nil {
 		return nil, err
 	}
@@ -104,11 +135,24 @@ func (rm *RateDBManager) GetRates() ([]entity.Currency, error) {
 }
 
 func (rm *RateDBManager) GetRate(title string) ([]entity.Currency, error) {
-	result, err := rm.DB.Query(
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	tx, err := rm.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	result, err := tx.Query(
 		"SELECT value, updated_at FROM HistoryCurrencByMinute WHERE title = $1",
 		title,
 	)
 	defer result.Close()
+	if err != nil {
+		return nil, err
+	}
+	err = tx.Commit()
 	if err != nil {
 		return nil, err
 	}
