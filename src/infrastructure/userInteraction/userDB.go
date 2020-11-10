@@ -80,16 +80,14 @@ func (h *UserDBManager) SaveUser(user entity.User) (entity.User, error) {
 
 	row := tx.QueryRow("SELECT COUNT(id) FROM user_trade WHERE email = $1", user.Email)
 
-	err = tx.Commit()
-	if err != nil {
+	var exists int
+	if err = row.Scan(&exists); err != nil {
+		return entity.User{}, err
+	}
+	if err = tx.Commit(); err != nil {
 		return entity.User{}, err
 	}
 
-	var exists int
-	err = row.Scan(&exists)
-	if err != nil {
-		return entity.User{}, err
-	}
 	if exists != 0 {
 		return entity.User{}, errors.New("user already exists")
 	}
@@ -243,7 +241,7 @@ func (h *UserDBManager) GetUserWatchlist(id uint64) ([]entity.Currency, error) {
 	}
 	defer tx.Rollback()
 
-	result, err := tx.Query(
+	result, _ := tx.Query(
 		"SELECT base_title, currency_title FROM watchlist WHERE user_id = $1",
 		id,
 	)
@@ -254,7 +252,7 @@ func (h *UserDBManager) GetUserWatchlist(id uint64) ([]entity.Currency, error) {
 	}
 
 	defer result.Close()
-	if err != nil {
+	if err := result.Err(); err != nil {
 		return nil, err
 	}
 

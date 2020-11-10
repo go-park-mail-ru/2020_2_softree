@@ -3,24 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/gomodule/redigo/redis"
 	"math/rand"
 	"net/http"
 	"os"
-	"server/src/application"
-	"server/src/infrastructure/auth"
 	"server/src/infrastructure/config"
-	"server/src/infrastructure/corsInteraction"
-	"server/src/infrastructure/financial"
-	"server/src/infrastructure/log"
-	"server/src/infrastructure/persistence"
-	"server/src/infrastructure/userInteraction"
-	"server/src/interfaces/authorization"
-	"server/src/interfaces/profile"
-	"server/src/interfaces/rates"
+	"server/src/interfaces/router"
 	"time"
-
-	"github.com/gorilla/mux"
 )
 
 func initFlags() {
@@ -68,124 +56,18 @@ func init() {
 	initFlags()
 }
 
-func createAuthenticate() (*authorization.Authentication, error) {
-	dbRepo, err := userInteraction.NewUserDBManager()
-	if err != nil {
-		return nil, err
-	}
-
-	connect, err := redis.DialURL(config.SessionDatabaseConfig.AddressSessions)
-	if err != nil {
-		return nil, err
-	}
-	dbAuth := auth.NewSessionManager(connect)
-
-	servicesDB := application.NewUserApp(dbRepo)
-	servicesAuth := application.NewUserAuth(dbAuth)
-	servicesLog := log.NewLogrusLogger()
-
-	return authorization.NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), nil
-}
-
-func createProfile() (*profile.Profile, error) {
-	dbRepo, err := userInteraction.NewUserDBManager()
-	if err != nil {
-		return nil, err
-	}
-
-	connect, err := redis.DialURL(config.SessionDatabaseConfig.AddressSessions)
-	if err != nil {
-		return nil, err
-	}
-	dbAuth := auth.NewSessionManager(connect)
-
-	servicesDB := application.NewUserApp(dbRepo)
-	servicesAuth := application.NewUserAuth(dbAuth)
-	servicesLog := log.NewLogrusLogger()
-
-	return profile.NewProfile(*servicesDB, *servicesAuth, servicesLog), nil
-}
-
-func createRates() (*rates.Rates, error) {
-	dbRepo, err := persistence.NewRateDBManager()
-	if err != nil {
-		return nil, err
-	}
-
-	connect, err := redis.DialURL(config.SessionDatabaseConfig.AddressDayCurrency)
-	if err != nil {
-		return nil, err
-	}
-	dbAuth := financial.NewCurrencyManager(connect)
-
-	servicesDB := application.NewRateApp(dbRepo, dbAuth)
-	servicesLog := log.NewLogrusLogger()
-
-	return rates.NewRates(*servicesDB, servicesLog), nil
-}
-
 func main() {
-	userAuthenticate, err := createAuthenticate()
+	userAuthenticate, userProfile, rateRates, err := router.CreateAppStructs()
 	if err != nil {
-		fmt.Println("userAuthenticate", err)
-		return
-	}
-
-	userProfile, err := createProfile()
-	if err != nil {
-		fmt.Println("userProfile", err)
-		return
-	}
-
-	rateRates, err := createRates()
-	if err != nil {
-		fmt.Println("userProfile", err)
+		fmt.Print(err)
 		return
 	}
 
 	go rateRates.GetRatesFromApi()
 
-	router := mux.NewRouter()
-	r := router.PathPrefix("").Subrouter()
-
-	r.HandleFunc("/sessions", userAuthenticate.Login).
-		Methods(http.MethodPost, http.MethodOptions)
-
-	r.HandleFunc("/sessions", userAuthenticate.Logout).
-		Methods(http.MethodDelete, http.MethodOptions)
-
-	r.HandleFunc("/sessions", userAuthenticate.Auth).
-		Methods(http.MethodGet, http.MethodOptions)
-
-	r.HandleFunc("/rates", rateRates.GetRates).
-		Methods(http.MethodGet, http.MethodOptions)
-
-	r.HandleFunc("/rates/{title}/", rateRates.GetURLRate).
-		Methods(http.MethodGet, http.MethodOptions)
-
-	r.HandleFunc("/users", userAuthenticate.Signup).
-		Methods(http.MethodPost, http.MethodOptions)
-
-	r.HandleFunc("/users", userProfile.Auth(userProfile.UpdateUser)).
-		Methods(http.MethodPut, http.MethodOptions)
-
-	r.HandleFunc("/users", userProfile.Auth(userProfile.GetUser)).
-		Methods(http.MethodGet, http.MethodOptions)
-
-	r.HandleFunc("/watchers", userProfile.Auth(userProfile.UpdateUser)).
-		Methods(http.MethodGet, http.MethodOptions)
-
-	r.HandleFunc("/users/change-password", userProfile.Auth(userProfile.UpdateUser)).
-		Methods(http.MethodPut, http.MethodOptions)
-
-	r.HandleFunc("/markets", rateRates.GetMarkets).
-		Methods(http.MethodGet, http.MethodOptions)
-
-	r.Use(corsInteraction.CORSMiddleware())
-
 	server := &http.Server{
 		Addr:         fmt.Sprintf("%s:%s", config.GlobalServerConfig.IP, config.GlobalServerConfig.Port),
-		Handler:      r,
+		Handler:      router.NewRouter(userAuthenticate, userProfile, rateRates),
 		WriteTimeout: 10 * time.Second,
 		ReadTimeout:  10 * time.Second,
 	}
