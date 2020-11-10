@@ -18,10 +18,12 @@ func TestUserDBManager_GetUserById(t *testing.T) {
 	expected := entity.User{ID: 1, Email: "hound@psina.ru", Password: "long_hashed_string"}
 	rows = rows.AddRow(expected.ID, expected.Email, expected.Password)
 
+	mock.ExpectBegin()
 	mock.
 		ExpectQuery("SELECT id, email, password FROM user_trade WHERE").
 		WithArgs(uint64(1)).
 		WillReturnRows(rows)
+	mock.ExpectCommit()
 
 	repo := &UserDBManager{DB: db}
 	row, err := repo.GetUserById(uint64(1))
@@ -43,7 +45,10 @@ func TestUserDBManager_GetUserByLogin(t *testing.T) {
 
 	login := "hound@psina.ru"
 	password := "long_hashed_string"
+
+	mock.ExpectBegin()
 	mock.ExpectQuery("SELECT id, password FROM user_trade WHERE").WithArgs(login).WillReturnRows(rows)
+	mock.ExpectCommit()
 
 	repo := &UserDBManager{DB: db}
 	row, err := repo.GetUserByLogin(login, password)

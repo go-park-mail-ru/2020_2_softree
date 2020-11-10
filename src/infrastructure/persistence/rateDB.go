@@ -126,7 +126,6 @@ func (rm *RateDBManager) GetRates() ([]entity.Currency, error) {
 	if err := result.Err(); err != nil {
 		return nil, err
 	}
-
 	if err = tx.Commit(); err != nil {
 		return nil, err
 	}

@@ -53,13 +53,10 @@ func (h *UserDBManager) GetUserById(id uint64) (entity.User, error) {
 
 	row := tx.QueryRow("SELECT id, email, password FROM user_trade WHERE id = $1", id)
 
-	err = tx.Commit()
-	if err != nil {
+	if err = row.Scan(&user.ID, &user.Email, &user.Password); err != nil {
 		return entity.User{}, err
 	}
-
-	err = row.Scan(&user.ID, &user.Email, &user.Password)
-	if err != nil {
+	if err = tx.Commit(); err != nil {
 		return entity.User{}, err
 	}
 
@@ -107,19 +104,19 @@ func (h *UserDBManager) SaveUser(user entity.User) (entity.User, error) {
 		password,
 	)
 
-	err = tx.Commit()
-	if err != nil {
-		return entity.User{}, err
-	}
-
 	lastID, err := result.LastInsertId()
 	if err != nil {
 		return entity.User{}, err
 	}
+
 	newUser := entity.User{
 		ID: uint64(lastID),
 		Email: user.Email,
 		Password: password,
+	}
+
+	if err = tx.Commit(); err != nil {
+		return entity.User{}, err
 	}
 
 	return newUser, nil
@@ -151,13 +148,10 @@ func (h *UserDBManager) UpdateUser(id uint64, user entity.User) (entity.User, er
 			if err != nil {
 				return entity.User{}, err
 			}
-			_, err = tx.Exec(
-				"UPDATE user_trade SET password = $1 WHERE id = $2",
-				newPassword,
-				id,
-			)
-			err = tx.Commit()
-			if err != nil {
+
+			_, err = tx.Exec("UPDATE user_trade SET password = $1 WHERE id = $2", newPassword, id)
+
+			if err = tx.Commit(); err != nil {
 				return entity.User{}, err
 			}
 		}
@@ -182,13 +176,9 @@ func (h *UserDBManager) DeleteUser(id uint64) error {
 	}
 	defer tx.Rollback()
 
-	_, err = tx.Exec(
-		"DELETE FROM user_trade WHERE id = $1",
-		id,
-	)
+	_, err = tx.Exec("DELETE FROM user_trade WHERE id = $1", id)
 
-	err = tx.Commit()
-	if err != nil {
+	if err = tx.Commit(); err != nil {
 		return err
 	}
 
@@ -209,12 +199,13 @@ func (h *UserDBManager) GetUserByLogin(email string, password string) (entity.Us
 
 	row := tx.QueryRow("SELECT id, password FROM user_trade WHERE email = $1", email)
 
-	err = tx.Commit()
-	if err != nil {
+	if err = row.Scan(&user.ID, &user.Password); err != nil {
+		return entity.User{}, err
+	}
+	if err = tx.Commit(); err != nil {
 		return entity.User{}, err
 	}
 
-	err = row.Scan(&user.ID, &user.Password)
 	if govalidator.IsNull(user.Password) {
 		return entity.User{}, errors.New("user does not exist")
 	}
@@ -241,20 +232,14 @@ func (h *UserDBManager) GetUserWatchlist(id uint64) ([]entity.Currency, error) {
 	}
 	defer tx.Rollback()
 
-	result, _ := tx.Query(
+	result, err := tx.Query(
 		"SELECT base_title, currency_title FROM watchlist WHERE user_id = $1",
 		id,
 	)
-
-	err = tx.Commit()
 	if err != nil {
 		return nil, err
 	}
-
 	defer result.Close()
-	if err := result.Err(); err != nil {
-		return nil, err
-	}
 
 	currencies := make([]entity.Currency, 0)
 	for result.Next() {
@@ -264,6 +249,13 @@ func (h *UserDBManager) GetUserWatchlist(id uint64) ([]entity.Currency, error) {
 		}
 
 		currencies = append(currencies, currency)
+	}
+
+	if err := result.Err(); err != nil {
+		return nil, err
+	}
+	if err = tx.Commit(); err != nil {
+		return nil, err
 	}
 
 	return currencies, nil
