@@ -17,11 +17,10 @@ services:
     image: postgres:latest
     restart: on-failure
     volumes:
-    - /postgres-data:/var/lib/postgresql/data/
-    environment:
-      POSTGRES_USER: app_user
-      POSTGRES_PASSWORD: NeverGonnaGiveYouUp
-      POSTGRES_DB: users
+    - ./postgres-data:/var/lib/postgresql/data/
+    - ./userDB.sql:/backup.sql
+    env_file:
+      configs/db.env
 
   redis:
     image: redis
