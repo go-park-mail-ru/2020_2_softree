@@ -147,3 +147,58 @@ func TestGetUserWatchlist_Fail(t *testing.T) {
 
 	require.NotEmpty(t, err)
 }
+
+func TestSaveUser_Fail(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	require.Equal(t, nil, err)
+	defer db.Close()
+
+	login := "hound@psina.ru"
+	password := "long_hashed_string"
+	expected := entity.User{ID: 1, Email: login, Password: password}
+
+	mock.ExpectBegin()
+	mock.
+		ExpectQuery("INSERT INTO user_trade (`email`, `password`) VALUES").
+		WillReturnError(errors.New("error"))
+	mock.ExpectRollback()
+
+	repo := &UserDBManager{DB: db}
+	_, err = repo.SaveUser(expected)
+
+	require.NotEmpty(t, err)
+}
+
+func TestDeleteUser_Success(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	require.Equal(t, nil, err)
+	defer db.Close()
+
+	mock.ExpectBegin()
+	mock.ExpectExec("DELETE FROM user_trade WHERE").
+		WithArgs(uint64(1)).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
+
+	repo := &UserDBManager{DB: db}
+	err = repo.DeleteUser(uint64(1))
+
+	require.Equal(t, nil, err)
+}
+
+func TestDeleteUser_Fail(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	require.Equal(t, nil, err)
+	defer db.Close()
+
+	mock.ExpectBegin()
+	mock.ExpectExec("DELETE FROM user_trade WHERE").
+		WithArgs(uint64(1)).
+		WillReturnError(errors.New("error"))
+	mock.ExpectRollback()
+
+	repo := &UserDBManager{DB: db}
+	err = repo.DeleteUser(uint64(1))
+
+	require.NotEmpty(t, err)
+}

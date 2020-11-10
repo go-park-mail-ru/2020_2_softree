@@ -65,7 +65,7 @@ func (h *UserDBManager) GetUserById(id uint64) (entity.User, error) {
 	return user, nil
 }
 
-func (h *UserDBManager)  CheckExistence(email string) (bool, error) {
+func (h *UserDBManager) CheckExistence(email string) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -149,6 +149,9 @@ func (h *UserDBManager) UpdateUser(id uint64, user entity.User) (entity.User, er
 			}
 
 			_, err = tx.Exec("UPDATE user_trade SET password = $1 WHERE id = $2", newPassword, id)
+			if err != nil {
+				return entity.User{}, err
+			}
 			currentUser.Password = newPassword
 		}
 	}
@@ -171,6 +174,9 @@ func (h *UserDBManager) DeleteUser(id uint64) error {
 	defer tx.Rollback()
 
 	_, err = tx.Exec("DELETE FROM user_trade WHERE id = $1", id)
+	if err != nil {
+		return err
+	}
 
 	if err = tx.Commit(); err != nil {
 		return err
