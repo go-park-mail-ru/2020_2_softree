@@ -149,20 +149,15 @@ func (h *UserDBManager) UpdateUser(id uint64, user entity.User) (entity.User, er
 			}
 
 			_, err = tx.Exec("UPDATE user_trade SET password = $1 WHERE id = $2", newPassword, id)
-
-			if err = tx.Commit(); err != nil {
-				return entity.User{}, err
-			}
+			currentUser.Password = newPassword
 		}
 	}
-	resUser := entity.User{
-		ID: id,
-		Email: user.Email,
-		Password: newPassword,
-		// ADD AVATAR
+
+	if err = tx.Commit(); err != nil {
+		return entity.User{}, err
 	}
 
-	return resUser, nil
+	return currentUser, nil
 }
 
 func (h *UserDBManager) DeleteUser(id uint64) error {
@@ -228,10 +223,7 @@ func (h *UserDBManager) GetUserWatchlist(id uint64) ([]entity.Currency, error) {
 	}
 	defer tx.Rollback()
 
-	result, err := tx.Query(
-		"SELECT base_title, currency_title FROM watchlist WHERE user_id = $1",
-		id,
-	)
+	result, err := tx.Query("SELECT base_title, currency_title FROM watchlist WHERE user_id = $1", id)
 	if err != nil {
 		return nil, err
 	}
