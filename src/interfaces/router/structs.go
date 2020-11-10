@@ -9,14 +9,13 @@ import (
 	"server/src/infrastructure/financial"
 	"server/src/infrastructure/log"
 	"server/src/infrastructure/persistence"
-	"server/src/infrastructure/userInteraction"
 	"server/src/interfaces/authorization"
 	"server/src/interfaces/profile"
 	"server/src/interfaces/rates"
 )
 
 func createAuthenticate() (*authorization.Authentication, error) {
-	dbRepo, err := userInteraction.NewUserDBManager()
+	dbRepo, err := persistence.NewUserDBManager()
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +34,7 @@ func createAuthenticate() (*authorization.Authentication, error) {
 }
 
 func createProfile() (*profile.Profile, error) {
-	dbRepo, err := userInteraction.NewUserDBManager()
+	dbRepo, err := persistence.NewUserDBManager()
 	if err != nil {
 		return nil, err
 	}

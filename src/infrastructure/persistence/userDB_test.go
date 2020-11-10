@@ -1,4 +1,4 @@
-package userInteraction
+package persistence
 
 import (
 	"github.com/stretchr/testify/require"
@@ -18,7 +18,10 @@ func TestUserDBManager_GetUserById(t *testing.T) {
 	expected := entity.User{ID: 1, Email: "hound@psina.ru", Password: "long_hashed_string"}
 	rows = rows.AddRow(expected.ID, expected.Email, expected.Password)
 
-	mock.ExpectQuery("SELECT id, email, password FROM user_trade WHERE").WithArgs(uint64(1)).WillReturnRows(rows)
+	mock.
+		ExpectQuery("SELECT id, email, password FROM user_trade WHERE").
+		WithArgs(uint64(1)).
+		WillReturnRows(rows)
 
 	repo := &UserDBManager{DB: db}
 	row, err := repo.GetUserById(uint64(1))
