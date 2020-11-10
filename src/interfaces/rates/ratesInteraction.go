@@ -56,7 +56,9 @@ func (rates *Rates) GetRates(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	w.Write(result)
+	if _, err := w.Write(result); err != nil {
+		rates.log.Print(err)
+	}
 }
 
 func (rates *Rates) GetURLRate(w http.ResponseWriter, r *http.Request) {
@@ -73,7 +75,9 @@ func (rates *Rates) GetURLRate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	w.Write(result)
+	if _, err := w.Write(result); err != nil {
+		rates.log.Print(err)
+	}
 }
 
 func (rates *Rates) GetMarkets(w http.ResponseWriter, r *http.Request) {
@@ -83,5 +87,7 @@ func (rates *Rates) GetMarkets(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	w.Write(result)
+	if _, err := w.Write(result); err != nil {
+		rates.log.Print(err)
+	}
 }

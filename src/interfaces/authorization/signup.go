@@ -48,5 +48,7 @@ func (a *Authentication) createInternalServerError(errors *entity.ErrorJSON, w h
 
 	w.WriteHeader(http.StatusBadRequest)
 	w.Header().Add("Content-Type", "application/json")
-	w.Write(res)
+	if _, err := w.Write(res); err != nil {
+		a.log.Print(err)
+	}
 }

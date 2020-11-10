@@ -55,7 +55,9 @@ func (p *Profile) UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-Type", "application/json")
-	w.Write(res)
+	if _, err := w.Write(res); err != nil {
+		p.log.Print(err)
+	}
 }
 
 func (p *Profile) GetUser(w http.ResponseWriter, r *http.Request) {
@@ -78,7 +80,9 @@ func (p *Profile) GetUser(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-Type", "application/json")
-	w.Write(res)
+	if _, err := w.Write(res); err != nil {
+		p.log.Print(err)
+	}
 }
 
 func (p *Profile) GetUserWatchlist(w http.ResponseWriter, r *http.Request) {
@@ -100,5 +104,7 @@ func (p *Profile) GetUserWatchlist(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-Type", "application/json")
-	w.Write(res)
+	if _, err := w.Write(res); err != nil {
+		p.log.Print(err)
+	}
 }

@@ -16,14 +16,14 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	errors := user.Validate()
-	if errors.NotEmpty {
-		a.createInternalServerError(&errors, w)
+	errs := user.Validate()
+	if errs.NotEmpty {
+		a.createInternalServerError(&errs, w)
 		return
 	}
 
 	user, err = a.userApp.GetUserByLogin(user.Email, user.Password)
-	errs := a.checkGetUserByLoginErrors(err)
+	errs = a.checkGetUserByLoginErrors(err)
 
 	if errs.NotEmpty {
 		a.log.Print(err)
@@ -35,7 +35,9 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 
 		w.WriteHeader(http.StatusBadRequest)
 		w.Header().Add("Content-Type", "application/json")
-		w.Write(res)
+		if _, err := w.Write(res); err != nil {
+			a.log.Print(err)
+		}
 		return
 	}
 
@@ -55,7 +57,9 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(res)
+	if _, err := w.Write(res); err != nil {
+		a.log.Print(err)
+	}
 }
 
 func (a *Authentication) checkGetUserByLoginErrors(err error) (errs entity.ErrorJSON) {

@@ -30,7 +30,9 @@ func (a *Authentication) Auth(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-Type", "application/json")
-	w.Write(res)
+	if _, err := w.Write(res); err != nil {
+		a.log.Print(err)
+	}
 }
 
 func extractUserFromSession(c *http.Cookie, a *Authentication) (entity.User, error) {
