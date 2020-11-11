@@ -112,7 +112,7 @@ func (rm *RateDBManager) GetRates() ([]entity.Currency, error) {
 	}
 	defer result.Close()
 
-	currencies := make([]entity.Currency, len(ListOfCurrencies))
+	currencies := make([]entity.Currency, 0)
 	for result.Next() {
 		var currency entity.Currency
 		if err := result.Scan(&currency.Title, &currency.Value, &currency.UpdatedAt); err != nil {
