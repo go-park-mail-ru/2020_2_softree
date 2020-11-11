@@ -43,7 +43,8 @@ func (p *Profile) UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	user, err = p.userApp.UpdateUser(id, user)
 	if err == errors.New("wrong old password") {
-		p.createOldPAssError(w)
+		w.WriteHeader(http.StatusBadRequest)
+		p.createOldPassError(w)
 		return
 	}
 	if err != nil {
@@ -115,7 +116,7 @@ func (p *Profile) GetUserWatchlist(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (p *Profile) createOldPAssError(w http.ResponseWriter) {
+func (p *Profile) createOldPassError(w http.ResponseWriter) {
 	var errs entity.ErrorJSON
 	errs.Password = append(errs.Password, "введен неверно старый пароль")
 	errs.NotEmpty = true
