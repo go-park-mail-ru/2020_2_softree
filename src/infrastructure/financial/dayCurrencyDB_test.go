@@ -1,7 +1,6 @@
 package financial
 
 import (
-	"fmt"
 	"github.com/alicebob/miniredis/v2"
 	"github.com/golang/mock/gomock"
 	"github.com/gomodule/redigo/redis"
@@ -66,10 +65,6 @@ func TestCurrencyManager_GetInitialCurrency(t *testing.T) { // Не работа
 	c, err := redis.Dial("tcp", s.Addr())
 	currencyManager := NewCurrencyManager(c)
 
-	/*ctrl := gomock.NewController(t)
-	mockFinance := mock.NewFinanceRepositoryForMock(ctrl)
-	mockFinance.EXPECT().GetQuote().Return(testData).Times(len(testData))*/
-
 	for name, val := range testData {
 		value, _ := val.(int)
 		strVal := strconv.Itoa(value)
@@ -78,11 +73,8 @@ func TestCurrencyManager_GetInitialCurrency(t *testing.T) { // Не работа
 	}
 
 	initCurrency, err := currencyManager.GetInitialCurrency()
-	fmt.Println(initCurrency)
 	require.NoError(t, err)
 	for _, currency := range initCurrency {
-		fmt.Println(testData[currency.Title])
-		fmt.Println(currency.Title)
-		require.EqualValues(t, testData[currency.Title], currency.Title)
+		require.EqualValues(t, testData[currency.Title], currency.Value)
 	}
 }

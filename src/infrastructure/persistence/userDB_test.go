@@ -15,13 +15,13 @@ func TestGetUserById_Success(t *testing.T) {
 	require.Equal(t, nil, err)
 	defer db.Close()
 
-	rows := sqlmock.NewRows([]string{"id", "email", "password"})
-	expected := entity.User{ID: 1, Email: "hound@psina.ru", Password: "long_hashed_string"}
-	rows = rows.AddRow(expected.ID, expected.Email, expected.Password)
+	rows := sqlmock.NewRows([]string{"id", "email", "password", "avatar"})
+	expected := entity.User{ID: 1, Email: "hound@psina.ru", Password: "long_hashed_string", Avatar: "1234"}
+	rows = rows.AddRow(expected.ID, expected.Email, expected.Password, expected.Avatar)
 
 	mock.ExpectBegin()
 	mock.
-		ExpectQuery("SELECT id, email, password FROM user_trade WHERE").
+		ExpectQuery("SELECT id, email, password, avatar FROM user_trade WHERE").
 		WithArgs(uint64(1)).
 		WillReturnRows(rows)
 	mock.ExpectCommit()
@@ -62,14 +62,14 @@ func TestGetUserByLogin_Success(t *testing.T) {
 
 	rows := sqlmock.NewRows([]string{"id", "password"})
 	expPass, _ := security.MakeShieldedPassword("long_hashed_string")
-	expected := entity.User{ID: 1, Email: "hound@psina.ru", Password: expPass}
-	rows = rows.AddRow(expected.ID, expected.Password)
+	expected := entity.User{ID: 1, Email: "hound@psina.ru", Password: expPass, Avatar: "1234"}
+	rows = rows.AddRow(expected.ID, expected.Password, expected.Avatar)
 
 	login := "hound@psina.ru"
 	password := "long_hashed_string"
 
 	mock.ExpectBegin()
-	mock.ExpectQuery("SELECT id, password FROM user_trade WHERE").WithArgs(login).WillReturnRows(rows)
+	mock.ExpectQuery("SELECT id, password, avatar FROM user_trade WHERE").WithArgs(login).WillReturnRows(rows)
 	mock.ExpectCommit()
 
 	repo := &UserDBManager{DB: db}

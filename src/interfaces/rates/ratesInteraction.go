@@ -20,13 +20,16 @@ func (rates *Rates) GetRatesFromApi() {
 		Key: "bttn28748v6ojt2hev60",
 	})
 
+	forexRates, _, _ := api.ForexRates(auth, &finnhub.ForexRatesOpts{Base: optional.NewString("USD")})
+	finance := financial.NewForexRepository(forexRates)
+
 	for range ticker.C {
-		// exchange works 10:00-20:00
+		/*// exchange works 10:00-20:00
 		if time.Now().Hour() > 20 || time.Now().Hour() < 10 {
 			continue
-		}
-		forexRates, _, _ := api.ForexRates(auth, &finnhub.ForexRatesOpts{Base: optional.NewString("USD")})
-		finance := financial.NewForexRepository(forexRates)
+		}*/
+		forexRates, _, _ = api.ForexRates(auth, &finnhub.ForexRatesOpts{Base: optional.NewString("USD")})
+		finance = financial.NewForexRepository(forexRates)
 
 		err := rates.rateApp.SaveRates(finance)
 		if err != nil {

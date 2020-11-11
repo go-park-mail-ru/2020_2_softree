@@ -38,7 +38,7 @@ func (sm *CurrencyManager) SaveCurrency(financial repository.FinancialRepository
 }
 
 func (sm *CurrencyManager) GetInitialCurrency() ([]entity.Currency, error) {
-	result := make([]entity.Currency, len(persistence.ListOfCurrencies))
+	result := make([]entity.Currency, 0)
 	for _, name := range persistence.ListOfCurrencies {
 		var currency entity.Currency
 		currency.Title = name
