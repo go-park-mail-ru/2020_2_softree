@@ -1,7 +1,3 @@
-create database if not exists users;
-create user app_user with encrypted password 'NeverGonnaGiveYouUp';
-grant all privileges on database users to app_user;
-
 DROP TABLE IF EXISTS user_trade;
 
 CREATE TABLE user_trade

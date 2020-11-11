@@ -4,27 +4,29 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    #image: softree/moneycat:master
     container_name: moneycat
     ports:
-    - 9000:80
+    - 8000:80
     volumes:
     - ./configs:/etc/moneycat
     command: ["-f", "/etc/moneycat/local.yml"]
+    depends_on:
+      - "postgres"
+      - "redis"
     restart: on-failure
 
-  db:
+  postgres:
     image: postgres:latest
     restart: on-failure
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: NeverGonnaGiveYouUp
+      POSTGRES_DB: moneycat
     volumes:
-    - ./postgres-data:/var/lib/postgresql/data/
-    - ./userDB.sql:/backup.sql
-    env_file:
-      configs/db.env
+      - ./backup.sql:/backup.sql
 
   redis:
     image: redis
     restart: on-failure
     volumes:
-      - ./redis-data:/var/lib/redis
       - ./configs/redis.conf:/usr/local/etc/redis/redis.conf

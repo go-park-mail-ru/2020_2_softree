@@ -33,17 +33,17 @@ var GlobalCORSConfig = CORSConfig{
 }
 
 type RedisConfig struct {
-	AddressSessions    string
-	AddressDayCurrency string
+	AddressSessions    string `yaml:"redis_session_path"`
+	AddressDayCurrency string `yaml:"redis_currency_path"`
 }
 
 var SessionDatabaseConfig = RedisConfig{}
 
 type UserBDConfig struct {
-	User     string `yml:"user_user"`
-	Password string `yml:"password_user"`
-	Host     string `yml:"host_user"`
-	Schema   string `yml:"schema_user"`
+	User     string `yaml:"postgres_user"`
+	Password string `yaml:"postgres_password"`
+	Host     string `yaml:"postgres_host"`
+	Schema   string `yaml:"postgres_db"`
 }
 
 var UserDatabaseConfig = UserBDConfig{}
@@ -55,6 +55,11 @@ func ParseConfig() error {
 	}
 
 	err = yaml.Unmarshal(yamlFile, &GlobalServerConfig)
+	if err != nil {
+		return err
+	}
+
+	err = yaml.Unmarshal(yamlFile, &SessionDatabaseConfig)
 	if err != nil {
 		return err
 	}
