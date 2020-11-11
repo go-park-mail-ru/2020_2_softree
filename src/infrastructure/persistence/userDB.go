@@ -51,9 +51,9 @@ func (h *UserDBManager) GetUserById(id uint64) (entity.User, error) {
 	}
 	defer tx.Rollback()
 
-	row := tx.QueryRow("SELECT id, email, password FROM user_trade WHERE id = $1", id)
+	row := tx.QueryRow("SELECT id, email, password, avatar FROM user_trade WHERE id = $1", id)
 
-	if err = row.Scan(&user.ID, &user.Email, &user.Password); err != nil {
+	if err = row.Scan(&user.ID, &user.Email, &user.Password, &user.Avatar); err != nil {
 		return entity.User{}, err
 	}
 	if err = tx.Commit(); err != nil {
@@ -135,7 +135,11 @@ func (h *UserDBManager) UpdateUser(id uint64, user entity.User) (entity.User, er
 	}
 
 	if !govalidator.IsNull(user.Avatar) {
-		// #TODO
+		_, err = tx.Exec("UPDATE user_trade SET avatar = $1 WHERE id = $2", user.Avatar, id)
+		if err != nil {
+			return entity.User{}, err
+		}
+		currentUser.Avatar = user.Avatar
 	}
 
 	var newPassword string
@@ -159,7 +163,6 @@ func (h *UserDBManager) UpdateUser(id uint64, user entity.User) (entity.User, er
 	if err = tx.Commit(); err != nil {
 		return entity.User{}, err
 	}
-
 	return currentUser, nil
 }
 
@@ -197,9 +200,9 @@ func (h *UserDBManager) GetUserByLogin(email string, password string) (entity.Us
 
 	user := entity.User{Email: email}
 
-	row := tx.QueryRow("SELECT id, password FROM user_trade WHERE email = $1", email)
+	row := tx.QueryRow("SELECT id, password, avatar FROM user_trade WHERE email = $1", email)
 
-	if err = row.Scan(&user.ID, &user.Password); err != nil {
+	if err = row.Scan(&user.ID, &user.Password, &user.Avatar); err != nil {
 		return entity.User{}, err
 	}
 	if err = tx.Commit(); err != nil {
@@ -213,8 +216,6 @@ func (h *UserDBManager) GetUserByLogin(email string, password string) (entity.Us
 	if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) != nil {
 		return entity.User{}, errors.New("wrong password")
 	}
-
-	// #TODO ADD AVATAR
 
 	return user, nil
 }

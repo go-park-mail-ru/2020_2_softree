@@ -3,7 +3,6 @@ package profile
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"server/src/domain/entity"
 )
@@ -41,30 +40,23 @@ func (p *Profile) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err = p.userApp.UpdateUser(id, user)
-	if err == errors.New("wrong old password") {
-		w.WriteHeader(http.StatusBadRequest)
-		p.createOldPassError(w)
-		return
-	}
-	if err != nil {
-		p.log.Print(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	p.sanitizer.SanitizeBytes([]byte(user.Avatar))
+	p.sanitizer.Sanitize(user.OldPassword)
+	p.sanitizer.Sanitize(user.NewPassword)
 
-	res, err := json.Marshal(user.MakePublicUser())
+	user, err = p.userApp.UpdateUser(id, user)
 	if err != nil {
+		if err.Error() == "wrong old password" {
+			w.WriteHeader(http.StatusBadRequest)
+			p.createOldPassError(w)
+			return
+		}
 		p.log.Print(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Header().Add("Content-Type", "application/json")
-	if _, err := w.Write(res); err != nil {
-		p.log.Print(err)
-	}
 }
 
 func (p *Profile) GetUser(w http.ResponseWriter, r *http.Request) {

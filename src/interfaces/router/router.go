@@ -11,7 +11,7 @@ import (
 
 func NewRouter(userAuthenticate *authorization.Authentication, userProfile *profile.Profile, rateRates *rates.Rates) http.Handler {
 	router := mux.NewRouter()
-	r := router.PathPrefix("").Subrouter()
+	r := router.PathPrefix("/api").Subrouter()
 
 	r.HandleFunc("/sessions", userAuthenticate.Login).
 		Methods(http.MethodPost, http.MethodOptions)

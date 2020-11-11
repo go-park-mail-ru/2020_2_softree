@@ -1,11 +1,14 @@
-DROP TABLE IF EXISTS user_trade;
+DROP TABLE IF EXISTS user_trade Cascade;
 
 CREATE TABLE user_trade
 (
     id       BIGSERIAL NOT NULL PRIMARY KEY,
     email    text,
-    password text
+    password text,
+    avatar   text
 );
+
+DROP TABLE IF EXISTS watchlist Cascade;
 
 CREATE TABLE watchlist
 (
