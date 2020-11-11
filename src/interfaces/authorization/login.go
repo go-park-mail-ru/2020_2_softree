@@ -22,6 +22,19 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var exist bool
+	if exist, err = a.userApp.CheckExistence(user.Email); err != nil {
+		a.log.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if !exist {
+		errs.NonFieldError = append(errs.NonFieldError, "пользователь с таким email'ом не существует")
+		a.createInternalServerError(&errs, w)
+		return
+	}
+
 	user, err = a.userApp.GetUserByLogin(user.Email, user.Password)
 	errs = a.checkGetUserByLoginErrors(err)
 
