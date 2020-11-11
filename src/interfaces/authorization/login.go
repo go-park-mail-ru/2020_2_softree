@@ -16,6 +16,9 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	a.sanitizer.Sanitize(user.Email)
+	a.sanitizer.Sanitize(user.Password)
+
 	errs := user.Validate()
 	if errs.NotEmpty {
 		a.createInternalServerError(&errs, w)
