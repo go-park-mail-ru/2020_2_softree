@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"server/src/application"
-	"server/src/domain/entity"
 	"server/src/infrastructure/log"
 	mocks "server/src/infrastructure/mock"
 	"strings"
@@ -85,6 +84,7 @@ func createLoginSuccess(t *testing.T) (*Authentication, *gomock.Controller) {
 	expectedUser := createExpectedUser("yandex@mail.ru", "str")
 
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
+	mockUser.EXPECT().CheckExistence(expectedUser.Email).Return(true, nil)
 	mockUser.EXPECT().GetUserByLogin(expectedUser.Email, "str").Return(expectedUser, nil)
 
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
@@ -114,7 +114,7 @@ func createLoginFailNoUser(t *testing.T) (*Authentication, *gomock.Controller) {
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
 
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
-	mockUser.EXPECT().GetUserByLogin("yandex@mail.ru", "str").Return(entity.User{}, errors.New("no user"))
+	mockUser.EXPECT().CheckExistence("yandex@mail.ru").Return(false, nil)
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
@@ -128,6 +128,7 @@ func createLoginFailCreateAuth(t *testing.T) (*Authentication, *gomock.Controlle
 
 	expectedUser := createExpectedUser("yandex@mail.ru", "str")
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
+	mockUser.EXPECT().CheckExistence(expectedUser.Email).Return(true, nil)
 	mockUser.EXPECT().GetUserByLogin(expectedUser.Email, "str").Return(expectedUser, nil)
 
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)

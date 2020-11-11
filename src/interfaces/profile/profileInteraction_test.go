@@ -29,8 +29,8 @@ func TestProfileAvatar_UpdateUserSuccess(t *testing.T) {
 	testAuth.UpdateUser(w, req)
 
 	require.Equal(t, http.StatusOK, w.Result().StatusCode)
-	require.NotEmpty(t, w.Header().Get("Content-Type"))
-	require.NotEmpty(t, w.Body)
+	require.Empty(t, w.Header().Get("Content-Type"))
+	require.Empty(t, w.Body)
 }
 
 func TestProfilePassword_UpdateUserSuccess(t *testing.T) {
@@ -47,8 +47,8 @@ func TestProfilePassword_UpdateUserSuccess(t *testing.T) {
 	testAuth.UpdateUser(w, req)
 
 	require.Equal(t, http.StatusOK, w.Result().StatusCode)
-	require.NotEmpty(t, w.Header().Get("Content-Type"))
-	require.NotEmpty(t, w.Body)
+	require.Empty(t, w.Header().Get("Content-Type"))
+	require.Empty(t, w.Body)
 }
 
 func TestProfile_UpdateUserFail(t *testing.T) {
@@ -64,7 +64,7 @@ func TestProfile_UpdateUserFail(t *testing.T) {
 	createContext(&req)
 	testAuth.UpdateUser(w, req)
 
-	require.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
+	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 }
 
 func TestProfile_AuthSuccess(t *testing.T) {
@@ -87,8 +87,8 @@ func TestProfile_AuthSuccess(t *testing.T) {
 	update(w, req)
 
 	require.Equal(t, http.StatusOK, w.Result().StatusCode)
-	require.NotEmpty(t, w.Header().Get("Content-Type"))
-	require.NotEmpty(t, w.Body)
+	require.Empty(t, w.Header().Get("Content-Type"))
+	require.Empty(t, w.Body)
 }
 
 func TestProfile_AuthFailUnauthorized(t *testing.T) {
