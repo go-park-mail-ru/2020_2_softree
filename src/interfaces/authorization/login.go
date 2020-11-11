@@ -42,18 +42,7 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 	errs = a.checkGetUserByLoginErrors(err)
 
 	if errs.NotEmpty {
-		a.log.Print(err)
-		res, err := json.Marshal(errs)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		w.WriteHeader(http.StatusBadRequest)
-		w.Header().Add("Content-Type", "application/json")
-		if _, err := w.Write(res); err != nil {
-			a.log.Print(err)
-		}
+		a.createInternalServerError(&errs, w)
 		return
 	}
 
@@ -72,6 +61,7 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if _, err := w.Write(res); err != nil {
 		a.log.Print(err)
