@@ -35,6 +35,12 @@ func (rates *Rates) GetRatesFromApi() {
 			return
 		}
 
+		if currencies, err := rates.rateApp.GetInitialCurrency(); len(currencies) == 0 {
+			if err = rates.rateApp.SaveCurrency(finance); err != nil {
+				rates.log.Print(err)
+				return
+			}
+		}
 		if time.Now().Hour() == 10 && time.Now().Minute() == 2 {  // 10:02
 			if err = rates.rateApp.SaveCurrency(finance);  err != nil {
 				rates.log.Print(err)
