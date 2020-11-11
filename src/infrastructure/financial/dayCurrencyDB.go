@@ -45,9 +45,9 @@ func (sm *CurrencyManager) GetInitialCurrency() ([]entity.Currency, error) {
 		data, err := redis.Bytes(sm.RedisConn.Do("GET", name))
 
 		if err == redis.ErrNil {
-			return []entity.Currency{}, errors.New("no session")
+			return []entity.Currency{}, errors.New("no initial value")
 		} else if err != nil {
-			return []entity.Currency{}, errors.New("redis error during checking session")
+			return []entity.Currency{}, errors.New("redis error during checking initial value")
 		}
 
 		strRes := string(data)
