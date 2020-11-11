@@ -5,7 +5,7 @@ CREATE TABLE user_trade
     id       BIGSERIAL NOT NULL PRIMARY KEY,
     email    text,
     password text,
-    avatar   text
+    avatar   text default ""
 );
 
 DROP TABLE IF EXISTS watchlist Cascade;
