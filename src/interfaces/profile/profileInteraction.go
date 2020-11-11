@@ -3,6 +3,7 @@ package profile
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"server/src/domain/entity"
 )
@@ -40,7 +41,12 @@ func (p *Profile) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user, err = p.userApp.UpdateUser(id, user); err != nil {
+	user, err = p.userApp.UpdateUser(id, user)
+	if err == errors.New("wrong old password") {
+		p.createOldPAssError(w)
+		return
+	}
+	if err != nil {
 		p.log.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -107,4 +113,24 @@ func (p *Profile) GetUserWatchlist(w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write(res); err != nil {
 		p.log.Print(err)
 	}
+}
+
+func (p *Profile) createOldPAssError(w http.ResponseWriter) {
+	var errs entity.ErrorJSON
+	errs.Password = append(errs.Password, "введен неверно старый пароль")
+	errs.NotEmpty = true
+
+	res, err := json.Marshal(errs)
+	if err != nil {
+		p.log.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Add("Content-Type", "application/json")
+	if _, err := w.Write(res); err != nil {
+		p.log.Print(err)
+	}
+	return
 }

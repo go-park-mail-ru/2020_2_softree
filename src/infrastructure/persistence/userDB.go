@@ -151,6 +151,8 @@ func (h *UserDBManager) UpdateUser(id uint64, user entity.User) (entity.User, er
 				return entity.User{}, err
 			}
 			currentUser.Password = newPassword
+		} else {
+			return entity.User{}, errors.New("wrong old password")
 		}
 	}
 
