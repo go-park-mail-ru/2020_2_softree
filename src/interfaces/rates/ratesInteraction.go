@@ -7,7 +7,6 @@ import (
 	"github.com/antihax/optional"
 	"github.com/gorilla/mux"
 	"net/http"
-	"server/src/domain/entity"
 	"server/src/infrastructure/financial"
 	"time"
 )
@@ -41,8 +40,8 @@ func (rates *Rates) GetRatesFromApi() {
 				return
 			}
 		}
-		if time.Now().Hour() == 10 && time.Now().Minute() == 2 {  // 10:02
-			if err = rates.rateApp.SaveCurrency(finance);  err != nil {
+		if time.Now().Hour() == 10 && time.Now().Minute() == 2 { // 10:02
+			if err = rates.rateApp.SaveCurrency(finance); err != nil {
 				rates.log.Print(err)
 				return
 			}
@@ -87,7 +86,11 @@ func (rates *Rates) GetURLRate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (rates *Rates) GetMarkets(w http.ResponseWriter, r *http.Request) {
-	resRates := entity.Currency{Base: "USD", Title: "EUR"}
+	type curr struct {
+		Base  string `json:"base"`
+		Title string `json:"title"`
+	}
+	resRates := curr{Base: "USD", Title: "EUR"}
 	result, _ := json.Marshal(resRates)
 
 	w.Header().Set("Content-Type", "application/json")
