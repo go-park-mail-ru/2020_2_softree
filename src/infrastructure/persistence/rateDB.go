@@ -75,7 +75,7 @@ func (rm *RateDBManager) SaveRates(financial repository.FinancialRepository) err
 	for _, name := range ListOfCurrencies {
 		quote := financial.GetQuote()[name]
 		_, err := tx.Exec(
-			"INSERT INTO history_currency_by_minutes ('title', value, 'updated_at') VALUES ($1, $2, $3)",
+			"INSERT INTO history_currency_by_minutes (title, value, updated_at) VALUES ($1, $2, $3)",
 			name,
 			quote.(float64),
 			currentTime,
