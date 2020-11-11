@@ -127,7 +127,7 @@ func (p *Profile) createOldPAssError(w http.ResponseWriter) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusBadRequest)
 	w.Header().Add("Content-Type", "application/json")
 	if _, err := w.Write(res); err != nil {
 		p.log.Print(err)
