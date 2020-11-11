@@ -8,5 +8,5 @@ logLevel: 'Debug'
 
 user_user: app_user
 password_user: 'NeverGonnaGiveYouUp'
-host_user: localhost
+host_user: db
 schema_user: users

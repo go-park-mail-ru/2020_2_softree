@@ -32,6 +32,8 @@ CREATE TABLE history_currency_by_minutes
     updated_at timestamp
 );
 
+create index idx_history_currency_by_minutes on history_currency_by_minutes(updated_at);
+
 CREATE TABLE history_currency_by_hours
 (
     title      text,

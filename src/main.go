@@ -31,7 +31,7 @@ func initFlags() {
 
 	flag.StringVar(&config.UserDatabaseConfig.User, "user_db_user", "app_user", "User DB user")
 	flag.StringVar(&config.UserDatabaseConfig.Password, "user_db_password", "NeverGonnaGiveYouUp", "User DB password")
-	flag.StringVar(&config.UserDatabaseConfig.Host, "user_db_host", "localhost", "User DB port")
+	flag.StringVar(&config.UserDatabaseConfig.Host, "user_db_host", "db", "User DB port")
 	flag.StringVar(&config.UserDatabaseConfig.Schema, "user_db_schema", "users", "User DB schema")
 
 	flag.Parse()
