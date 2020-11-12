@@ -43,7 +43,7 @@ func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	if !govalidator.IsBase64(user.Avatar) {
+	if !govalidator.IsNull(user.Avatar) {
 		p.log.Print(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
