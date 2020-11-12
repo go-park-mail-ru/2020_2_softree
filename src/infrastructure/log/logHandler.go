@@ -1,5 +1,6 @@
 package log
 
 type LogHandler interface {
-	Print(err interface{})
+	Info(msg... interface{})
+	Debug(msg... interface{})
 }
