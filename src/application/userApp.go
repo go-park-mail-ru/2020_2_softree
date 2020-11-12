@@ -6,45 +6,45 @@ import (
 )
 
 type UserApp struct {
-	ur repository.UserRepository
+	userRepository repository.UserRepository
 }
 
 func NewUserApp(repo repository.UserRepository) *UserApp {
-	return &UserApp{ur: repo}
+	return &UserApp{userRepository: repo}
 }
 
 func (ua *UserApp) SaveUser(u entity.User) (entity.User, error) {
-	return ua.ur.SaveUser(u)
+	return ua.userRepository.SaveUser(u)
 }
 
 func (ua *UserApp) UpdateUserAvatar(id uint64, u entity.User) error {
-	return ua.ur.UpdateUserAvatar(id, u)
+	return ua.userRepository.UpdateUserAvatar(id, u)
 }
 
 func (ua *UserApp) UpdateUserPassword(id uint64, u entity.User) error {
-	return ua.ur.UpdateUserPassword(id, u)
+	return ua.userRepository.UpdateUserPassword(id, u)
 }
 
 func (ua *UserApp) DeleteUser(id uint64) error {
-	return ua.ur.DeleteUser(id)
+	return ua.userRepository.DeleteUser(id)
 }
 
 func (ua *UserApp) GetUserById(id uint64) (entity.User, error) {
-	return ua.ur.GetUserById(id)
+	return ua.userRepository.GetUserById(id)
 }
 
 func (ua *UserApp) GetUserByLogin(email, password string) (entity.User, error) {
-	return ua.ur.GetUserByLogin(email, password)
+	return ua.userRepository.GetUserByLogin(email, password)
 }
 
 func (ua *UserApp) GetUserWatchlist(id uint64) ([]entity.Currency, error) {
-	return ua.ur.GetUserWatchlist(id)
+	return ua.userRepository.GetUserWatchlist(id)
 }
 
 func (ua *UserApp) CheckExistence(email string) (bool, error) {
-	return ua.ur.CheckExistence(email)
+	return ua.userRepository.CheckExistence(email)
 }
 
 func (ua *UserApp) CheckPassword(id uint64, password string) (bool, error) {
-	return ua.ur.CheckPassword(id, password)
+	return ua.userRepository.CheckPassword(id, password)
 }

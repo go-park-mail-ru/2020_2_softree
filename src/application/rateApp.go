@@ -6,38 +6,38 @@ import (
 )
 
 type RateApp struct {
-	rr  repository.RateRepository
-	dcr repository.DayCurrencyRepository
+	rateRepository        repository.RateRepository
+	dayCurrencyRepository repository.DayCurrencyRepository
 }
 
 func NewRateApp(repo repository.RateRepository, dcr repository.DayCurrencyRepository) *RateApp {
-	return &RateApp{rr: repo, dcr: dcr}
+	return &RateApp{rateRepository: repo, dayCurrencyRepository: dcr}
 }
 
 func (ra *RateApp) SaveCurrency(financial repository.FinancialRepository) error {
-	return ra.dcr.SaveCurrency(financial)
+	return ra.dayCurrencyRepository.SaveCurrency(financial)
 }
 
 func (ra *RateApp) GetInitialCurrency() ([]entity.Currency, error) {
-	return ra.dcr.GetInitialCurrency()
+	return ra.dayCurrencyRepository.GetInitialCurrency()
 }
 
 func (ra *RateApp) SaveRates(financial repository.FinancialRepository) error {
-	return ra.rr.SaveRates(financial)
+	return ra.rateRepository.SaveRates(financial)
 }
 
 func (ra *RateApp) UpdateRate(id uint64, rate entity.Currency) (entity.Currency, error) {
-	return ra.rr.UpdateRate(id, rate)
+	return ra.rateRepository.UpdateRate(id, rate)
 }
 
 func (ra *RateApp) DeleteRate(id uint64) error {
-	return ra.rr.DeleteRate(id)
+	return ra.rateRepository.DeleteRate(id)
 }
 
 func (ra *RateApp) GetRates() ([]entity.Currency, error) {
-	return ra.rr.GetRates()
+	return ra.rateRepository.GetRates()
 }
 
 func (ra *RateApp) GetRate(title string) ([]entity.Currency, error) {
-	return ra.rr.GetRate(title)
+	return ra.rateRepository.GetRate(title)
 }
