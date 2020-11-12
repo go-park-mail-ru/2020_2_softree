@@ -20,7 +20,7 @@ func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
 
 	errs := user.Validate()
 	if errs.NotEmpty {
-		a.createInternalServerError(&errs, w)
+		a.createServerError(&errs, w)
 		return
 	}
 
@@ -33,7 +33,7 @@ func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
 
 	if exist {
 		errs.NonFieldError = append(errs.NonFieldError, "пользователь с таким email'ом уже существует")
-		a.createInternalServerError(&errs, w)
+		a.createServerError(&errs, w)
 		return
 	}
 
@@ -53,18 +53,4 @@ func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &cookie)
 
 	w.WriteHeader(http.StatusCreated)
-}
-
-func (a *Authentication) createInternalServerError(errors *entity.ErrorJSON, w http.ResponseWriter) {
-	res, err := json.Marshal(errors)
-	if err != nil {
-		a.log.Print(err)
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-
-	w.WriteHeader(http.StatusBadRequest)
-	w.Header().Add("Content-Type", "application/json")
-	if _, err := w.Write(res); err != nil {
-		a.log.Print(err)
-	}
 }

@@ -143,16 +143,12 @@ func (rm *RateDBManager) GetRate(title string) ([]entity.Currency, error) {
 	defer tx.Rollback()
 
 	result, err := tx.Query("SELECT value, updated_at FROM history_currency_by_minutes WHERE title = $1", title)
+	if err != nil {
+		return nil, err
+	}
 	defer result.Close()
-	if err != nil {
-		return nil, err
-	}
-	err = tx.Commit()
-	if err != nil {
-		return nil, err
-	}
 
-	currencies := make([]entity.Currency, len(ListOfCurrencies))
+	currencies := make([]entity.Currency, 0)
 	for result.Next() {
 		var currency entity.Currency
 		currency.Title = title
@@ -161,6 +157,12 @@ func (rm *RateDBManager) GetRate(title string) ([]entity.Currency, error) {
 		}
 
 		currencies = append(currencies, currency)
+	}
+	if err = result.Err(); err != nil {
+		return nil, err
+	}
+	if err = tx.Commit(); err != nil {
+		return nil, err
 	}
 
 	return currencies, nil

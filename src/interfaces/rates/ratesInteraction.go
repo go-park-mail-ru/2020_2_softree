@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"server/src/infrastructure/financial"
+	"server/src/infrastructure/persistence"
 	"time"
 )
 
@@ -72,7 +73,14 @@ func (rates *Rates) GetRates(w http.ResponseWriter, r *http.Request) {
 func (rates *Rates) GetURLRate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	resRates, err := rates.rateApp.GetRate(vars["title"])
+	title := vars["title"]
+	if !validate(title) {
+		rates.log.Print("bad title: " + title)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	resRates, err := rates.rateApp.GetRate(title)
 	if err != nil {
 		rates.log.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -86,6 +94,21 @@ func (rates *Rates) GetURLRate(w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write(result); err != nil {
 		rates.log.Print(err)
 	}
+}
+
+func validate(title string) bool {
+	lenOfCurrency := 3
+	if len(title) != lenOfCurrency {
+		return false
+	}
+
+	for _, rate := range persistence.ListOfCurrencies {
+		if rate == title {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (rates *Rates) GetMarkets(w http.ResponseWriter, r *http.Request) {

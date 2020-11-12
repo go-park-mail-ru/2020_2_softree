@@ -6,20 +6,26 @@ import (
 
 type UserRepository interface {
 	userSaver
-	userUpdater
+	userAvatarUpdater
+	userPasswordUpdater
 	userEraser
 	userReceiverById
 	userReceiverByFormData
 	userReceiverWatchlist
 	userCheckExistence
+	userCheckPassword
 }
 
 type userSaver interface {
 	SaveUser(entity.User) (entity.User, error)
 }
 
-type userUpdater interface {
-	UpdateUser(uint64, entity.User) (entity.User, error)
+type userAvatarUpdater interface {
+	UpdateUserAvatar(uint64, entity.User) error
+}
+
+type userPasswordUpdater interface {
+	UpdateUserPassword(uint64, entity.User) error
 }
 
 type userEraser interface {
@@ -40,4 +46,8 @@ type userReceiverWatchlist interface {
 
 type userCheckExistence interface {
 	CheckExistence(string) (bool, error)
+}
+
+type userCheckPassword interface {
+	CheckPassword(uint64, string) (bool, error)
 }

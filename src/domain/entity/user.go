@@ -31,17 +31,36 @@ func (u *User) MakePublicUser() PublicUser {
 
 func (u *User) Validate() (errors ErrorJSON) {
 	if !govalidator.IsEmail(u.Email) {
-		errors.Email = append(errors.Email, "некорректный email")
+		errors.Email = append(errors.Email, "Некорректный email")
 		errors.NotEmpty = true
 	}
 
 	if u.Password == "" {
-		errors.Password = append(errors.Email, "некорректный пароль")
+		errors.Password = append(errors.Email, "Некорректный пароль")
 		errors.NotEmpty = true
 	}
 
 	if govalidator.IsNull(u.Password) {
-		errors.Password = append(errors.Email, "некорректный пароль")
+		errors.Password = append(errors.Email, "Некорректный пароль")
+		errors.NotEmpty = true
+	}
+
+	if govalidator.HasWhitespace(u.Password) {
+		errors.Password = append(errors.Email, "Некорректный пароль")
+		errors.NotEmpty = true
+	}
+
+	return errors
+}
+
+func (u *User) ValidateUpdate() (errors ErrorJSON) {
+	if govalidator.HasWhitespace(u.NewPassword) {
+		errors.Password = append(errors.Email, "Некорректный новый пароль")
+		errors.NotEmpty = true
+	}
+
+	if govalidator.HasWhitespace(u.OldPassword) {
+		errors.Password = append(errors.Email, "Некорректный старый пароль")
 		errors.NotEmpty = true
 	}
 

@@ -19,7 +19,7 @@ func NewRouter(userAuthenticate *authorization.Authentication, userProfile *prof
 	r.HandleFunc("/sessions", userAuthenticate.Logout).
 		Methods(http.MethodDelete, http.MethodOptions)
 
-	r.HandleFunc("/sessions", userAuthenticate.Auth).
+	r.HandleFunc("/sessions", userAuthenticate.Auth(userAuthenticate.Authenticate)).
 		Methods(http.MethodGet, http.MethodOptions)
 
 	r.HandleFunc("/rates", rateRates.GetRates).
@@ -31,16 +31,16 @@ func NewRouter(userAuthenticate *authorization.Authentication, userProfile *prof
 	r.HandleFunc("/users", userAuthenticate.Signup).
 		Methods(http.MethodPost, http.MethodOptions)
 
-	r.HandleFunc("/users", userProfile.Auth(userProfile.UpdateUser)).
+	r.HandleFunc("/users", userProfile.Auth(userProfile.UpdateUserAvatar)).
 		Methods(http.MethodPut, http.MethodOptions)
 
 	r.HandleFunc("/users", userProfile.Auth(userProfile.GetUser)).
 		Methods(http.MethodGet, http.MethodOptions)
 
-	r.HandleFunc("/watchers", userProfile.Auth(userProfile.UpdateUser)).
+	r.HandleFunc("/watchers", userProfile.Auth(userProfile.GetUserWatchlist)).
 		Methods(http.MethodGet, http.MethodOptions)
 
-	r.HandleFunc("/users/change-password", userProfile.Auth(userProfile.UpdateUser)).
+	r.HandleFunc("/users/change-password", userProfile.Auth(userProfile.UpdateUserPassword)).
 		Methods(http.MethodPut, http.MethodOptions)
 
 	r.HandleFunc("/markets", rateRates.GetMarkets).

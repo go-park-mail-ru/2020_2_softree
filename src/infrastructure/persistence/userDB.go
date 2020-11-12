@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/asaskevich/govalidator"
 	_ "github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
 	"server/src/domain/entity"
@@ -15,7 +14,7 @@ import (
 )
 
 type UserDBManager struct {
-	DB   *sql.DB
+	DB *sql.DB
 }
 
 func NewUserDBManager() (*UserDBManager, error) {
@@ -60,8 +59,6 @@ func (h *UserDBManager) GetUserById(id uint64) (entity.User, error) {
 		return entity.User{}, err
 	}
 
-	// #TODO ADD AVATAR
-
 	return user, nil
 }
 
@@ -86,6 +83,28 @@ func (h *UserDBManager) CheckExistence(email string) (bool, error) {
 	}
 
 	return exists != 0, nil
+}
+
+func (h *UserDBManager) CheckPassword(id uint64, password string) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	tx, err := h.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return false, err
+	}
+	defer tx.Rollback()
+
+	var userPassword string
+	if err := tx.QueryRow("SELECT password FROM user_trade WHERE id = $1", id).Scan(&userPassword); err != nil {
+		return false, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return false, err
+	}
+
+	return bcrypt.CompareHashAndPassword([]byte(userPassword), []byte(password)) == nil, nil
 }
 
 func (h *UserDBManager) SaveUser(user entity.User) (entity.User, error) {
@@ -119,51 +138,51 @@ func (h *UserDBManager) SaveUser(user entity.User) (entity.User, error) {
 	return newUser, nil
 }
 
-func (h *UserDBManager) UpdateUser(id uint64, user entity.User) (entity.User, error) {
+func (h *UserDBManager) UpdateUserAvatar(id uint64, user entity.User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	tx, err := h.DB.BeginTx(ctx, nil)
 	if err != nil {
-		return entity.User{}, err
+		return err
 	}
 	defer tx.Rollback()
 
-	currentUser, err := h.GetUserById(id)
+	_, err = tx.Exec("UPDATE user_trade SET avatar = $1 WHERE id = $2", user.Avatar, id)
 	if err != nil {
-		return entity.User{}, err
-	}
-
-	if !govalidator.IsNull(user.Avatar) {
-		_, err = tx.Exec("UPDATE user_trade SET avatar = $1 WHERE id = $2", user.Avatar, id)
-		if err != nil {
-			return entity.User{}, err
-		}
-		currentUser.Avatar = user.Avatar
-	}
-
-	var newPassword string
-	if !govalidator.IsNull(user.OldPassword) && !govalidator.IsNull(user.NewPassword) {
-		if bcrypt.CompareHashAndPassword([]byte(currentUser.Password), []byte(user.OldPassword)) == nil {
-			newPassword, err = security.MakeShieldedPassword(user.NewPassword)
-			if err != nil {
-				return entity.User{}, err
-			}
-
-			_, err = tx.Exec("UPDATE user_trade SET password = $1 WHERE id = $2", newPassword, id)
-			if err != nil {
-				return entity.User{}, err
-			}
-			currentUser.Password = newPassword
-		} else {
-			return entity.User{}, errors.New("wrong old password")
-		}
+		return err
 	}
 
 	if err = tx.Commit(); err != nil {
-		return entity.User{}, err
+		return err
 	}
-	return currentUser, nil
+	return nil
+}
+
+func (h *UserDBManager) UpdateUserPassword(id uint64, user entity.User) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	tx, err := h.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	newPassword, err := security.MakeShieldedPassword(user.NewPassword)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec("UPDATE user_trade SET password = $1 WHERE id = $2", newPassword, id)
+	if err != nil {
+		return err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (h *UserDBManager) DeleteUser(id uint64) error {
@@ -209,10 +228,6 @@ func (h *UserDBManager) GetUserByLogin(email string, password string) (entity.Us
 		return entity.User{}, err
 	}
 
-	if govalidator.IsNull(user.Password) {
-		return entity.User{}, errors.New("user does not exist")
-	}
-
 	if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) != nil {
 		return entity.User{}, errors.New("wrong password")
 	}
@@ -251,6 +266,10 @@ func (h *UserDBManager) GetUserWatchlist(id uint64) ([]entity.Currency, error) {
 	}
 	if err = tx.Commit(); err != nil {
 		return nil, err
+	}
+
+	if len(currencies) == 0 {
+		currencies = append(currencies, entity.Currency{Base: "USD", Title: "RUB"})
 	}
 
 	return currencies, nil
