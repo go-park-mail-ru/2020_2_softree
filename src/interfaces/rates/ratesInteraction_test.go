@@ -41,20 +41,35 @@ func TestGetRates_Fail(t *testing.T) {
 	require.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
 }
 
-/*func TestRates_GetURLRateSuccess(t *testing.T) {
-	url := "http://127.0.0.1:8000/rates?title=USD"
+func TestRates_GetURLRateFail(t *testing.T) {
+	url := "http://127.0.0.1:8000/api/rates/USD/"
 
 	req := httptest.NewRequest(http.MethodGet, url, nil)
 	w := httptest.NewRecorder()
-	testRate, ctrl := createForexRateSuccess(t)
+	testRate, ctrl := createGetURLRateFail(t)
 	defer ctrl.Finish()
 
 	testRate.GetURLRate(w, req)
 
+	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+	require.Empty(t, w.Header().Get("Content-Type"))
+	require.Empty(t, w.Body)
+}
+
+func TestRates_GetMarketsSuccess(t *testing.T) {
+	url := "http://127.0.0.1:8000/api/markets"
+
+	req := httptest.NewRequest(http.MethodGet, url, nil)
+	w := httptest.NewRecorder()
+	testRate, ctrl := createGetMarketsSuccess(t)
+	defer ctrl.Finish()
+
+	testRate.GetMarkets(w, req)
+
 	require.Equal(t, http.StatusOK, w.Result().StatusCode)
 	require.NotEmpty(t, w.Header().Get("Content-Type"))
 	require.NotEmpty(t, w.Body)
-}*/
+}
 
 func createForexRateSuccess(t *testing.T) (*Rates, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
@@ -84,11 +99,23 @@ func createForexRateFail(t *testing.T) (*Rates, *gomock.Controller) {
 	return NewRates(*servicesDB, servicesLog), ctrl
 }
 
-func createGetURLRateSuccess(t *testing.T) (*Rates, *gomock.Controller) {
+func createGetURLRateFail(t *testing.T) (*Rates, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
 	rateMock := mocks.NewRateRepositoryForMock(ctrl)
-	rateMock.EXPECT().GetRate("USD").Return(createRates(), nil)
+
+	dayCurrMock := mocks.NewDayCurrencyRepositoryForMock(ctrl)
+
+	servicesDB := application.NewRateApp(rateMock, dayCurrMock)
+	servicesLog := log.NewLogrusLogger()
+
+	return NewRates(*servicesDB, servicesLog), ctrl
+}
+
+func createGetMarketsSuccess(t *testing.T) (*Rates, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	rateMock := mocks.NewRateRepositoryForMock(ctrl)
 
 	dayCurrMock := mocks.NewDayCurrencyRepositoryForMock(ctrl)
 
