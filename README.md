@@ -20,7 +20,7 @@ https://softree.group
     * Docker
     * Docker-compose (можно через venv)
 
-2. Из корня проекта запустить выполнить команду:
+2. Из корня проекта выполнить команду:
     ```
     docker-compose up -d --build
     ```
