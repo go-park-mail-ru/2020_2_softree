@@ -4,3 +4,6 @@
 server
 main
 vendor
+bin
+redis-data
+postgres-data

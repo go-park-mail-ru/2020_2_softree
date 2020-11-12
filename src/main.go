@@ -1,49 +1,76 @@
 package main
 
 import (
+	"flag"
 	"fmt"
-	"github.com/gorilla/mux"
-	"log"
 	"math/rand"
 	"net/http"
-	"server/src/domain/entity/rates"
-	"server/src/handlers/authorization/auth"
-	"server/src/handlers/authorization/login"
-	"server/src/handlers/authorization/logout"
-	"server/src/handlers/authorization/signup"
-	"server/src/handlers/ratesInteraction"
-	"server/src/handlers/userInteraction"
+	"os"
 	"server/src/infrastructure/config"
-	"server/src/infrastructure/corsInteraction"
+	"server/src/interfaces/router"
 	"time"
 )
 
-func init()  {
+func initFlags() {
+	var helpFlag bool
+
+	flag.StringVar(&config.GlobalServerConfig.Port, "p", "8000", "-p set port to listen")
+	flag.StringVar(&config.GlobalServerConfig.IP, "ip", "127.0.0.1", "-ip set ip addr")
+	flag.StringVar(&config.GlobalServerConfig.Domain, "d", "localhost", "-d set domain name")
+	flag.BoolVar(&config.GlobalServerConfig.Secure, "s", false, "-s set cookie HTTPS only")
+	flag.StringVar(&config.GlobalServerConfig.ConfigFile, "f", "", "-f path to config file")
+	flag.StringVar(&config.GlobalServerConfig.LogLevel, "ll", "Info", "-ll set log level")
+	flag.StringVar(&config.GlobalServerConfig.LogFile, "lf", "", "-lf set log file")
+	flag.BoolVar(&helpFlag, "h", false, "-h get usage message")
+
+	// Databases configs
+	flag.StringVar(&config.SessionDatabaseConfig.AddressSessions, "rp",
+		"redis://user:@localhost:6379/1", "set redis session database addr")
+	flag.StringVar(&config.SessionDatabaseConfig.AddressDayCurrency, "rc",
+		"redis://user:@localhost:6379/2", "set redis day currency database addr")
+
+	flag.StringVar(&config.UserDatabaseConfig.User, "pu", "app_user", "User DB user")
+	flag.StringVar(&config.UserDatabaseConfig.Password, "pp", "NeverGonnaGiveYouUp", "User DB password")
+	flag.StringVar(&config.UserDatabaseConfig.Host, "ph", "localhost", "User DB port")
+	flag.StringVar(&config.UserDatabaseConfig.Schema, "pd", "users", "User DB schema")
+
+	flag.Parse()
+
+	if helpFlag {
+		flag.Usage()
+		os.Exit(0)
+	}
+
+	if config.GlobalServerConfig.ConfigFile != "" {
+		if err := config.ParseConfig(); err != nil {
+			fmt.Fprint(os.Stderr, "Error during parsing config", err)
+			os.Exit(1)
+		}
+		return
+	}
+}
+
+func init() {
 	rand.Seed(time.Now().UnixNano())
+
+	initFlags()
 }
 
 func main() {
-	config.InitFlags()
-	go rates.StartTicker()
+	userAuthenticate, userProfile, rateRates, err := router.CreateAppStructs()
+	if err != nil {
+		fmt.Print(err)
+		return
+	}
 
-	router := mux.NewRouter()
-	r := router.PathPrefix("").Subrouter()
-
-	r.HandleFunc("/signin", login.Login).Methods("POST", "OPTIONS")
-	r.HandleFunc("/signup", signup.Signup).Methods("POST", "OPTIONS")
-	r.HandleFunc("/auth", auth.Authentication).Methods("GET", "OPTIONS")
-	r.HandleFunc("/logout", logout.Logout).Methods("POST", "OPTIONS")
-	r.HandleFunc("/rates", ratesInteraction.Rates).Methods("GET", "OPTIONS")
-	r.HandleFunc("/user", userInteraction.UpdateUserPartly).Methods("PATCH", "OPTIONS")
-	r.HandleFunc("/change-password", userInteraction.UpdatePassword).Methods("PATCH", "OPTIONS")
-	r.Use(corsInteraction.CORSMiddleware())
+	go rateRates.GetRatesFromApi()
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf("%s:%s", config.GlobalServerConfig.IP, config.GlobalServerConfig.Port),
-		Handler:      r,
+		Handler:      router.NewRouter(userAuthenticate, userProfile, rateRates),
 		WriteTimeout: 10 * time.Second,
 		ReadTimeout:  10 * time.Second,
 	}
 
-	log.Fatal(server.ListenAndServe())
+	server.ListenAndServe()
 }

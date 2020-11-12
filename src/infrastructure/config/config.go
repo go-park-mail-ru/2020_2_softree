@@ -1,18 +1,19 @@
 package config
 
 import (
-	"flag"
 	"io/ioutil"
-	"log"
 
 	"gopkg.in/yaml.v2"
 )
 
 type ServerConfig struct {
-	Port   string `yaml:"port"`
-	IP     string `yaml:"ip"`
-	Domain string `yaml:"domain"`
-	Secure bool   `yaml:"secure"`
+	Port       string `yaml:"port"`
+	IP         string `yaml:"ip"`
+	Domain     string `yaml:"domain"`
+	Secure     bool   `yaml:"secure"`
+	LogLevel   string `yaml:"logLevel"`
+	LogFile    string `yaml:"logFile"`
+	ConfigFile string
 }
 
 type CORSConfig struct {
@@ -31,32 +32,42 @@ var GlobalCORSConfig = CORSConfig{
 	ExposedHeaders: []string{"Content-Length", "Content-Range"},
 }
 
-var configPath string
+type RedisConfig struct {
+	AddressSessions    string `yaml:"redis_session_path"`
+	AddressDayCurrency string `yaml:"redis_currency_path"`
+}
 
-func ParseConfig() {
-	yamlFile, err := ioutil.ReadFile(configPath)
+var SessionDatabaseConfig = RedisConfig{}
+
+type UserBDConfig struct {
+	User     string `yaml:"postgres_user"`
+	Password string `yaml:"postgres_password"`
+	Host     string `yaml:"postgres_host"`
+	Schema   string `yaml:"postgres_db"`
+}
+
+var UserDatabaseConfig = UserBDConfig{}
+
+func ParseConfig() error {
+	yamlFile, err := ioutil.ReadFile(GlobalServerConfig.ConfigFile)
 	if err != nil {
-		log.Fatal(err)
-		return
+		return err
 	}
 
 	err = yaml.Unmarshal(yamlFile, &GlobalServerConfig)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-}
 
-func InitFlags() {
-	flag.StringVar(&GlobalServerConfig.Port, "port", "8000", "-port 8000")
-	flag.StringVar(&GlobalServerConfig.IP, "ip", "0.0.0.0", "-ip 127.0.0.1")
-	flag.StringVar(&GlobalServerConfig.Domain, "domain", "localhost", "-domain http://localhost")
-	flag.BoolVar(&GlobalServerConfig.Secure, "secure", false, "-secure true")
-
-	flag.StringVar(&configPath, "f", "", "-f path to config file")
-
-	flag.Parse()
-
-	if configPath != "" {
-		ParseConfig()
+	err = yaml.Unmarshal(yamlFile, &SessionDatabaseConfig)
+	if err != nil {
+		return err
 	}
+
+	err = yaml.Unmarshal(yamlFile, &UserDatabaseConfig)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

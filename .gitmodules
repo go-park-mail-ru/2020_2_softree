@@ -1,0 +1,3 @@
+[submodule "api-softree"]
+	path = api-softree
+	url = https://github.com/mark-by/api-softree.git

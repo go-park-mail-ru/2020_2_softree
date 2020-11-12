@@ -1,0 +1,12 @@
+---
+
+ip: 0.0.0.0
+port: 80
+domain: 'softree.group'
+secure: False
+logLevel: 'Info'
+
+user_user: app_user
+password_user: 'NeverGonnaGiveYouUp'
+host_user: postgres
+schema_user: users
