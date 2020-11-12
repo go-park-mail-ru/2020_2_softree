@@ -116,7 +116,12 @@ func (rates *Rates) GetMarkets(w http.ResponseWriter, r *http.Request) {
 		Base  string `json:"base"`
 		Title string `json:"title"`
 	}
-	resRates := curr{Base: "USD", Title: "EUR"}
+	resRates := [...]curr{
+		{Base: "USD", Title: "EUR"},
+		{Base: "USD", Title: "RUB"},
+		{Base: "USD", Title: "JPY"},
+		{Base: "USD", Title: "GBP"},
+	}
 	result, _ := json.Marshal(resRates)
 
 	w.Header().Set("Content-Type", "application/json")
