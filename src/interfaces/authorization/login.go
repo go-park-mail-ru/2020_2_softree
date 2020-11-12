@@ -2,7 +2,6 @@ package authorization
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 	"server/src/domain/entity"
 )
@@ -15,13 +14,14 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	defer r.Body.Close()
 
 	a.sanitizer.Sanitize(user.Email)
 	a.sanitizer.Sanitize(user.Password)
 
 	errs := user.Validate()
 	if errs.NotEmpty {
-		a.createInternalServerError(&errs, w)
+		a.createServerError(&errs, w)
 		return
 	}
 
@@ -33,16 +33,14 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !exist {
-		errs.NonFieldError = append(errs.NonFieldError, "пользователь с таким email'ом не существует")
-		a.createInternalServerError(&errs, w)
+		errs.NonFieldError = append(errs.NonFieldError, "Неправильный email или пароль")
+		a.createServerError(&errs, w)
 		return
 	}
 
 	user, err = a.userApp.GetUserByLogin(user.Email, user.Password)
-	errs = a.checkGetUserByLoginErrors(err)
-
-	if errs.NotEmpty {
-		a.createInternalServerError(&errs, w)
+	if errs = a.checkGetUserByLoginErrors(err); errs.NotEmpty {
+		a.createServerError(&errs, w)
 		return
 	}
 
@@ -66,21 +64,4 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write(res); err != nil {
 		a.log.Print(err)
 	}
-}
-
-func (a *Authentication) checkGetUserByLoginErrors(err error) (errs entity.ErrorJSON) {
-	if err == errors.New("user does not exist") {
-		errs.NotEmpty = true
-		errs.NonFieldError = append(errs.NonFieldError, "такой пользователь не существует")
-	}
-	if err == errors.New("wrong password") {
-		errs.NotEmpty = true
-		errs.Password = append(errs.Password, "неправильный пароль")
-	}
-	if err != nil {
-		errs.NotEmpty = true
-		errs.NonFieldError = append(errs.NonFieldError, err.Error())
-	}
-
-	return
 }

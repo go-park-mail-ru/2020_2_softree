@@ -43,20 +43,37 @@ func (r *RecorderUserMockRepository) SaveUser(u interface{}) *gomock.Call {
 	)
 }
 
-func (m *UserRepositoryForMock) UpdateUser(id uint64, u entity.User) (entity.User, error) {
+func (m *UserRepositoryForMock) UpdateUserAvatar(id uint64, u entity.User) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateUser", id, u)
-	user, _ := ret[0].(entity.User)
-	err, _ := ret[1].(error)
-	return user, err
+	ret := m.ctrl.Call(m, "UpdateUserAvatar", id, u)
+	err, _ := ret[0].(error)
+	return err
 }
 
-func (r *RecorderUserMockRepository) UpdateUser(id, u interface{}) *gomock.Call {
+func (r *RecorderUserMockRepository) UpdateUserAvatar(id, u interface{}) *gomock.Call {
 	r.mock.ctrl.T.Helper()
 	return r.mock.ctrl.RecordCallWithMethodType(
 		r.mock,
-		"UpdateUser",
-		reflect.TypeOf((*UserRepositoryForMock)(nil).UpdateUser),
+		"UpdateUserAvatar",
+		reflect.TypeOf((*UserRepositoryForMock)(nil).UpdateUserAvatar),
+		id,
+		u,
+	)
+}
+
+func (m *UserRepositoryForMock) UpdateUserPassword(id uint64, u entity.User) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserPassword", id, u)
+	err, _ := ret[0].(error)
+	return err
+}
+
+func (r *RecorderUserMockRepository) UpdateUserPassword(id, u interface{}) *gomock.Call {
+	r.mock.ctrl.T.Helper()
+	return r.mock.ctrl.RecordCallWithMethodType(
+		r.mock,
+		"UpdateUserPassword",
+		reflect.TypeOf((*UserRepositoryForMock)(nil).UpdateUserPassword),
 		id,
 		u,
 	)

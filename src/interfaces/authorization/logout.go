@@ -8,7 +8,7 @@ import (
 func (a *Authentication) Logout(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("session_id")
 	if err == http.ErrNoCookie {
-		w.WriteHeader(http.StatusFound)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
@@ -28,5 +28,5 @@ func (a *Authentication) Logout(w http.ResponseWriter, r *http.Request) {
 	newCookie.Expires = time.Date(1973, 1, 1, 0, 0, 0, 0, time.UTC)
 	newCookie.Value = ""
 	http.SetCookie(w, &newCookie)
-	w.WriteHeader(http.StatusFound)
+	w.WriteHeader(http.StatusOK)
 }
