@@ -3,6 +3,7 @@ package rates
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/Finnhub-Stock-API/finnhub-go"
 	"github.com/antihax/optional"
 	"github.com/gorilla/mux"
@@ -31,6 +32,8 @@ func (rates *Rates) GetRatesFromApi() {
 		}*/
 		forexRates, _, _ = api.ForexRates(auth, &finnhub.ForexRatesOpts{Base: optional.NewString("USD")})
 		finance = financial.NewForexRepository(forexRates)
+
+		fmt.Println(finance)
 
 		err := rates.rateApp.SaveRates(finance)
 		if err != nil {
