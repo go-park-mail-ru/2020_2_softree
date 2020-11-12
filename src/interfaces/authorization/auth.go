@@ -1,21 +1,40 @@
 package authorization
 
 import (
+	"context"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"server/src/domain/entity"
 )
 
-func (a *Authenticate) Auth(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("session_id")
-	if err == http.ErrNoCookie {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
+func (a *Authentication) Auth(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		cookie, err := r.Cookie("session_id")
+		if err == http.ErrNoCookie {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		id, err := a.auth.CheckAuth(cookie.Value)
+		if err != nil {
+			a.log.Print(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), "id", id)
+		r = r.Clone(ctx)
+
+		next.ServeHTTP(w, r)
 	}
+}
+
+func (a *Authentication) Authenticate(w http.ResponseWriter, r *http.Request) {
+	id := r.Context().Value("id").(uint64)
 
 	var user entity.User
-	if user, err = extractUserFromSession(cookie, a); err != nil {
+	var err error
+	if user, err = a.userApp.GetUserById(id); err != nil {
 		a.log.Print(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -30,19 +49,7 @@ func (a *Authenticate) Auth(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-Type", "application/json")
-	w.Write(res)
-}
-
-func extractUserFromSession(c *http.Cookie, a *Authenticate) (entity.User, error) {
-	id, err := a.auth.CheckAuth(c.Value)
-	if err != nil {
-		return entity.User{}, errors.New("CheckAuth in extractUserFromSession")
+	if _, err := w.Write(res); err != nil {
+		a.log.Print(err)
 	}
-
-	user, err := a.userApp.GetUserById(id)
-	if err != nil {
-		return entity.User{}, errors.New("GetUserById in extractUserFromSession")
-	}
-
-	return user, nil
 }

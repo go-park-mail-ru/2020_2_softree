@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"server/src/application"
-	"server/src/domain/repository"
-	"server/src/infrastructure/auth"
 	"server/src/infrastructure/log"
 	mocks "server/src/infrastructure/mock"
 	"strings"
@@ -25,13 +23,13 @@ func TestLogout_Success(t *testing.T) {
 	testAuth, ctrl := createLogoutSuccess(t)
 	defer ctrl.Finish()
 
-	cookie, _ := testAuth.cookie.CreateCookie()
+	cookie, _ := testAuth.auth.CreateCookie()
 	cookie.Value = "value"
 	req.AddCookie(&cookie)
 
 	testAuth.Logout(w, req)
 
-	require.Equal(t, http.StatusFound, w.Result().StatusCode)
+	require.Equal(t, http.StatusOK, w.Result().StatusCode)
 	require.Equal(t, w.Result().Cookies()[0].Value, "")
 	require.Equal(
 		t,
@@ -51,7 +49,7 @@ func TestLogout_FailNoCookie(t *testing.T) {
 
 	testAuth.Logout(w, req)
 
-	require.Equal(t, http.StatusFound, w.Result().StatusCode)
+	require.Equal(t, http.StatusUnauthorized, w.Result().StatusCode)
 }
 
 func TestLogout_FailDeleteAuth(t *testing.T) {
@@ -64,7 +62,7 @@ func TestLogout_FailDeleteAuth(t *testing.T) {
 	testAuth, ctrl := createLogoutFailDeleteAuth(t)
 	defer ctrl.Finish()
 
-	cookie, _ := testAuth.cookie.CreateCookie()
+	cookie, _ := testAuth.auth.CreateCookie()
 	cookie.Value = "value"
 	req.AddCookie(&cookie)
 
@@ -73,45 +71,44 @@ func TestLogout_FailDeleteAuth(t *testing.T) {
 	require.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
 }
 
-func createLogoutSuccess(t *testing.T) (*Authenticate, *gomock.Controller) {
+func createLogoutSuccess(t *testing.T) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
 
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
-	mockAuth.EXPECT().DeleteAuth(&repository.AccessDetails{Value: "value"}).Return(nil)
+	mockAuth.EXPECT().DeleteAuth("value").Return(nil)
+	mockAuth.EXPECT().CreateCookie().Return(http.Cookie{Name: "session_id", Value: "value"}, nil).Times(2)
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
-func createLogoutFailNoCookie(t *testing.T) (*Authenticate, *gomock.Controller) {
+func createLogoutFailNoCookie(t *testing.T) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
-func createLogoutFailDeleteAuth(t *testing.T) (*Authenticate, *gomock.Controller) {
+func createLogoutFailDeleteAuth(t *testing.T) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
 
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
-	mockAuth.EXPECT().DeleteAuth(&repository.AccessDetails{Value: "value"}).Return(errors.New("delete auth"))
+	mockAuth.EXPECT().DeleteAuth("value").Return(errors.New("delete auth"))
+	mockAuth.EXPECT().CreateCookie().Return(http.Cookie{Name: "session_id", Value: "value"}, nil)
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }

@@ -8,7 +8,6 @@ import (
 	"net/http/httptest"
 	"server/src/application"
 	"server/src/domain/entity"
-	"server/src/infrastructure/auth"
 	"server/src/infrastructure/log"
 	mocks "server/src/infrastructure/mock"
 	"server/src/infrastructure/security"
@@ -32,7 +31,8 @@ func TestAuth_Success(t *testing.T) {
 	}
 	req.AddCookie(&cookie)
 
-	testAuth.Auth(w, req)
+	auth := testAuth.Auth(testAuth.Authenticate)
+	auth(w, req)
 
 	require.Equal(t, http.StatusOK, w.Result().StatusCode)
 	require.NotEmpty(t, w.Header().Get("Content-type"))
@@ -49,7 +49,8 @@ func TestAuth_FailUnauthorized(t *testing.T) {
 	testAuth, ctrl := createAuthFailUnauthorized(t)
 	defer ctrl.Finish()
 
-	testAuth.Auth(w, req)
+	auth := testAuth.Auth(testAuth.Authenticate)
+	auth(w, req)
 
 	require.Equal(t, http.StatusUnauthorized, w.Result().StatusCode)
 }
@@ -70,7 +71,8 @@ func TestAuth_FailNoSession(t *testing.T) {
 	}
 	req.AddCookie(&cookie)
 
-	testAuth.Auth(w, req)
+	auth := testAuth.Auth(testAuth.Authenticate)
+	auth(w, req)
 
 	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 }
@@ -91,12 +93,13 @@ func TestAuth_FailNoUser(t *testing.T) {
 	}
 	req.AddCookie(&cookie)
 
-	testAuth.Auth(w, req)
+	auth := testAuth.Auth(testAuth.Authenticate)
+	auth(w, req)
 
 	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 }
 
-func createAuthSuccess(t *testing.T) (*Authenticate, *gomock.Controller) {
+func createAuthSuccess(t *testing.T) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
 	expectedUser := createExpectedUser("yandex@mail.ru", "str")
@@ -110,26 +113,24 @@ func createAuthSuccess(t *testing.T) (*Authenticate, *gomock.Controller) {
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
-func createAuthFailUnauthorized(t *testing.T) (*Authenticate, *gomock.Controller) {
+func createAuthFailUnauthorized(t *testing.T) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
-func createAuthFailSession(t *testing.T) (*Authenticate, *gomock.Controller) {
+func createAuthFailSession(t *testing.T) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
 
@@ -138,13 +139,12 @@ func createAuthFailSession(t *testing.T) (*Authenticate, *gomock.Controller) {
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
-func createAuthFailUser(t *testing.T) (*Authenticate, *gomock.Controller) {
+func createAuthFailUser(t *testing.T) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
@@ -155,10 +155,9 @@ func createAuthFailUser(t *testing.T) (*Authenticate, *gomock.Controller) {
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
 func createExpectedUser(email, pass string) (expected entity.User) {

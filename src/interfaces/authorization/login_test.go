@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"server/src/application"
-	"server/src/domain/entity"
-	"server/src/infrastructure/auth"
 	"server/src/infrastructure/log"
 	mocks "server/src/infrastructure/mock"
 	"strings"
@@ -16,7 +14,7 @@ import (
 )
 
 func TestLogin_Success(t *testing.T) {
-	url := "http://127.0.0.1:8000/login"
+	url := "http://127.0.0.1:8000/sessions"
 	body := strings.NewReader(`{"email": "yandex@mail.ru", "password": "str"}`)
 
 	req := httptest.NewRequest("POST", url, body)
@@ -61,8 +59,8 @@ func TestLogin_FailNoUser(t *testing.T) {
 	testAuth.Login(w, req)
 
 	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
-	require.Empty(t, w.Body)
-	require.Empty(t, w.Header().Get("Content-type"))
+	require.NotEmpty(t, w.Body)
+	require.NotEmpty(t, w.Header().Get("Content-Type"))
 }
 
 func TestLogin_FailCreateAuth(t *testing.T) {
@@ -80,12 +78,13 @@ func TestLogin_FailCreateAuth(t *testing.T) {
 	require.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
 }
 
-func createLoginSuccess(t *testing.T) (*Authenticate, *gomock.Controller) {
+func createLoginSuccess(t *testing.T) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
 	expectedUser := createExpectedUser("yandex@mail.ru", "str")
 
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
+	mockUser.EXPECT().CheckExistence(expectedUser.Email).Return(true, nil)
 	mockUser.EXPECT().GetUserByLogin(expectedUser.Email, "str").Return(expectedUser, nil)
 
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
@@ -93,45 +92,43 @@ func createLoginSuccess(t *testing.T) (*Authenticate, *gomock.Controller) {
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
-func createLoginFailValidation(t *testing.T) (*Authenticate, *gomock.Controller) {
+func createLoginFailValidation(t *testing.T) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
-func createLoginFailNoUser(t *testing.T) (*Authenticate, *gomock.Controller) {
+func createLoginFailNoUser(t *testing.T) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
 
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
-	mockUser.EXPECT().GetUserByLogin("yandex@mail.ru", "str").Return(entity.User{}, errors.New("no user"))
+	mockUser.EXPECT().CheckExistence("yandex@mail.ru").Return(false, nil)
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
-func createLoginFailCreateAuth(t *testing.T) (*Authenticate, *gomock.Controller) {
+func createLoginFailCreateAuth(t *testing.T) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
 	expectedUser := createExpectedUser("yandex@mail.ru", "str")
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
+	mockUser.EXPECT().CheckExistence(expectedUser.Email).Return(true, nil)
 	mockUser.EXPECT().GetUserByLogin(expectedUser.Email, "str").Return(expectedUser, nil)
 
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
@@ -139,8 +136,7 @@ func createLoginFailCreateAuth(t *testing.T) (*Authenticate, *gomock.Controller)
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }

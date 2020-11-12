@@ -6,18 +6,9 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
-	"server/src/domain/entity/rates"
 	"server/src/infrastructure/config"
-	"server/src/infrastructure/corsInteraction"
-	"server/src/interfaces/authorization/auth"
-	"server/src/interfaces/authorization/login"
-	"server/src/interfaces/authorization/logout"
-	"server/src/interfaces/authorization/signup"
-	"server/src/interfaces/profile"
-	"server/src/interfaces/ratesInteraction"
+	"server/src/interfaces/router"
 	"time"
-
-	"github.com/gorilla/mux"
 )
 
 func initFlags() {
@@ -25,12 +16,23 @@ func initFlags() {
 
 	flag.StringVar(&config.GlobalServerConfig.Port, "p", "8000", "-p set port to listen")
 	flag.StringVar(&config.GlobalServerConfig.IP, "ip", "127.0.0.1", "-ip set ip addr")
-	flag.StringVar(&config.GlobalServerConfig.Domain, "d", "", "-d set domain name")
+	flag.StringVar(&config.GlobalServerConfig.Domain, "d", "localhost", "-d set domain name")
 	flag.BoolVar(&config.GlobalServerConfig.Secure, "s", false, "-s set cookie HTTPS only")
 	flag.StringVar(&config.GlobalServerConfig.ConfigFile, "f", "", "-f path to config file")
 	flag.StringVar(&config.GlobalServerConfig.LogLevel, "ll", "Info", "-ll set log level")
 	flag.StringVar(&config.GlobalServerConfig.LogFile, "lf", "", "-lf set log file")
 	flag.BoolVar(&helpFlag, "h", false, "-h get usage message")
+
+	// Databases configs
+	flag.StringVar(&config.SessionDatabaseConfig.AddressSessions, "rp",
+		"redis://user:@localhost:6379/1", "set redis session database addr")
+	flag.StringVar(&config.SessionDatabaseConfig.AddressDayCurrency, "rc",
+		"redis://user:@localhost:6379/2", "set redis day currency database addr")
+
+	flag.StringVar(&config.UserDatabaseConfig.User, "pu", "app_user", "User DB user")
+	flag.StringVar(&config.UserDatabaseConfig.Password, "pp", "NeverGonnaGiveYouUp", "User DB password")
+	flag.StringVar(&config.UserDatabaseConfig.Host, "ph", "localhost", "User DB port")
+	flag.StringVar(&config.UserDatabaseConfig.Schema, "pd", "users", "User DB schema")
 
 	flag.Parse()
 
@@ -55,36 +57,17 @@ func init() {
 }
 
 func main() {
-	go rates.StartTicker()
-	router := mux.NewRouter()
-	r := router.PathPrefix("").Subrouter()
+	userAuthenticate, userProfile, rateRates, err := router.CreateAppStructs()
+	if err != nil {
+		fmt.Print(err)
+		return
+	}
 
-	r.HandleFunc("/signin", login.Login).
-		Methods("POST", "OPTIONS")
-
-	r.HandleFunc("/signup", signup.Signup).
-		Methods("POST", "OPTIONS")
-
-	r.HandleFunc("/auth", auth.Authentication).
-		Methods("GET", "OPTIONS")
-
-	r.HandleFunc("/logout", logout.Logout).
-		Methods("POST", "OPTIONS")
-
-	r.HandleFunc("/rates", ratesInteraction.Rates).
-		Methods("GET", "OPTIONS")
-
-	r.HandleFunc("/user", profile.UpdateUserPartly).
-		Methods("PATCH", "OPTIONS")
-
-	r.HandleFunc("/change-password", profile.UpdatePassword).
-		Methods("PATCH", "OPTIONS")
-
-	r.Use(corsInteraction.CORSMiddleware())
+	go rateRates.GetRatesFromApi()
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf("%s:%s", config.GlobalServerConfig.IP, config.GlobalServerConfig.Port),
-		Handler:      r,
+		Handler:      router.NewRouter(userAuthenticate, userProfile, rateRates),
 		WriteTimeout: 10 * time.Second,
 		ReadTimeout:  10 * time.Second,
 	}

@@ -9,7 +9,6 @@ import (
 	"net/http/httptest"
 	"server/src/application"
 	"server/src/domain/entity"
-	"server/src/infrastructure/auth"
 	"server/src/infrastructure/log"
 	mocks "server/src/infrastructure/mock"
 	"server/src/infrastructure/security"
@@ -17,65 +16,174 @@ import (
 	"testing"
 )
 
-func TestProfileAvatar_UpdateUserSuccess(t *testing.T) {
-	url := "http://127.0.0.1:8000/user"
-	body := strings.NewReader(`{"avatar": "fake_image"}`)
+func TestUpdateUserAvatar_Success(t *testing.T) {
+	url := "http://127.0.0.1:8000/api/users"
+	body := strings.NewReader(`{"avatar": "QmFzZTY0"}`)
 
 	req := httptest.NewRequest(http.MethodPut, url, body)
 	w := httptest.NewRecorder()
-	testAuth, ctrl := createUpdateSuccess(t, entity.User{Avatar: "fake_image"})
+
+	testAuth, ctrl := createUpdateAvatarSuccess(t, entity.User{Avatar: "QmFzZTY0"})
 	defer ctrl.Finish()
 
 	createContext(&req)
-	testAuth.UpdateUser(w, req)
+	testAuth.UpdateUserAvatar(w, req)
 
 	require.Equal(t, http.StatusOK, w.Result().StatusCode)
-	require.NotEmpty(t, w.Header().Get("Content-type"))
+	require.NotEmpty(t, w.Header().Get("Content-Type"))
 	require.NotEmpty(t, w.Body)
 }
 
-func TestProfilePassword_UpdateUserSuccess(t *testing.T) {
-	url := "http://127.0.0.1:8000/change-password"
-	body := strings.NewReader(`{"password": "fake_password"}`)
+func createUpdateAvatarSuccess(t *testing.T, toUpdate entity.User) (*Profile, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
 
-	req := httptest.NewRequest(http.MethodPut, url, body)
-	w := httptest.NewRecorder()
+	var id uint64 = 1
+	mockUser := mocks.NewUserRepositoryForMock(ctrl)
+	mockUser.EXPECT().UpdateUserAvatar(id, toUpdate).Return(nil)
+	mockUser.EXPECT().GetUserById(id).Return(createExpectedUser(), nil)
 
-	testAuth, ctrl := createUpdateSuccess(t, entity.User{Password: "fake_password"})
-	defer ctrl.Finish()
+	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
 
-	createContext(&req)
-	testAuth.UpdateUser(w, req)
+	servicesDB := application.NewUserApp(mockUser)
+	servicesAuth := application.NewUserAuth(mockAuth)
+	servicesLog := log.NewLogrusLogger()
 
-	require.Equal(t, http.StatusOK, w.Result().StatusCode)
-	require.NotEmpty(t, w.Header().Get("Content-type"))
-	require.NotEmpty(t, w.Body)
+	return NewProfile(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
-func TestProfile_UpdateUserFail(t *testing.T) {
-	url := "http://127.0.0.1:8000/change-password"
-	body := strings.NewReader(`{"password": "fake_password"}`)
+func TestUpdateUserAvatar_Fail(t *testing.T) {
+	url := "http://127.0.0.1:8000/api/users"
+	body := strings.NewReader(`{"avatar": "QmFzZTY0"}`)
 
 	req := httptest.NewRequest(http.MethodPut, url, body)
 	w := httptest.NewRecorder()
 
-	testAuth, ctrl := createUpdateFail(t, entity.User{Password: "fake_password"})
+	testAuth, ctrl := createUpdateAvatarFail(t, entity.User{Avatar: "QmFzZTY0"})
 	defer ctrl.Finish()
 
 	createContext(&req)
-	testAuth.UpdateUser(w, req)
+	testAuth.UpdateUserAvatar(w, req)
 
 	require.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
+	require.Empty(t, w.Header().Get("Content-Type"))
+	require.Empty(t, w.Body)
 }
 
-func TestProfile_AuthSuccess(t *testing.T) {
-	url := "http://127.0.0.1:8000/change-password"
-	body := strings.NewReader(`{"password": "fake_password"}`)
+func createUpdateAvatarFail(t *testing.T, toUpdate entity.User) (*Profile, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	mockUser := mocks.NewUserRepositoryForMock(ctrl)
+	mockUser.EXPECT().UpdateUserAvatar(uint64(1), toUpdate).Return(errors.New("error"))
+
+	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
+
+	servicesDB := application.NewUserApp(mockUser)
+	servicesAuth := application.NewUserAuth(mockAuth)
+	servicesLog := log.NewLogrusLogger()
+
+	return NewProfile(*servicesDB, *servicesAuth, servicesLog), ctrl
+}
+
+func TestUpdateUserPassword_Success(t *testing.T) {
+	url := "http://127.0.0.1:8000/api/users/change-password"
+	body := strings.NewReader(`{"old_password": "fake_password", "new_password": "str"}`)
 
 	req := httptest.NewRequest(http.MethodPut, url, body)
 	w := httptest.NewRecorder()
 
-	testAuth, ctrl := createAuthSuccess(t, entity.User{Password: "fake_password"})
+	testAuth, ctrl := createUpdatePasswordSuccess(t, entity.User{OldPassword: "fake_password", NewPassword: "str"})
+	defer ctrl.Finish()
+
+	createContext(&req)
+	testAuth.UpdateUserPassword(w, req)
+
+	require.Equal(t, http.StatusOK, w.Result().StatusCode)
+	require.NotEmpty(t, w.Header().Get("Content-Type"))
+	require.NotEmpty(t, w.Body)
+}
+
+func createUpdatePasswordSuccess(t *testing.T, toUpdate entity.User) (*Profile, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	var id uint64 = 1
+	mockUser := mocks.NewUserRepositoryForMock(ctrl)
+	mockUser.EXPECT().CheckPassword(id, toUpdate.OldPassword).Return(true, nil)
+	mockUser.EXPECT().UpdateUserPassword(id, toUpdate).Return(nil)
+	mockUser.EXPECT().GetUserById(id).Return(createExpectedUser(), nil)
+
+	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
+
+	servicesDB := application.NewUserApp(mockUser)
+	servicesAuth := application.NewUserAuth(mockAuth)
+	servicesLog := log.NewLogrusLogger()
+
+	return NewProfile(*servicesDB, *servicesAuth, servicesLog), ctrl
+}
+
+func TestOldPassError(t *testing.T) {
+	w := httptest.NewRecorder()
+
+	testAuth, ctrl := createAuthFailUnauthorized(t)
+	defer ctrl.Finish()
+
+	testAuth.createOldPassError(w)
+	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+	require.NotEmpty(t, w.Header().Get("Content-Type"))
+	require.NotEmpty(t, w.Body)
+}
+
+func createAuthFailUnauthorized(t *testing.T) (*Profile, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+	mockUser := mocks.NewUserRepositoryForMock(ctrl)
+	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
+
+	servicesDB := application.NewUserApp(mockUser)
+	servicesAuth := application.NewUserAuth(mockAuth)
+	servicesLog := log.NewLogrusLogger()
+
+	return NewProfile(*servicesDB, *servicesAuth, servicesLog), ctrl
+}
+
+func TestUpdateUserPassword_Fail(t *testing.T) {
+	url := "http://127.0.0.1:8000/api/users/change-password"
+	body := strings.NewReader(`{"old_password": "fake_password", "new_password": "str"}`)
+
+	req := httptest.NewRequest(http.MethodPut, url, body)
+	w := httptest.NewRecorder()
+
+	testAuth, ctrl := createUpdatePasswordFail(t, entity.User{OldPassword: "fake_password", NewPassword: "str"})
+	defer ctrl.Finish()
+
+	createContext(&req)
+	testAuth.UpdateUserPassword(w, req)
+
+	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+}
+
+func createUpdatePasswordFail(t *testing.T, toUpdate entity.User) (*Profile, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	var id uint64 = 1
+	mockUser := mocks.NewUserRepositoryForMock(ctrl)
+	mockUser.EXPECT().CheckPassword(id, toUpdate.OldPassword).Return(false, nil)
+
+	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
+
+	servicesDB := application.NewUserApp(mockUser)
+	servicesAuth := application.NewUserAuth(mockAuth)
+	servicesLog := log.NewLogrusLogger()
+
+	return NewProfile(*servicesDB, *servicesAuth, servicesLog), ctrl
+}
+
+func TestAuth_Success(t *testing.T) {
+	url := "http://127.0.0.1:8000/change-password"
+	body := strings.NewReader(`{"avatar": "QmFzZTY0"}`)
+
+	req := httptest.NewRequest(http.MethodPut, url, body)
+	w := httptest.NewRecorder()
+
+	testAuth, ctrl := createAuthSuccess(t, entity.User{Avatar: "QmFzZTY0"})
 	defer ctrl.Finish()
 
 	cookie := http.Cookie{
@@ -83,16 +191,163 @@ func TestProfile_AuthSuccess(t *testing.T) {
 		Value: "value",
 	}
 	req.AddCookie(&cookie)
+	createContext(&req)
 
-	update := testAuth.Auth(testAuth.UpdateUser)
+	update := testAuth.Auth(testAuth.UpdateUserAvatar)
 	update(w, req)
 
 	require.Equal(t, http.StatusOK, w.Result().StatusCode)
-	require.NotEmpty(t, w.Header().Get("Content-type"))
+	require.NotEmpty(t, w.Header().Get("Content-Type"))
 	require.NotEmpty(t, w.Body)
 }
 
-func TestProfile_AuthFailUnauthorized(t *testing.T) {
+func createAuthSuccess(t *testing.T, toUpdate entity.User) (*Profile, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	var id uint64 = 1
+	mockUser := mocks.NewUserRepositoryForMock(ctrl)
+	mockUser.EXPECT().UpdateUserAvatar(id, toUpdate).Return(nil)
+	mockUser.EXPECT().GetUserById(id).Return(createExpectedUser(), nil)
+
+	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
+	mockAuth.EXPECT().CheckAuth("value").Return(id, nil)
+
+	servicesDB := application.NewUserApp(mockUser)
+	servicesAuth := application.NewUserAuth(mockAuth)
+	servicesLog := log.NewLogrusLogger()
+
+	return NewProfile(*servicesDB, *servicesAuth, servicesLog), ctrl
+}
+
+func TestGetUser_Success(t *testing.T) {
+	url := "http://127.0.0.1:8000/rates"
+	body := strings.NewReader(`{"avatar": "QmFzZTY0"}`)
+
+	req := httptest.NewRequest(http.MethodGet, url, body)
+	w := httptest.NewRecorder()
+
+	testAuth, ctrl := createGetUserSuccess(t)
+	defer ctrl.Finish()
+
+	createContext(&req)
+	testAuth.GetUser(w, req)
+
+	require.Equal(t, http.StatusOK, w.Result().StatusCode)
+	require.NotEmpty(t, w.Header().Get("Content-Type"))
+	require.NotEmpty(t, w.Body)
+}
+
+func createGetUserSuccess(t *testing.T) (*Profile, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+	mockUser := mocks.NewUserRepositoryForMock(ctrl)
+	mockUser.EXPECT().GetUserById(uint64(1)).Return(createExpectedUser(), nil)
+
+	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
+
+	servicesDB := application.NewUserApp(mockUser)
+	servicesAuth := application.NewUserAuth(mockAuth)
+	servicesLog := log.NewLogrusLogger()
+
+	return NewProfile(*servicesDB, *servicesAuth, servicesLog), ctrl
+}
+
+func TestGetUser_Fail(t *testing.T) {
+	url := "http://127.0.0.1:8000/rates"
+	body := strings.NewReader(`{"avatar": "QmFzZTY0"}`)
+
+	req := httptest.NewRequest(http.MethodGet, url, body)
+	w := httptest.NewRecorder()
+
+	testAuth, ctrl := createGetUserFail(t)
+	defer ctrl.Finish()
+
+	createContext(&req)
+	testAuth.GetUser(w, req)
+
+	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+	require.Empty(t, w.Header().Get("Content-Type"))
+	require.Empty(t, w.Body)
+}
+
+func createGetUserFail(t *testing.T) (*Profile, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+	mockUser := mocks.NewUserRepositoryForMock(ctrl)
+	mockUser.EXPECT().GetUserById(uint64(1)).Return(createExpectedUser(), errors.New("error"))
+
+	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
+
+	servicesDB := application.NewUserApp(mockUser)
+	servicesAuth := application.NewUserAuth(mockAuth)
+	servicesLog := log.NewLogrusLogger()
+
+	return NewProfile(*servicesDB, *servicesAuth, servicesLog), ctrl
+}
+
+func TestGetUserWatchlist_Success(t *testing.T) {
+	url := "http://127.0.0.1:8000/rates"
+	body := strings.NewReader(`{"avatar": "QmFzZTY0"}`)
+
+	req := httptest.NewRequest(http.MethodGet, url, body)
+	w := httptest.NewRecorder()
+
+	testAuth, ctrl := createGetUserWatchlistSuccess(t)
+	defer ctrl.Finish()
+
+	createContext(&req)
+	testAuth.GetUserWatchlist(w, req)
+
+	require.Equal(t, http.StatusOK, w.Result().StatusCode)
+	require.NotEmpty(t, w.Header().Get("Content-Type"))
+	require.NotEmpty(t, w.Body)
+}
+
+func createGetUserWatchlistSuccess(t *testing.T) (*Profile, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+	mockUser := mocks.NewUserRepositoryForMock(ctrl)
+	mockUser.EXPECT().GetUserWatchlist(uint64(1)).Return([]entity.Currency{{Title: "USD"}}, nil)
+
+	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
+
+	servicesDB := application.NewUserApp(mockUser)
+	servicesAuth := application.NewUserAuth(mockAuth)
+	servicesLog := log.NewLogrusLogger()
+
+	return NewProfile(*servicesDB, *servicesAuth, servicesLog), ctrl
+}
+
+func TestGetUserWatchlist_Fail(t *testing.T) {
+	url := "http://127.0.0.1:8000/rates"
+	body := strings.NewReader(`{"avatar": "QmFzZTY0"}`)
+
+	req := httptest.NewRequest(http.MethodGet, url, body)
+	w := httptest.NewRecorder()
+
+	testAuth, ctrl := createGetUserWatchlistFail(t)
+	defer ctrl.Finish()
+
+	createContext(&req)
+	testAuth.GetUserWatchlist(w, req)
+
+	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+	require.Empty(t, w.Header().Get("Content-Type"))
+	require.Empty(t, w.Body)
+}
+
+func createGetUserWatchlistFail(t *testing.T) (*Profile, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+	mockUser := mocks.NewUserRepositoryForMock(ctrl)
+	mockUser.EXPECT().GetUserWatchlist(uint64(1)).Return(nil, errors.New("error"))
+
+	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
+
+	servicesDB := application.NewUserApp(mockUser)
+	servicesAuth := application.NewUserAuth(mockAuth)
+	servicesLog := log.NewLogrusLogger()
+
+	return NewProfile(*servicesDB, *servicesAuth, servicesLog), ctrl
+}
+
+func TestAuth_FailUnauthorized(t *testing.T) {
 	url := "http://127.0.0.1:8000/change-password"
 	body := strings.NewReader(`{"password": "fake_password"}`)
 
@@ -102,13 +357,13 @@ func TestProfile_AuthFailUnauthorized(t *testing.T) {
 	testAuth, ctrl := createAuthFailUnauthorized(t)
 	defer ctrl.Finish()
 
-	update := testAuth.Auth(testAuth.UpdateUser)
+	update := testAuth.Auth(testAuth.UpdateUserAvatar)
 	update(w, req)
 
 	require.Equal(t, http.StatusUnauthorized, w.Result().StatusCode)
 }
 
-func TestProfile_AuthFailNoSession(t *testing.T) {
+func TestAuth_FailNoSession(t *testing.T) {
 	url := "http://127.0.0.1:8000/change-password"
 	body := strings.NewReader(`{"password": "fake_password"}`)
 
@@ -124,79 +379,10 @@ func TestProfile_AuthFailNoSession(t *testing.T) {
 	}
 	req.AddCookie(&cookie)
 
-	update := testAuth.Auth(testAuth.UpdateUser)
+	update := testAuth.Auth(testAuth.UpdateUserAvatar)
 	update(w, req)
 
 	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
-}
-
-func createUpdateSuccess(t *testing.T, toUpdate entity.User) (*Profile, *gomock.Controller) {
-	ctrl := gomock.NewController(t)
-
-	expectedUser := createExpectedUser()
-
-	var id uint64 = 1
-	mockUser := mocks.NewUserRepositoryForMock(ctrl)
-	mockUser.EXPECT().UpdateUser(id, toUpdate).Return(expectedUser, nil)
-
-	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
-
-	servicesDB := application.NewUserApp(mockUser)
-	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
-	servicesLog := log.NewLogrusLogger()
-
-	return NewProfile(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
-}
-
-func createUpdateFail(t *testing.T, toUpdate entity.User) (*Profile, *gomock.Controller) {
-	ctrl := gomock.NewController(t)
-
-	var id uint64 = 1
-	mockUser := mocks.NewUserRepositoryForMock(ctrl)
-	mockUser.EXPECT().UpdateUser(id, toUpdate).Return(entity.User{}, errors.New("fail to update user"))
-
-	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
-
-	servicesDB := application.NewUserApp(mockUser)
-	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
-	servicesLog := log.NewLogrusLogger()
-
-	return NewProfile(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
-}
-
-func createAuthSuccess(t *testing.T, toUpdate entity.User) (*Profile, *gomock.Controller) {
-	ctrl := gomock.NewController(t)
-
-	expectedUser := createExpectedUser()
-
-	var id uint64 = 1
-	mockUser := mocks.NewUserRepositoryForMock(ctrl)
-	mockUser.EXPECT().UpdateUser(id, toUpdate).Return(expectedUser, nil)
-
-	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
-	mockAuth.EXPECT().CheckAuth("value").Return(id, nil)
-
-	servicesDB := application.NewUserApp(mockUser)
-	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
-	servicesLog := log.NewLogrusLogger()
-
-	return NewProfile(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
-}
-
-func createAuthFailUnauthorized(t *testing.T) (*Profile, *gomock.Controller) {
-	ctrl := gomock.NewController(t)
-	mockUser := mocks.NewUserRepositoryForMock(ctrl)
-	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
-
-	servicesDB := application.NewUserApp(mockUser)
-	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
-	servicesLog := log.NewLogrusLogger()
-
-	return NewProfile(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
 }
 
 func createAuthFailNoSession(t *testing.T) (*Profile, *gomock.Controller) {
@@ -208,10 +394,9 @@ func createAuthFailNoSession(t *testing.T) (*Profile, *gomock.Controller) {
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewProfile(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+	return NewProfile(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
 func createExpectedUser() (expected entity.User) {

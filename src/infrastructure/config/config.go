@@ -32,6 +32,22 @@ var GlobalCORSConfig = CORSConfig{
 	ExposedHeaders: []string{"Content-Length", "Content-Range"},
 }
 
+type RedisConfig struct {
+	AddressSessions    string `yaml:"redis_session_path"`
+	AddressDayCurrency string `yaml:"redis_currency_path"`
+}
+
+var SessionDatabaseConfig = RedisConfig{}
+
+type UserBDConfig struct {
+	User     string `yaml:"postgres_user"`
+	Password string `yaml:"postgres_password"`
+	Host     string `yaml:"postgres_host"`
+	Schema   string `yaml:"postgres_db"`
+}
+
+var UserDatabaseConfig = UserBDConfig{}
+
 func ParseConfig() error {
 	yamlFile, err := ioutil.ReadFile(GlobalServerConfig.ConfigFile)
 	if err != nil {
@@ -42,5 +58,16 @@ func ParseConfig() error {
 	if err != nil {
 		return err
 	}
+
+	err = yaml.Unmarshal(yamlFile, &SessionDatabaseConfig)
+	if err != nil {
+		return err
+	}
+
+	err = yaml.Unmarshal(yamlFile, &UserDatabaseConfig)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

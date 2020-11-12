@@ -21,6 +21,10 @@ func (ua *UserAuth) CheckAuth(sessionValue string) (uint64, error) {
 	return ua.ur.CheckAuth(sessionValue)
 }
 
-func (ua *UserAuth) DeleteAuth(details *repository.AccessDetails) error {
-	return ua.ur.DeleteAuth(details)
+func (ua *UserAuth) DeleteAuth(value string) error {
+	return ua.ur.DeleteAuth(value)
+}
+
+func (ua *UserAuth) CreateCookie() (http.Cookie, error) {
+	return ua.ur.CreateCookie()
 }

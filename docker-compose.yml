@@ -6,19 +6,27 @@ services:
       dockerfile: Dockerfile
     container_name: moneycat
     ports:
-    - 9000:80
+    - 8000:80
     volumes:
     - ./configs:/etc/moneycat
     command: ["-f", "/etc/moneycat/local.yml"]
+    depends_on:
+      - "postgres"
+      - "redis"
     restart: on-failure
 
-  db:
+  postgres:
     image: postgres:latest
+    restart: on-failure
     environment:
-      POSTGRES_PASSWORD: 'this_is_secret'
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: NeverGonnaGiveYouUp
       POSTGRES_DB: moneycat
     volumes:
-      - 'postgres-data:/var/lib/postgresql/data/'
+      - ./backup.sql:/backup.sql
 
-volumes:
-  postgres-data:
+  redis:
+    image: redis
+    restart: on-failure
+    volumes:
+      - ./configs/redis.conf:/usr/local/etc/redis/redis.conf

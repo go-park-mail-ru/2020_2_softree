@@ -6,7 +6,7 @@ import (
 	"server/src/domain/entity"
 )
 
-func (a *Authenticate) Signup(w http.ResponseWriter, r *http.Request) {
+func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
 	var user entity.User
 	var err error
 	if err = json.NewDecoder(r.Body).Decode(&user); err != nil {
@@ -15,9 +15,25 @@ func (a *Authenticate) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	errors := user.Validate()
-	if errors.NotEmpty {
-		a.createInternalServerError(&errors, w)
+	a.sanitizer.Sanitize(user.Email)
+	a.sanitizer.Sanitize(user.Password)
+
+	errs := user.Validate()
+	if errs.NotEmpty {
+		a.createServerError(&errs, w)
+		return
+	}
+
+	var exist bool
+	if exist, err = a.userApp.CheckExistence(user.Email); err != nil {
+		a.log.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if exist {
+		errs.NonFieldError = append(errs.NonFieldError, "пользователь с таким email'ом уже существует")
+		a.createServerError(&errs, w)
 		return
 	}
 
@@ -37,16 +53,4 @@ func (a *Authenticate) Signup(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &cookie)
 
 	w.WriteHeader(http.StatusCreated)
-}
-
-func (a *Authenticate) createInternalServerError(errors *entity.ErrorJSON, w http.ResponseWriter) {
-	res, err := json.Marshal(errors)
-	if err != nil {
-		a.log.Print(err)
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-
-	w.WriteHeader(http.StatusBadRequest)
-	w.Header().Add("Content-type", "application/json")
-	w.Write(res)
 }

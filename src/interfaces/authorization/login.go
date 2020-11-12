@@ -6,7 +6,7 @@ import (
 	"server/src/domain/entity"
 )
 
-func (a *Authenticate) Login(w http.ResponseWriter, r *http.Request) {
+func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 	var user entity.User
 	var err error
 	if err = json.NewDecoder(r.Body).Decode(&user); err != nil {
@@ -14,16 +14,33 @@ func (a *Authenticate) Login(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	defer r.Body.Close()
 
-	errors := user.Validate()
-	if errors.NotEmpty {
-		a.createInternalServerError(&errors, w)
+	a.sanitizer.Sanitize(user.Email)
+	a.sanitizer.Sanitize(user.Password)
+
+	errs := user.Validate()
+	if errs.NotEmpty {
+		a.createServerError(&errs, w)
 		return
 	}
 
-	if user, err = a.userApp.GetUserByLogin(user.Email, user.Password); err != nil {
+	var exist bool
+	if exist, err = a.userApp.CheckExistence(user.Email); err != nil {
 		a.log.Print(err)
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if !exist {
+		errs.NonFieldError = append(errs.NonFieldError, "Неправильный email или пароль")
+		a.createServerError(&errs, w)
+		return
+	}
+
+	user, err = a.userApp.GetUserByLogin(user.Email, user.Password)
+	if errs = a.checkGetUserByLoginErrors(err); errs.NotEmpty {
+		a.createServerError(&errs, w)
 		return
 	}
 
@@ -35,5 +52,16 @@ func (a *Authenticate) Login(w http.ResponseWriter, r *http.Request) {
 	}
 	http.SetCookie(w, &cookie)
 
+	res, err := json.Marshal(user.MakePublicUser())
+	if err != nil {
+		a.log.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	if _, err := w.Write(res); err != nil {
+		a.log.Print(err)
+	}
 }

@@ -8,7 +8,6 @@ import (
 	"net/http/httptest"
 	"server/src/application"
 	"server/src/domain/entity"
-	"server/src/infrastructure/auth"
 	"server/src/infrastructure/log"
 	mocks "server/src/infrastructure/mock"
 	"strings"
@@ -30,10 +29,44 @@ func TestSignup_Success(t *testing.T) {
 
 	testAuth.Signup(w, req)
 
-	require.Empty(t, w.Header().Get("Content-type"))
+	require.Empty(t, w.Header().Get("Content-Type"))
 	require.Empty(t, w.Body)
 	require.Equal(t, http.StatusCreated, w.Result().StatusCode)
 	require.NotEmpty(t, w.Result().Cookies())
+}
+
+func TestSignup_FailUserExist(t *testing.T) {
+	url := "http://127.0.0.1:8000/signup"
+	body := strings.NewReader(`{"email": "hound@psina.ru", "password": "str"}`)
+
+	req := httptest.NewRequest("POST", url, body)
+	w := httptest.NewRecorder()
+
+	testAuth, ctrl := createSignupFailUserExist(t)
+	defer ctrl.Finish()
+
+	testAuth.Signup(w, req)
+
+	require.NotEmpty(t, w.Header().Get("Content-Type"))
+	require.NotEmpty(t, w.Body)
+	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+}
+
+func TestSignup_FailUserExistFailDB(t *testing.T) {
+	url := "http://127.0.0.1:8000/signup"
+	body := strings.NewReader(`{"email": "hound@psina.ru", "password": "str"}`)
+
+	req := httptest.NewRequest("POST", url, body)
+	w := httptest.NewRecorder()
+
+	testAuth, ctrl := createSignupFailUserExistFailDB(t)
+	defer ctrl.Finish()
+
+	testAuth.Signup(w, req)
+
+	require.Empty(t, w.Header().Get("Content-Type"))
+	require.Empty(t, w.Body)
+	require.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
 }
 
 func TestSignup_FailEmail(t *testing.T) {
@@ -88,47 +121,75 @@ func TestSignup_FailBcrypt(t *testing.T) {
 	require.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
 }
 
-func createSignupSuccess(t *testing.T, userToSave entity.User) (*Authenticate, *gomock.Controller) {
+func createSignupSuccess(t *testing.T, userToSave entity.User) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
 	expectedUser := createExpectedUser("hound@psina.ru", "str")
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
+	mockUser.EXPECT().CheckExistence(userToSave.Email).Return(false, nil)
 	mockUser.EXPECT().SaveUser(userToSave).Times(1).Return(expectedUser, nil)
 
-	memAuth := auth.NewMemAuth()
+	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
+	mockAuth.EXPECT().CreateAuth(expectedUser.ID).Return(http.Cookie{Name: "session_id"}, nil)
 
 	servicesDB := application.NewUserApp(mockUser)
-	servicesAuth := application.NewUserAuth(memAuth)
-	servicesCookie := auth.NewToken()
+	servicesAuth := application.NewUserAuth(mockAuth)
 	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
-func createSignupFail(t *testing.T) (*Authenticate, *gomock.Controller) {
+func createSignupFail(t *testing.T) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
-func createSignupFailBcrypt(t *testing.T, u entity.User) (*Authenticate, *gomock.Controller) {
+func createSignupFailBcrypt(t *testing.T, u entity.User) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
 
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
+	mockUser.EXPECT().CheckExistence("hound@psina.ru").Return(false, nil)
 	mockUser.EXPECT().SaveUser(u).Return(entity.User{}, errors.New("bcrypt: create password hash"))
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesCookie := auth.NewToken()
 	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesCookie, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
+}
+
+func createSignupFailUserExist(t *testing.T) (*Authentication, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
+
+	mockUser := mocks.NewUserRepositoryForMock(ctrl)
+	mockUser.EXPECT().CheckExistence("hound@psina.ru").Return(true, nil)
+
+	servicesDB := application.NewUserApp(mockUser)
+	servicesAuth := application.NewUserAuth(mockAuth)
+	servicesLog := log.NewLogrusLogger()
+
+	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
+}
+
+func createSignupFailUserExistFailDB(t *testing.T) (*Authentication, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
+
+	mockUser := mocks.NewUserRepositoryForMock(ctrl)
+	mockUser.EXPECT().CheckExistence("hound@psina.ru").Return(false, errors.New("error"))
+
+	servicesDB := application.NewUserApp(mockUser)
+	servicesAuth := application.NewUserAuth(mockAuth)
+	servicesLog := log.NewLogrusLogger()
+
+	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
 }

@@ -1,25 +1,28 @@
 package repository
 
-import "net/http"
+import (
+	"net/http"
+)
 
 type AuthRepository interface {
-	creator
-	check
-	delete
+	authCreator
+	authChecker
+	authEraser
+	authCookie
 }
 
-type creator interface {
+type authCreator interface {
 	CreateAuth(uint64) (http.Cookie, error)
 }
 
-type check interface {
+type authChecker interface {
 	CheckAuth(string) (uint64, error)
 }
 
-type delete interface {
-	DeleteAuth(*AccessDetails) error
+type authEraser interface {
+	DeleteAuth(string) error
 }
 
-type AccessDetails struct {
-	Value string `json:"session_id"`
+type authCookie interface {
+	CreateCookie() (http.Cookie, error)
 }

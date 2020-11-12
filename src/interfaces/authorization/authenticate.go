@@ -1,19 +1,18 @@
 package authorization
 
 import (
+	"github.com/microcosm-cc/bluemonday"
 	"server/src/application"
-	"server/src/infrastructure/auth"
 	"server/src/infrastructure/log"
 )
 
-type Authenticate struct {
-	userApp application.UserApp
-	auth    application.UserAuth
-	cookie  auth.TokenHandler
-	log     log.LogHandler
+type Authentication struct {
+	userApp   application.UserApp
+	auth      application.UserAuth
+	log       log.LogHandler
+	sanitizer bluemonday.Policy
 }
 
-func NewAuthenticate(
-	uApp application.UserApp, auth application.UserAuth, cookie auth.TokenHandler, log log.LogHandler) *Authenticate {
-	return &Authenticate{userApp: uApp, auth: auth, cookie: cookie, log: log}
+func NewAuthenticate(uApp application.UserApp, auth application.UserAuth, log log.LogHandler) *Authentication {
+	return &Authentication{userApp: uApp, auth: auth, log: log, sanitizer: *bluemonday.UGCPolicy()}
 }
