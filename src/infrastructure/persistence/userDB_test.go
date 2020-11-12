@@ -60,7 +60,7 @@ func TestGetUserByLogin_Success(t *testing.T) {
 	require.Equal(t, nil, err)
 	defer db.Close()
 
-	rows := sqlmock.NewRows([]string{"id", "password"})
+	rows := sqlmock.NewRows([]string{"id", "password", "avatar"})
 	expPass, _ := security.MakeShieldedPassword("long_hashed_string")
 	expected := entity.User{ID: 1, Email: "hound@psina.ru", Password: expPass, Avatar: "1234"}
 	rows = rows.AddRow(expected.ID, expected.Password, expected.Avatar)
@@ -85,10 +85,10 @@ func TestGetUserByLogin_Fail(t *testing.T) {
 	require.Equal(t, nil, err)
 	defer db.Close()
 
-	rows := sqlmock.NewRows([]string{"id", "password"})
+	rows := sqlmock.NewRows([]string{"id", "password", "avatar"})
 	expPass, _ := security.MakeShieldedPassword("long_hashed_string")
 	expected := entity.User{ID: 1, Email: "hound@psina.ru", Password: expPass}
-	rows = rows.AddRow(expected.ID, expected.Password)
+	rows = rows.AddRow(expected.ID, expected.Password, expected.Avatar)
 
 	login := "hound@psina.ru"
 	password := "long_hashed_string"
@@ -201,4 +201,52 @@ func TestDeleteUser_Fail(t *testing.T) {
 	err = repo.DeleteUser(uint64(1))
 
 	require.NotEmpty(t, err)
+}
+
+func TestCheckPassword_Success(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	require.Equal(t, nil, err)
+	defer db.Close()
+
+	expPass, _ := security.MakeShieldedPassword("long_hashed_string")
+
+	rows := sqlmock.NewRows([]string{"password"})
+	rows = rows.AddRow(expPass)
+
+	mock.ExpectBegin()
+	mock.
+		ExpectQuery("SELECT password FROM user_trade WHERE").
+		WithArgs(uint64(1)).
+		WillReturnRows(rows)
+	mock.ExpectCommit()
+
+	repo := &UserDBManager{DB: db}
+	row, err := repo.CheckPassword(uint64(1), "long_hashed_string")
+
+	require.Equal(t, nil, err)
+	require.Equal(t, nil, mock.ExpectationsWereMet())
+	require.Equal(t, true, row)
+}
+
+func TestCheckPassword_Fail(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	require.Equal(t, nil, err)
+	defer db.Close()
+
+	rows := sqlmock.NewRows([]string{"password"})
+	rows = rows.AddRow("long_hashed_string")
+
+	mock.ExpectBegin()
+	mock.
+		ExpectQuery("SELECT password FROM user_trade WHERE").
+		WithArgs(uint64(1)).
+		WillReturnRows(rows)
+	mock.ExpectCommit()
+
+	repo := &UserDBManager{DB: db}
+	row, err := repo.CheckPassword(uint64(1), "long_hashed_string")
+
+	require.Equal(t, nil, err)
+	require.Equal(t, nil, mock.ExpectationsWereMet())
+	require.Equal(t, false, row)
 }

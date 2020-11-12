@@ -151,6 +151,25 @@ func (r *RecorderUserMockRepository) CheckExistence(email interface{}) *gomock.C
 	)
 }
 
+func (m *UserRepositoryForMock) CheckPassword(id uint64, password string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckPassword", id, password)
+	user, _ := ret[0].(bool)
+	err, _ := ret[1].(error)
+	return user, err
+}
+
+func (r *RecorderUserMockRepository) CheckPassword(id, password interface{}) *gomock.Call {
+	r.mock.ctrl.T.Helper()
+	return r.mock.ctrl.RecordCallWithMethodType(
+		r.mock,
+		"CheckPassword",
+		reflect.TypeOf((*UserRepositoryForMock)(nil).CheckExistence),
+		id,
+		password,
+	)
+}
+
 func (m *UserRepositoryForMock) GetUserWatchlist(id uint64) ([]entity.Currency, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveUser", id)

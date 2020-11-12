@@ -31,7 +31,8 @@ func TestAuth_Success(t *testing.T) {
 	}
 	req.AddCookie(&cookie)
 
-	testAuth.Auth(w, req)
+	auth := testAuth.Auth(testAuth.Authenticate)
+	auth(w, req)
 
 	require.Equal(t, http.StatusOK, w.Result().StatusCode)
 	require.NotEmpty(t, w.Header().Get("Content-type"))
@@ -48,7 +49,8 @@ func TestAuth_FailUnauthorized(t *testing.T) {
 	testAuth, ctrl := createAuthFailUnauthorized(t)
 	defer ctrl.Finish()
 
-	testAuth.Auth(w, req)
+	auth := testAuth.Auth(testAuth.Authenticate)
+	auth(w, req)
 
 	require.Equal(t, http.StatusUnauthorized, w.Result().StatusCode)
 }
@@ -69,7 +71,8 @@ func TestAuth_FailNoSession(t *testing.T) {
 	}
 	req.AddCookie(&cookie)
 
-	testAuth.Auth(w, req)
+	auth := testAuth.Auth(testAuth.Authenticate)
+	auth(w, req)
 
 	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 }
@@ -90,7 +93,8 @@ func TestAuth_FailNoUser(t *testing.T) {
 	}
 	req.AddCookie(&cookie)
 
-	testAuth.Auth(w, req)
+	auth := testAuth.Auth(testAuth.Authenticate)
+	auth(w, req)
 
 	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 }

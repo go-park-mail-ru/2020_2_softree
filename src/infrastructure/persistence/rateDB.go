@@ -142,7 +142,7 @@ func (rm *RateDBManager) GetRate(title string) ([]entity.Currency, error) {
 	}
 	defer tx.Rollback()
 
-	result, err := tx.Query("SELECT value, updated_at FROM history_currency_by_minutes WHERE title = $1", title)
+	result, err := tx.Query("SELECT value, updated_at FROM history_currency_by_minutes WHERE title = $1 ", title)
 	if err != nil {
 		return nil, err
 	}

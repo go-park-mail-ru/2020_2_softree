@@ -29,7 +29,7 @@ func TestLogout_Success(t *testing.T) {
 
 	testAuth.Logout(w, req)
 
-	require.Equal(t, http.StatusFound, w.Result().StatusCode)
+	require.Equal(t, http.StatusOK, w.Result().StatusCode)
 	require.Equal(t, w.Result().Cookies()[0].Value, "")
 	require.Equal(
 		t,
@@ -49,7 +49,7 @@ func TestLogout_FailNoCookie(t *testing.T) {
 
 	testAuth.Logout(w, req)
 
-	require.Equal(t, http.StatusFound, w.Result().StatusCode)
+	require.Equal(t, http.StatusUnauthorized, w.Result().StatusCode)
 }
 
 func TestLogout_FailDeleteAuth(t *testing.T) {
