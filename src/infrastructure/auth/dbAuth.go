@@ -67,7 +67,7 @@ func (sm *SessionManager) DeleteAuth(sessionValue string) error {
 	mkey := "sessions:" + sessionValue
 	_, err := redis.Int(sm.RedisConn.Do("DEL", mkey))
 	if err != nil {
-		return errors.New("redis error during session delete")
+		return err
 	}
 
 	return nil

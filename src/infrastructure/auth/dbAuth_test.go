@@ -77,5 +77,3 @@ func TestNewSessionManager_DeleteAuth (t *testing.T) {
 	exists := s.Exists("session_value")
 	require.EqualValues(t, false, exists)
 }
-
-

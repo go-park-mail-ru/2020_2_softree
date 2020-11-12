@@ -41,6 +41,21 @@ func TestGetRates_Fail(t *testing.T) {
 	require.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
 }
 
+/*func TestRates_GetURLRateSuccess(t *testing.T) {
+	url := "http://127.0.0.1:8000/rates?title=USD"
+
+	req := httptest.NewRequest(http.MethodGet, url, nil)
+	w := httptest.NewRecorder()
+	testRate, ctrl := createForexRateSuccess(t)
+	defer ctrl.Finish()
+
+	testRate.GetURLRate(w, req)
+
+	require.Equal(t, http.StatusOK, w.Result().StatusCode)
+	require.NotEmpty(t, w.Header().Get("Content-Type"))
+	require.NotEmpty(t, w.Body)
+}*/
+
 func createForexRateSuccess(t *testing.T) (*Rates, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
