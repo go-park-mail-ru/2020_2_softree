@@ -35,33 +35,34 @@ var testData = map[string]interface{} {
 	"ILS": 21.0,
 }
 
-/*func TestRateDBManager_SaveRatesSuccess(t *testing.T) {
-	db, mock, err := sqlmock.New()
-	require.Equal(t, nil, err)
-	defer db.Close()
-
-	rows := sqlmock.NewRows([]string{"title", "value", "updated_at"})
-	date := time.Now()
-	for name, data := range testData {
-		rows = rows.AddRow(name, data, date)
-	}
-
-	mock.ExpectBegin()
-	mock.ExpectExec("INSERT INTO history_currency_by_minutes (title, value, updated_at) VALUES").
-		WithArgs().
-		WillReturnRows(rows)
-	mock.ExpectCommit()
-
-	ctrl := gomock.NewController(t)
-	mockFinance := finMock.NewFinanceRepositoryForMock(ctrl)
-	mockFinance.EXPECT().GetQuote().Return(testData).Times(len(testData))
-
-	repo := &RateDBManager{DB: db}
-	err = repo.SaveRates(mockFinance)
-	require.NoError(t, err)
-
-	require.Equal(t, nil, mock.ExpectationsWereMet())
-}*/
+//func TestRateDBManager_SaveRatesSuccess(t *testing.T) {
+//	db, mock, err := sqlmock.New()
+//	require.Equal(t, nil, err)
+//	defer db.Close()
+//
+//	rows := sqlmock.NewRows([]string{"title", "value", "updated_at"})
+//	date := time.Now()
+//	for name, data := range testData {
+//		rows = rows.AddRow(name, data, date)
+//	}
+//
+//	mock.ExpectBegin()
+//	for _, name := range ListOfCurrencies {
+//		mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO history_currency_by_minutes (title, value, updated_at) VALUES ($1, $2, $3)`)).
+//			WithArgs(name, testData[name], date).WillReturnResult(sqlmock.NewResult(1, 1))
+//	}
+//	mock.ExpectCommit()
+//
+//	ctrl := gomock.NewController(t)
+//	mockFinance := finMock.NewFinanceRepositoryForMock(ctrl)
+//	mockFinance.EXPECT().GetQuote().Return(testData).Times(len(testData))
+//
+//	repo := &RateDBManager{DB: db}
+//	err = repo.SaveRates(mockFinance)
+//	require.NoError(t, err)
+//
+//	require.Equal(t, nil, mock.ExpectationsWereMet())
+//}
 
 func TestRateDBManager_SaveRatesFail(t *testing.T) {
 	db, mock, err := sqlmock.New()

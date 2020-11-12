@@ -5,6 +5,7 @@ import (
 	"github.com/stretchr/testify/require"
 	sqlmock "gopkg.in/DATA-DOG/go-sqlmock.v1"
 	"reflect"
+	"regexp"
 	"server/src/domain/entity"
 	"server/src/infrastructure/security"
 	"testing"
@@ -32,6 +33,45 @@ func TestGetUserById_Success(t *testing.T) {
 	require.Equal(t, nil, err)
 	require.Equal(t, nil, mock.ExpectationsWereMet())
 	require.Equal(t, true, reflect.DeepEqual(row, expected))
+}
+
+func TestCheckExistence_Success(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	require.Equal(t, nil, err)
+	defer db.Close()
+
+	rows := sqlmock.NewRows([]string{"COUNT(id)"})
+	rows = rows.AddRow(0)
+
+	mock.ExpectBegin()
+	mock.
+		ExpectQuery(regexp.QuoteMeta(`SELECT COUNT(id) FROM user_trade WHERE email = $1`)).
+		WithArgs("email@mail.ru").WillReturnRows(rows)
+	mock.ExpectCommit()
+
+	repo := &UserDBManager{DB: db}
+	row, err := repo.CheckExistence("email@mail.ru")
+
+	require.NoError(t, err)
+	require.Equal(t, nil, mock.ExpectationsWereMet())
+	require.Equal(t, false, row)
+}
+
+func TestUpdateUserAvatar_Success(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	require.Equal(t, nil, err)
+	defer db.Close()
+
+	mock.ExpectBegin()
+	mock.
+		ExpectExec(regexp.QuoteMeta(`UPDATE user_trade SET avatar = $1 WHERE id = $2`)).
+		WithArgs("emailru", uint64(1)).WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectCommit()
+
+	repo := &UserDBManager{DB: db}
+	err = repo.UpdateUserAvatar(uint64(1), entity.User{Avatar: "emailru"})
+
+	require.Equal(t, nil, err)
 }
 
 func TestGetUserById_Fail(t *testing.T) {
