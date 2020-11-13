@@ -4,10 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gomodule/redigo/redis"
+	"github.com/shopspring/decimal"
 	"server/src/domain/entity"
 	"server/src/domain/repository"
 	"server/src/infrastructure/persistence"
-	"strconv"
 )
 
 type CurrencyManager struct {
@@ -51,7 +51,7 @@ func (sm *CurrencyManager) GetInitialCurrency() ([]entity.Currency, error) {
 		}
 
 		strRes := string(data)
-		uintRes, parseErr := strconv.ParseFloat(strRes, 64)
+		uintRes, parseErr := decimal.NewFromString(strRes)
 		if parseErr != nil {
 			return []entity.Currency{}, errors.New("internal server error")
 		}

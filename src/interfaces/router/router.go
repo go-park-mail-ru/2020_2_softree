@@ -37,14 +37,26 @@ func NewRouter(userAuthenticate *authorization.Authentication, userProfile *prof
 	r.HandleFunc("/users", userProfile.Auth(userProfile.GetUser)).
 		Methods(http.MethodGet, http.MethodOptions)
 
-	r.HandleFunc("/watchers", userProfile.Auth(userProfile.GetUserWatchlist)).
-		Methods(http.MethodGet, http.MethodOptions)
-
 	r.HandleFunc("/users/change-password", userProfile.Auth(userProfile.UpdateUserPassword)).
 		Methods(http.MethodPut, http.MethodOptions)
 
+	r.HandleFunc("/watchers", userProfile.Auth(userProfile.GetUserWatchlist)).
+		Methods(http.MethodGet, http.MethodOptions)
+
 	r.HandleFunc("/markets", rateRates.GetMarkets).
 		Methods(http.MethodGet, http.MethodOptions)
+
+	r.HandleFunc("/accounts", rateRates.GetMarkets).
+		Methods(http.MethodGet, http.MethodOptions)
+
+	r.HandleFunc("/accounts", rateRates.GetMarkets).
+		Methods(http.MethodPost, http.MethodOptions)
+
+	r.HandleFunc("/transactions", rateRates.GetMarkets).
+		Methods(http.MethodGet, http.MethodOptions)
+
+	r.HandleFunc("/transactions", rateRates.GetMarkets).
+		Methods(http.MethodPost, http.MethodOptions)
 
 	r.Use(corsInteraction.CORSMiddleware())
 
