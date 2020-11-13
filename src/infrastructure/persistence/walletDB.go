@@ -111,7 +111,7 @@ func (wm *WalletDBManager) CheckWallet(id uint64, title string) (bool, error) {
 	}
 	defer tx.Rollback()
 
-	row := tx.QueryRow("SELECT DISTINCT user_id FROM accounts WHERE EXISTS(select * FROM accounts WHERE user_id = $1 AND title = $2)",
+	row := tx.QueryRow("SELECT COUNT(*) FROM accounts WHERE EXISTS(select * FROM accounts WHERE user_id = $1 AND title = $2)",
 		id,
 		title,
 		)
