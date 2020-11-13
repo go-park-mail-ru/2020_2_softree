@@ -20,7 +20,7 @@ CREATE TABLE watchlist
         ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE wallet
+CREATE TABLE accounts
 (
     user_id bigint NOT NULL,
     title   text,
@@ -33,11 +33,9 @@ CREATE TABLE wallet
 CREATE TABLE payment_history
 (
     user_id    bigint NOT NULL,
-    base       text,
-    title      text,
-    value      decimal,
-    currency   decimal,
-    commission decimal,
+    from       text,
+    to         text,
+    amount     decimal,
     updated_at timestamp
 
     FOREIGN KEY (user_id) REFERENCES user_trade (id)

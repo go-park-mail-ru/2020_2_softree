@@ -34,24 +34,16 @@ func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
 func (p *Profile) SetTransactions(w http.ResponseWriter, r *http.Request) {
 	id := r.Context().Value("id").(uint64)
 
-	wallet, err := p.userApp.GetWallet(id)
+	var transaction entity.PaymentHistory
+	err := json.NewDecoder(r.Body).Decode(&transaction)
 	if err != nil {
-		p.log.Info("user id: ", id, ", func: GetWallet, with error: ", err)
+		p.log.Info("func: SetTransactions, with error while decode json: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	defer r.Body.Close()
 
-	res, err := json.Marshal(wallet)
-	if err != nil {
-		p.log.Info("wallet: ", wallet, ", func: GetWallet, with error: ", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	if _, err = w.Write(res); err != nil {
-		p.log.Info("func: GetWallet, with error: ", err)
-		w.WriteHeader(http.StatusInternalServerError)
+	if !p.checkWalletFrom(w, id, transaction) {
 		return
 	}
 }

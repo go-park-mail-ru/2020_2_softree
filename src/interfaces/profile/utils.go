@@ -28,3 +28,40 @@ func (p *Profile) createServerError(errs *entity.ErrorJSON, w http.ResponseWrite
 		p.log.Print(err)
 	}
 }
+
+func (p *Profile) checkWalletFrom(w http.ResponseWriter, id uint64, transaction entity.PaymentHistory) bool {
+	var exist bool
+	var err error
+	if exist, err = p.userApp.CheckWallet(id, transaction.From); err != nil {
+		p.log.Info("func: checkWallets, with error while CheckWallet: ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return false
+	}
+
+	if !exist {
+		w.WriteHeader(http.StatusBadRequest)
+		return false
+	}
+
+	return true
+}
+
+func (p *Profile) checkWalletTo(w http.ResponseWriter, id uint64, transaction entity.PaymentHistory) bool {
+	var exist bool
+	var err error
+	if exist, err = p.userApp.CheckWallet(id, transaction.To); err != nil {
+		p.log.Info("func: checkWallets, with error while CheckWallet: ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return false
+	}
+
+	if !exist {
+		if err = p.userApp.CreateWallet(id, transaction.To); err != nil {
+			p.log.Info("func: checkWallets, with error while CreateWallet: ", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return false
+		}
+	}
+
+	return true
+}
