@@ -6,7 +6,7 @@ import (
 	"server/src/domain/entity"
 )
 
-func (p *Profile) GetHistory(w http.ResponseWriter, r *http.Request) {
+func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
 	id := r.Context().Value("id").(uint64)
 
 	history, err := p.userApp.GetAllPaymentHistory(id)
@@ -26,6 +26,31 @@ func (p *Profile) GetHistory(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	if _, err = w.Write(res); err != nil {
 		p.log.Info("func: GetAllPaymentHistory, with error: ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (p *Profile) SetTransactions(w http.ResponseWriter, r *http.Request) {
+	id := r.Context().Value("id").(uint64)
+
+	wallet, err := p.userApp.GetWallet(id)
+	if err != nil {
+		p.log.Info("user id: ", id, ", func: GetWallet, with error: ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	res, err := json.Marshal(wallet)
+	if err != nil {
+		p.log.Info("wallet: ", wallet, ", func: GetWallet, with error: ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	if _, err = w.Write(res); err != nil {
+		p.log.Info("func: GetWallet, with error: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
