@@ -46,6 +46,14 @@ func (p *Profile) SetTransactions(w http.ResponseWriter, r *http.Request) {
 	if !p.checkWalletFrom(w, id, transaction) {
 		return
 	}
+
+	if err = p.checkWalletPayment(w, id, transaction); err != nil {
+		if err.Error() == "not enough payment" {
+			p.createErrorJSON(err)
+			return
+		}
+		return
+	}
 }
 
 func (p *Profile) GetHistoryInInterval(w http.ResponseWriter, r *http.Request) {
