@@ -18,7 +18,7 @@ func (p *Profile) GetHistory(w http.ResponseWriter, r *http.Request) {
 
 	res, err := json.Marshal(history)
 	if err != nil {
-		p.log.Info("history: ", history, ", func: GetAllPaymentHistory, with error: ", err)
+		p.log.Info("func: GetHistory, with error while marshal: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

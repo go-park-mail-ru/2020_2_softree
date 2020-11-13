@@ -25,10 +25,10 @@ func (w *WalletRepositoryForMock) EXPECT() *RecorderWalletMockRepository {
 	return w.recorder
 }
 
-func (w *WalletRepositoryForMock) GetWallet(id uint64) (entity.Wallet, error) {
+func (w *WalletRepositoryForMock) GetWallet(id uint64) ([]entity.Wallet, error) {
 	w.ctrl.T.Helper()
 	ret := w.ctrl.Call(w, "GetWallet", id)
-	wallet, _ := ret[0].(entity.Wallet)
+	wallet, _ := ret[0].([]entity.Wallet)
 	err, _ := ret[1].(error)
 	return wallet, err
 }

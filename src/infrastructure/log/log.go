@@ -57,6 +57,14 @@ func (l *LoggerLogrus) ConfigureLogger() error {
 	return nil
 }
 
-func (l *LoggerLogrus) Print(err interface{}) {
+func (l *LoggerLogrus) Print(err ...interface{}) {
 	l.logger.Println(err)
+}
+
+func (l *LoggerLogrus) Info(msg ...interface{}) {
+	l.logger.Info(msg)
+}
+
+func (l *LoggerLogrus) Debug(msg ...interface{}) {
+	l.logger.Debug(msg)
 }

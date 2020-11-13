@@ -22,8 +22,9 @@ CREATE TABLE watchlist
 
 CREATE TABLE wallet
 (
-    user_id        bigint NOT NULL,
-    cash           text   default '{"USD": "100"}'
+    user_id bigint NOT NULL,
+    title   text,
+    value   decimal,
 
     FOREIGN KEY (user_id) REFERENCES user_trade (id)
         ON DELETE CASCADE ON UPDATE CASCADE

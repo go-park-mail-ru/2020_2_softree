@@ -8,7 +8,7 @@ type WalletRepository interface {
 }
 
 type userWalletReceiver interface {
-	GetWallet(uint64) (entity.Wallet, error)
+	GetWallet(uint64) ([]entity.Wallet, error)
 }
 
 type userWalletSet interface {

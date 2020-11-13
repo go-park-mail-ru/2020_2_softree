@@ -66,7 +66,7 @@ func (userApp *UserApp) AddToPaymentHistory(id uint64, history entity.PaymentHis
 	return userApp.paymentHistory.AddToPaymentHistory(id, history)
 }
 
-func (userApp *UserApp) GetWallet(id uint64) (entity.Wallet, error) {
+func (userApp *UserApp) GetWallet(id uint64) ([]entity.Wallet, error) {
 	return userApp.walletRepository.GetWallet(id)
 }
 

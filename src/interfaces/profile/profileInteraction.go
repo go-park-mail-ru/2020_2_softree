@@ -19,7 +19,7 @@ func (p *Profile) Auth(next http.HandlerFunc) http.HandlerFunc {
 
 		id, err := p.auth.CheckAuth(cookie.Value)
 		if err != nil {
-			p.log.Print(err)
+			p.log.Info("no session for ", cookie.Value, " with error: ", err)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -37,34 +37,34 @@ func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 	var user entity.User
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		p.log.Print(err)
+		p.log.Info("func: UpdateUserAvatar, with error while decode json: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	defer r.Body.Close()
 
 	if govalidator.IsNull(user.Avatar) {
-		p.log.Print(err)
+		p.log.Info("func: UpdateUserAvatar, no user avatar from json")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	p.sanitizer.SanitizeBytes([]byte(user.Avatar))
 	if err = p.userApp.UpdateUserAvatar(id, user); err != nil {
-		p.log.Print(err)
+		p.log.Info("func: UpdateUserAvatar, with error while UpdateUserAvatar: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	if user, err = p.userApp.GetUserById(id); err != nil {
-		p.log.Print(err)
+		p.log.Info("func: UpdateUserAvatar, with error while GetUserById: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	res, err := json.Marshal(user.MakePublicUser())
 	if err != nil {
-		p.log.Print(err)
+		p.log.Info("func: UpdateUserAvatar, with error while marshal: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -72,7 +72,7 @@ func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-Type", "application/json")
 	if _, err := w.Write(res); err != nil {
-		p.log.Print(err)
+		p.log.Info("func: UpdateUserAvatar, with error while write response: ", err)
 	}
 }
 
@@ -82,13 +82,13 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 	var user entity.User
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		p.log.Print(err)
+		p.log.Info("func: UpdateUserPassword, with error while decode json: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	if govalidator.IsNull(user.OldPassword) || govalidator.IsNull(user.NewPassword) {
-		p.log.Print(err)
+		p.log.Info("func: UpdateUserPassword, no user passwords: ", user.OldPassword, user.NewPassword)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -104,7 +104,7 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 
 	var check bool
 	if check, err = p.userApp.CheckPassword(id, user.OldPassword); err != nil {
-		p.log.Print(err)
+		p.log.Info("func: UpdateUserPassword, with error while CheckPassword: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -116,20 +116,20 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = p.userApp.UpdateUserPassword(id, user); err != nil {
-		p.log.Print(err)
+		p.log.Info("func: UpdateUserPassword, with error while UpdateUserPassword: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	if user, err = p.userApp.GetUserById(id); err != nil {
-		p.log.Print(err)
+		p.log.Info("func: UpdateUserPassword, with error while GetUserById: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	res, err := json.Marshal(user.MakePublicUser())
 	if err != nil {
-		p.log.Print(err)
+		p.log.Info("func: UpdateUserPassword, with error while marshal: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -137,7 +137,7 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-Type", "application/json")
 	if _, err := w.Write(res); err != nil {
-		p.log.Print(err)
+		p.log.Info("func: UpdateUserAvatar, with error while write response: ", err)
 	}
 }
 
@@ -147,14 +147,14 @@ func (p *Profile) GetUser(w http.ResponseWriter, r *http.Request) {
 	var user entity.User
 	var err error
 	if user, err = p.userApp.GetUserById(id); err != nil {
-		p.log.Print(err)
+		p.log.Info("func: GetUser, with error while GetUserById: ", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	res, err := json.Marshal(user.MakePublicUser())
 	if err != nil {
-		p.log.Print(err)
+		p.log.Info("func: GetUser, with error while marshal: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -162,7 +162,7 @@ func (p *Profile) GetUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-Type", "application/json")
 	if _, err := w.Write(res); err != nil {
-		p.log.Print(err)
+		p.log.Info("func: GetUser, with error while write response: ", err)
 	}
 }
 
@@ -171,14 +171,14 @@ func (p *Profile) GetUserWatchlist(w http.ResponseWriter, r *http.Request) {
 
 	currencies, err := p.userApp.GetUserWatchlist(id)
 	if err != nil {
-		p.log.Print(err)
+		p.log.Info("func: GetUserWatchlist, with error while GetUserWatchlist: ", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	res, err := json.Marshal(currencies)
 	if err != nil {
-		p.log.Print(err)
+		p.log.Info("func: GetUserWatchlist, with error while marshal: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -186,7 +186,7 @@ func (p *Profile) GetUserWatchlist(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-Type", "application/json")
 	if _, err := w.Write(res); err != nil {
-		p.log.Print(err)
+		p.log.Info("func: GetUser, with error while write response: ", err)
 	}
 }
 
@@ -197,7 +197,7 @@ func (p *Profile) createOldPassError(w http.ResponseWriter) {
 
 	res, err := json.Marshal(errs)
 	if err != nil {
-		p.log.Print(err)
+		p.log.Info("func: createOldPassError, with error while marshal: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -205,7 +205,7 @@ func (p *Profile) createOldPassError(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusBadRequest)
 	w.Header().Add("Content-Type", "application/json")
 	if _, err := w.Write(res); err != nil {
-		p.log.Print(err)
+		p.log.Info("func: createOldPassError, with error while write response: ", err)
 	}
 	return
 }
