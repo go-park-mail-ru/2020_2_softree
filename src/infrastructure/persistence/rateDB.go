@@ -175,3 +175,27 @@ func (rm *RateDBManager) DeleteRate(uint64) error {
 func (rm *RateDBManager) UpdateRate(uint64, entity.Currency) (entity.Currency, error) {
 	return entity.Currency{}, nil
 }
+
+func (rm *RateDBManager) GetLastRate(title string) (entity.Currency, error) {
+	currency := entity.Currency{Title: title}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	tx, err := rm.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return entity.Currency{}, err
+	}
+	defer tx.Rollback()
+
+	row := tx.QueryRow("SELECT value, updated_at FROM history_currency_by_minutes WHERE title = $1 and DESC LIMIT 1", title)
+
+	if err = row.Scan(&currency.Value, &currency.UpdatedAt); err != nil {
+		return entity.Currency{}, err
+	}
+	if err = tx.Commit(); err != nil {
+		return entity.Currency{}, err
+	}
+
+	return currency, nil
+}
