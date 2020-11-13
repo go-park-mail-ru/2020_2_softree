@@ -85,3 +85,7 @@ func (userApp *UserApp) CheckWallet(id uint64, title string) (bool, error) {
 func (userApp *UserApp) CreateWallet(id uint64, title string) error {
 	return userApp.walletRepository.CreateWallet(id, title)
 }
+
+func (userApp *UserApp) UpdateWallet(id uint64, wallet entity.Wallet) error {
+	return userApp.walletRepository.UpdateWallet(id, wallet)
+}

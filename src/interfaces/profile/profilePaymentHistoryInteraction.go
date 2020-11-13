@@ -2,6 +2,7 @@ package profile
 
 import (
 	"encoding/json"
+	"github.com/shopspring/decimal"
 	"net/http"
 	"server/src/domain/entity"
 )
@@ -47,13 +48,38 @@ func (p *Profile) SetTransactions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = p.checkWalletPayment(w, id, transaction); err != nil {
+	var val decimal.Decimal
+	if err, val = p.checkWalletPayment(w, id, transaction); err != nil {
 		if err.Error() == "not enough payment" {
 			p.createErrorJSON(err)
 			return
 		}
 		return
 	}
+
+	if !p.checkWalletTo(w, id, transaction) {
+		return
+	}
+
+	if err = p.userApp.UpdateWallet(id, entity.Wallet{Title: transaction.From, Value: val}); err != nil {
+		p.log.Info("func: SetTransactions, with error while UpdateWallet: ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if err = p.userApp.SetWallet(id, entity.Wallet{Title: transaction.To, Value: transaction.Amount}); err != nil {
+		p.log.Info("func: SetTransactions, with error while UpdateWallet: ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if err = p.userApp.AddToPaymentHistory(id, transaction); err != nil {
+		p.log.Info("func: SetTransactions, with error while UpdateWallet: ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
 }
 
 func (p *Profile) GetHistoryInInterval(w http.ResponseWriter, r *http.Request) {

@@ -8,6 +8,7 @@ type WalletRepository interface {
 	userWalletSet
 	userWalletCheck
 	userWalletCreateEmpty
+	userUpdateWallet
 }
 
 type userWalletsReceiver interface {
@@ -28,4 +29,8 @@ type userWalletCheck interface {
 
 type userWalletCreateEmpty interface {
 	CreateWallet(uint64, string) error
+}
+
+type userUpdateWallet interface {
+	UpdateWallet(uint64, entity.Wallet) error
 }

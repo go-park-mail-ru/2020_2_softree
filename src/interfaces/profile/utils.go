@@ -3,6 +3,7 @@ package profile
 import (
 	"encoding/json"
 	"errors"
+	"github.com/shopspring/decimal"
 	"net/http"
 	"server/src/domain/entity"
 )
@@ -75,20 +76,21 @@ func (p *Profile) checkWalletTo(w http.ResponseWriter, id uint64, transaction en
 	return true
 }
 
-func (p *Profile) checkWalletPayment(w http.ResponseWriter, id uint64, transaction entity.PaymentHistory) error {
+func (p *Profile) checkWalletPayment(
+	w http.ResponseWriter, id uint64, transaction entity.PaymentHistory) (error, decimal.Decimal) {
 	var currencyFrom entity.Currency
 	var err error
 	if currencyFrom, err = p.rateApp.GetLastRate(transaction.From); err != nil {
 		p.log.Info("func: checkWalletPayment, with error while GetLastRate(", transaction.From, "): ", err)
 		w.WriteHeader(http.StatusInternalServerError)
-		return err
+		return err, decimal.Decimal{}
 	}
 
 	var currencyTo entity.Currency
 	if currencyTo, err = p.rateApp.GetLastRate(transaction.To); err != nil {
 		p.log.Info("func: checkWalletPayment, with error while GetLastRate(", transaction.To, "): ", err)
 		w.WriteHeader(http.StatusInternalServerError)
-		return err
+		return err, decimal.Decimal{}
 	}
 
 	needToPay := currencyTo.Value.Div(currencyFrom.Value).Mul(transaction.Amount)
@@ -97,12 +99,12 @@ func (p *Profile) checkWalletPayment(w http.ResponseWriter, id uint64, transacti
 	if wallet, err = p.userApp.GetWallet(id, transaction.From); err != nil {
 		p.log.Info("func: checkWalletPayment, with error while GetWallet(", transaction.From, "): ", err)
 		w.WriteHeader(http.StatusInternalServerError)
-		return err
+		return err, decimal.Decimal{}
 	}
 
 	if needToPay.GreaterThan(wallet.Value) {
-		return errors.New("not enough payment")
+		return errors.New("not enough payment"), decimal.Decimal{}
 	}
 
-	return nil
+	return nil, needToPay.Sub(wallet.Value)
 }
