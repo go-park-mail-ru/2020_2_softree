@@ -19,6 +19,14 @@ func createAuthenticate() (*authorization.Authentication, error) {
 	if err != nil {
 		return nil, err
 	}
+	dbHistory, err := persistence.NewPaymentDBManager()
+	if err != nil {
+		return nil, err
+	}
+	dbWallet, err := persistence.NewWalletDBManager()
+	if err != nil {
+		return nil, err
+	}
 
 	connect, err := redis.DialURL(config.SessionDatabaseConfig.AddressSessions)
 	if err != nil {
@@ -26,7 +34,7 @@ func createAuthenticate() (*authorization.Authentication, error) {
 	}
 	dbAuth := auth.NewSessionManager(connect)
 
-	servicesDB := application.NewUserApp(dbRepo)
+	servicesDB := application.NewUserApp(dbRepo, dbHistory, dbWallet)
 	servicesAuth := application.NewUserAuth(dbAuth)
 	servicesLog := log.NewLogrusLogger()
 
@@ -38,6 +46,18 @@ func createProfile() (*profile.Profile, error) {
 	if err != nil {
 		return nil, err
 	}
+	dbHistory, err := persistence.NewPaymentDBManager()
+	if err != nil {
+		return nil, err
+	}
+	dbWallet, err := persistence.NewWalletDBManager()
+	if err != nil {
+		return nil, err
+	}
+	dbRate, err := persistence.NewRateDBManager()
+	if err != nil {
+		return nil, err
+	}
 
 	connect, err := redis.DialURL(config.SessionDatabaseConfig.AddressSessions)
 	if err != nil {
@@ -45,11 +65,18 @@ func createProfile() (*profile.Profile, error) {
 	}
 	dbAuth := auth.NewSessionManager(connect)
 
-	servicesDB := application.NewUserApp(dbRepo)
+	connectRedis, err := redis.DialURL(config.SessionDatabaseConfig.AddressDayCurrency)
+	if err != nil {
+		return nil, err
+	}
+	dbCurr := financial.NewCurrencyManager(connectRedis)
+
+	servicesDB := application.NewUserApp(dbRepo, dbHistory, dbWallet)
 	servicesAuth := application.NewUserAuth(dbAuth)
+	servicesRate := application.NewRateApp(dbRate, dbCurr)
 	servicesLog := log.NewLogrusLogger()
 
-	return profile.NewProfile(*servicesDB, *servicesAuth, servicesLog), nil
+	return profile.NewProfile(*servicesDB, *servicesAuth, *servicesRate, servicesLog), nil
 }
 
 func createRates() (*rates.Rates, error) {

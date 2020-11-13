@@ -77,7 +77,7 @@ func (p *Profile) checkWalletTo(w http.ResponseWriter, id uint64, transaction en
 }
 
 func (p *Profile) checkWalletPayment(
-	w http.ResponseWriter, id uint64, transaction entity.PaymentHistory) (error, decimal.Decimal) {
+	w http.ResponseWriter, transaction entity.PaymentHistory) (error, decimal.Decimal) {
 	var currencyFrom entity.Currency
 	var err error
 	if currencyFrom, err = p.rateApp.GetLastRate(transaction.From); err != nil {
@@ -93,7 +93,13 @@ func (p *Profile) checkWalletPayment(
 		return err, decimal.Decimal{}
 	}
 
-	needToPay := currencyTo.Value.Div(currencyFrom.Value).Mul(transaction.Amount)
+	div := currencyFrom.Value.Div(currencyTo.Value)
+	return nil, div
+}
+
+func (p *Profile) getPay(
+	w http.ResponseWriter, id uint64, transaction entity.PaymentHistory, div decimal.Decimal) (err error, needToPay decimal.Decimal) {
+	needToPay = div.Mul(transaction.Amount)
 
 	var wallet entity.Wallet
 	if wallet, err = p.userApp.GetWallet(id, transaction.From); err != nil {
@@ -106,5 +112,5 @@ func (p *Profile) checkWalletPayment(
 		return errors.New("not enough payment"), decimal.Decimal{}
 	}
 
-	return nil, needToPay.Sub(wallet.Value)
+	return nil, needToPay
 }

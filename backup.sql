@@ -1,6 +1,7 @@
 DROP TABLE IF EXISTS user_trade Cascade;
 DROP TABLE IF EXISTS watchlist;
 DROP TABLE IF EXISTS wallet;
+DROP TABLE IF EXISTS payment_history;
 
 CREATE TABLE user_trade
 (
@@ -33,10 +34,11 @@ CREATE TABLE accounts
 CREATE TABLE payment_history
 (
     user_id    bigint NOT NULL,
-    from       text,
-    to         text,
+    from_title text,
+    to_title   text,
+    value      decimal,
     amount     decimal,
-    updated_at timestamp
+    updated_at timestamp,
 
     FOREIGN KEY (user_id) REFERENCES user_trade (id)
         ON DELETE CASCADE ON UPDATE CASCADE

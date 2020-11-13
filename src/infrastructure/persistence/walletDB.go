@@ -46,7 +46,7 @@ func (wm *WalletDBManager) GetWallets(id uint64) ([]entity.Wallet, error) {
 	defer tx.Rollback()
 
 	result, err := tx.Query(
-		"SELECT title, value FROM accounts WHERE id = $1",
+		"SELECT title, value FROM accounts WHERE user_id = $1",
 		id,
 	)
 	if err != nil {
@@ -71,7 +71,41 @@ func (wm *WalletDBManager) GetWallets(id uint64) ([]entity.Wallet, error) {
 		return nil, err
 	}
 
+	if len(wallets) == 0 {
+		if err = wm.createInitialWallet(id); err != nil {
+			return nil, nil
+		}
+		wallets = append(wallets, entity.Wallet{Title: "RUB", Value: decimal.New(1000, 0)})
+	}
+
 	return wallets, nil
+}
+
+func (wm *WalletDBManager) createInitialWallet(id uint64) error  {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	tx, err := wm.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec(
+		"INSERT INTO accounts (user_id, title, value) VALUES ($1, $2, $3)",
+		id,
+		"RUB",
+		decimal.New(100000, 0),
+	)
+
+	if err != nil {
+		return err
+	}
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (wm *WalletDBManager) CreateWallet(id uint64, title string) error  {
@@ -111,7 +145,7 @@ func (wm *WalletDBManager) CheckWallet(id uint64, title string) (bool, error) {
 	}
 	defer tx.Rollback()
 
-	row := tx.QueryRow("SELECT COUNT(*) FROM accounts WHERE EXISTS(select * FROM accounts WHERE user_id = $1 AND title = $2)",
+	row := tx.QueryRow("SELECT COUNT(user_id) FROM accounts WHERE EXISTS(select * FROM accounts WHERE user_id = $1 AND title = $2)",
 		id,
 		title,
 		)
@@ -154,3 +188,57 @@ func (wm *WalletDBManager) SetWallet(id uint64, wallet entity.Wallet) error  {
 	return nil
 }
 
+func (wm *WalletDBManager) GetWallet(id uint64, title string) (entity.Wallet, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	tx, err := wm.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return entity.Wallet{}, err
+	}
+	defer tx.Rollback()
+
+	row := tx.QueryRow(
+		"SELECT value FROM accounts WHERE user_id = $1 AND title = $2",
+		id,
+		title,
+	)
+
+	var wallet = entity.Wallet{Title: title}
+	if err = row.Scan(&wallet.Value);err != nil {
+		return entity.Wallet{}, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return entity.Wallet{}, err
+	}
+
+	return wallet, nil
+}
+
+func (wm *WalletDBManager) UpdateWallet(id uint64, wallet entity.Wallet) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	tx, err := wm.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec(
+		"UPDATE accounts SET value = value + $1 WHERE user_id = $2 AND title = $3",
+		wallet.Value,
+		id,
+		wallet.Title,
+	)
+
+	if err != nil {
+		return err
+	}
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+
+	return nil
+}

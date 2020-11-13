@@ -187,8 +187,7 @@ func (rm *RateDBManager) GetLastRate(title string) (entity.Currency, error) {
 		return entity.Currency{}, err
 	}
 	defer tx.Rollback()
-
-	row := tx.QueryRow("SELECT value, updated_at FROM history_currency_by_minutes WHERE title = $1 and DESC LIMIT 1", title)
+	row := tx.QueryRow("SELECT value, updated_at FROM history_currency_by_minutes WHERE title = $1 ORDER BY updated_at DESC LIMIT 1", title)
 
 	if err = row.Scan(&currency.Value, &currency.UpdatedAt); err != nil {
 		return entity.Currency{}, err

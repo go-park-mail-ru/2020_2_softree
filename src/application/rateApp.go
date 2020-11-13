@@ -43,5 +43,5 @@ func (rateApp *RateApp) GetRate(title string) ([]entity.Currency, error) {
 }
 
 func (rateApp *RateApp) GetLastRate(title string) (entity.Currency, error) {
-	return rateApp.GetLastRate(title)
+	return rateApp.rateRepository.GetLastRate(title)
 }

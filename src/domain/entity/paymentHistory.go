@@ -6,12 +6,11 @@ import (
 )
 
 type PaymentHistory struct {
-	From      string `json:"from"`
-	To        string `json:"to"`
-	FromValue decimal.Decimal
-	ToValue   decimal.Decimal
-	Amount    decimal.Decimal `json:"amount"`
-	Datetime  time.Time       `json:"datetime"`
+	From     string          `json:"from"`
+	To       string          `json:"to"`
+	Amount   decimal.Decimal `json:"amount"`
+	Datetime time.Time       `json:"datetime"`
+	Value    decimal.Decimal `json:"value"`
 }
 
 type Interval struct {

@@ -48,8 +48,17 @@ func (p *Profile) SetTransactions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var div decimal.Decimal
+	if err, div = p.checkWalletPayment(w, transaction); err != nil {
+		if err.Error() == "not enough payment" {
+			p.createErrorJSON(err)
+			return
+		}
+		return
+	}
+
 	var val decimal.Decimal
-	if err, val = p.checkWalletPayment(w, id, transaction); err != nil {
+	if err, val = p.getPay(w, id, transaction, div); err != nil {
 		if err.Error() == "not enough payment" {
 			p.createErrorJSON(err)
 			return
@@ -61,18 +70,20 @@ func (p *Profile) SetTransactions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	val = val.Mul(decimal.New(-1, 0))
 	if err = p.userApp.UpdateWallet(id, entity.Wallet{Title: transaction.From, Value: val}); err != nil {
 		p.log.Info("func: SetTransactions, with error while UpdateWallet: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	if err = p.userApp.SetWallet(id, entity.Wallet{Title: transaction.To, Value: transaction.Amount}); err != nil {
+	if err = p.userApp.UpdateWallet(id, entity.Wallet{Title: transaction.To, Value: transaction.Amount}); err != nil {
 		p.log.Info("func: SetTransactions, with error while UpdateWallet: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
+	transaction.Value = div
 	if err = p.userApp.AddToPaymentHistory(id, transaction); err != nil {
 		p.log.Info("func: SetTransactions, with error while UpdateWallet: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
