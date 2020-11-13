@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/shopspring/decimal"
 	"server/src/domain/entity"
 	"server/src/infrastructure/config"
 	"time"
@@ -34,7 +35,7 @@ func NewWalletDBManager() (*WalletDBManager, error) {
 	return &WalletDBManager{DB: db}, nil
 }
 
-func (wm *WalletDBManager) GetWallet(id uint64) ([]entity.Wallet, error) {
+func (wm *WalletDBManager) GetWallets(id uint64) ([]entity.Wallet, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -73,7 +74,7 @@ func (wm *WalletDBManager) GetWallet(id uint64) ([]entity.Wallet, error) {
 	return wallets, nil
 }
 
-func (wm *WalletDBManager) SetWallet(id uint64, newWallet entity.Wallet) error  {
+func (wm *WalletDBManager) CreateWallet(id uint64, title string) error  {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -86,8 +87,61 @@ func (wm *WalletDBManager) SetWallet(id uint64, newWallet entity.Wallet) error  
 	_, err = tx.Exec(
 		"INSERT INTO accounts (user_id, title, value) VALUES ($1, $2, $3)",
 		id,
-		newWallet.Title,
-		newWallet.Value,
+		title,
+		decimal.New(0, 0),
+	)
+
+	if err != nil {
+		return err
+	}
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (wm *WalletDBManager) CheckWallet(id uint64, title string) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	tx, err := wm.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return false, err
+	}
+	defer tx.Rollback()
+
+	row := tx.QueryRow("SELECT DISTINCT user_id FROM accounts WHERE EXISTS(select * FROM accounts WHERE user_id = $1 AND title = $2)",
+		id,
+		title,
+		)
+
+	var exists int
+	if err = row.Scan(&exists); err != nil {
+		return false, err
+	}
+	if err = tx.Commit(); err != nil {
+		return false, err
+	}
+
+	return exists != 0, nil
+}
+
+func (wm *WalletDBManager) SetWallet(id uint64, wallet entity.Wallet) error  {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	tx, err := wm.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec(
+		"INSERT INTO accounts (user_id, title, value) VALUES ($1, $2, $3)",
+		id,
+		wallet.Title,
+		wallet.Value,
 	)
 
 	if err != nil {
