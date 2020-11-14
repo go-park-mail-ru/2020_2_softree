@@ -51,7 +51,7 @@ func (sm *SessionManager) CheckAuth(sessionValue string) (uint64, error) {
 	if err == redis.ErrNil {
 		return 0, errors.New("no session")
 	} else if err != nil {
-		return 0, errors.New("redis error during checking session")
+		return 0, err
 	}
 
 	strRes := string(data)
