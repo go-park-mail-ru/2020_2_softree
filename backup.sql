@@ -44,6 +44,11 @@ CREATE TABLE payment_history
         ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+truncate user_trade cascade;
+truncate watchlist;
+truncate accounts;
+truncate payment_history;
+
 DROP TABLE IF EXISTS history_currency_by_minutes;
 DROP TABLE IF EXISTS history_currency_by_hours;
 DROP TABLE IF EXISTS history_currency_by_week;
