@@ -75,7 +75,7 @@ func (wm *WalletDBManager) GetWallets(id uint64) ([]entity.Wallet, error) {
 		if err = wm.createInitialWallet(id); err != nil {
 			return nil, nil
 		}
-		wallets = append(wallets, entity.Wallet{Title: "USD", Value: decimal.New(1000, 0)})
+		wallets = append(wallets, entity.Wallet{Title: "RUB", Value: decimal.New(100000, 0)})
 	}
 
 	return wallets, nil
@@ -94,8 +94,8 @@ func (wm *WalletDBManager) createInitialWallet(id uint64) error  {
 	_, err = tx.Exec(
 		"INSERT INTO accounts (user_id, title, value) VALUES ($1, $2, $3)",
 		id,
-		"USD",
-		decimal.New(1000, 0),
+		"RUB",
+		decimal.New(100000, 0),
 	)
 
 	if err != nil {

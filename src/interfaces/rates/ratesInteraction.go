@@ -121,6 +121,10 @@ func (rates *Rates) GetMarkets(w http.ResponseWriter, r *http.Request) {
 		{Base: "USD", Title: "RUB"},
 		{Base: "USD", Title: "JPY"},
 		{Base: "USD", Title: "GBP"},
+		{Base: "RUB", Title: "ZAR"},
+		{Base: "RUB", Title: "EUR"},
+		{Base: "RUB", Title: "BRL"},
+		{Base: "RUB", Title: "ILS"},
 	}
 	result, _ := json.Marshal(resRates)
 
