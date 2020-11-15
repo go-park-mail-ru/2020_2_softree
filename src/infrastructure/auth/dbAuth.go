@@ -11,7 +11,7 @@ import (
 	"github.com/gomodule/redigo/redis"
 )
 
-const day = 60*60*24
+const day = 60 * 60 * 24
 
 type Session struct {
 	id    uint64
@@ -82,8 +82,8 @@ func (sm *SessionManager) CreateCookie() (http.Cookie, error) {
 		Name:     "session_id",
 		Value:    hash,
 		Expires:  time.Now().Add(24 * time.Hour),
-		Domain:   config.GlobalServerConfig.Domain,
-		Secure:   config.GlobalServerConfig.Secure,
+		Domain:   config.GlobalConfig.GetString("server.domain"),
+		Secure:   config.GlobalConfig.GetBool("server.secure"),
 		HttpOnly: true,
 		Path:     "/",
 	}, nil

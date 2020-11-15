@@ -3,7 +3,6 @@ package persistence
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"server/src/domain/entity"
 	"server/src/domain/repository"
 	"server/src/infrastructure/config"
@@ -39,19 +38,13 @@ type RateDBManager struct {
 }
 
 func NewRateDBManager() (*RateDBManager, error) {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		config.UserDatabaseConfig.Host,
-		5432,
-		config.UserDatabaseConfig.User,
-		config.UserDatabaseConfig.Password,
-		config.UserDatabaseConfig.Schema)
-
-	db, err := sql.Open("postgres", psqlInfo)
-
+	db, err := sql.Open("postgres", config.GlobalConfig.GetString("postgres.URL"))
+	if err != nil {
+		return nil, err
+	}
 	db.SetMaxOpenConns(10)
 
-	err = db.Ping() // вот тут будет первое подключение к базе
+	err = db.Ping()
 	if err != nil {
 		return nil, err
 	}

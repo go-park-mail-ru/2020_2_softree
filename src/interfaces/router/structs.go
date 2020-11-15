@@ -2,16 +2,16 @@ package router
 
 import (
 	"fmt"
-	"github.com/gomodule/redigo/redis"
 	"server/src/application"
 	"server/src/infrastructure/auth"
 	"server/src/infrastructure/config"
 	"server/src/infrastructure/financial"
-	"server/src/infrastructure/log"
 	"server/src/infrastructure/persistence"
 	"server/src/interfaces/authorization"
 	"server/src/interfaces/profile"
 	"server/src/interfaces/rates"
+
+	"github.com/gomodule/redigo/redis"
 )
 
 func createAuthenticate() (*authorization.Authentication, error) {
@@ -27,8 +27,7 @@ func createAuthenticate() (*authorization.Authentication, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	connect, err := redis.DialURL(config.SessionDatabaseConfig.AddressSessions)
+	connect, err := redis.DialURL(config.GlobalConfig.GetString("redis.sessionURL"))
 	if err != nil {
 		return nil, err
 	}
@@ -36,9 +35,8 @@ func createAuthenticate() (*authorization.Authentication, error) {
 
 	servicesDB := application.NewUserApp(dbRepo, dbHistory, dbWallet)
 	servicesAuth := application.NewUserAuth(dbAuth)
-	servicesLog := log.NewLogrusLogger()
 
-	return authorization.NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), nil
+	return authorization.NewAuthenticate(*servicesDB, *servicesAuth), nil
 }
 
 func createProfile() (*profile.Profile, error) {
@@ -59,13 +57,13 @@ func createProfile() (*profile.Profile, error) {
 		return nil, err
 	}
 
-	connect, err := redis.DialURL(config.SessionDatabaseConfig.AddressSessions)
+	connect, err := redis.DialURL(config.GlobalConfig.GetString("redis.sessionURL"))
 	if err != nil {
 		return nil, err
 	}
 	dbAuth := auth.NewSessionManager(connect)
 
-	connectRedis, err := redis.DialURL(config.SessionDatabaseConfig.AddressDayCurrency)
+	connectRedis, err := redis.DialURL(config.GlobalConfig.GetString("redis.currencyURL"))
 	if err != nil {
 		return nil, err
 	}
@@ -74,9 +72,8 @@ func createProfile() (*profile.Profile, error) {
 	servicesDB := application.NewUserApp(dbRepo, dbHistory, dbWallet)
 	servicesAuth := application.NewUserAuth(dbAuth)
 	servicesRate := application.NewRateApp(dbRate, dbCurr)
-	servicesLog := log.NewLogrusLogger()
 
-	return profile.NewProfile(*servicesDB, *servicesAuth, *servicesRate, servicesLog), nil
+	return profile.NewProfile(*servicesDB, *servicesAuth, *servicesRate), nil
 }
 
 func createRates() (*rates.Rates, error) {
@@ -85,16 +82,16 @@ func createRates() (*rates.Rates, error) {
 		return nil, err
 	}
 
-	connect, err := redis.DialURL(config.SessionDatabaseConfig.AddressDayCurrency)
+	connect, err := redis.DialURL(config.GlobalConfig.GetString("redis.currencyURL"))
 	if err != nil {
+		println("4")
 		return nil, err
 	}
 	dbAuth := financial.NewCurrencyManager(connect)
 
 	servicesDB := application.NewRateApp(dbRepo, dbAuth)
-	servicesLog := log.NewLogrusLogger()
 
-	return rates.NewRates(*servicesDB, servicesLog), nil
+	return rates.NewRates(*servicesDB), nil
 }
 
 func CreateAppStructs() (*authorization.Authentication, *profile.Profile, *rates.Rates, error) {

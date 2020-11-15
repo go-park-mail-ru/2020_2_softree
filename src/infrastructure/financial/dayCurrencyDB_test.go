@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-var testData = map[string]interface{} {
+var testData = map[string]interface{}{
 	"USD": 1,
 	"RUB": 2,
 	"EUR": 3,
@@ -49,9 +49,9 @@ func TestCurrencyManager_SaveCurrency(t *testing.T) {
 	currencyManager.SaveCurrency(mockFinance)
 
 	for name, value := range testData {
-		res, err:= s.Get(name)
+		res, err := s.Get(name)
 		require.NoError(t, err)
-		strRes, err:= strconv.Atoi(res)
+		strRes, err := strconv.Atoi(res)
 		require.NoError(t, err)
 		require.EqualValues(t, value, strRes)
 	}

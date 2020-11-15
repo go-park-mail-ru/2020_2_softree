@@ -2,17 +2,17 @@ package authorization
 
 import (
 	"errors"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"server/src/application"
 	"server/src/domain/entity"
-	"server/src/infrastructure/log"
 	mocks "server/src/infrastructure/mock"
 	"server/src/infrastructure/security"
 	"strings"
 	"testing"
+
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAuth_Success(t *testing.T) {
@@ -113,9 +113,8 @@ func createAuthSuccess(t *testing.T) (*Authentication, *gomock.Controller) {
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth), ctrl
 }
 
 func createAuthFailUnauthorized(t *testing.T) (*Authentication, *gomock.Controller) {
@@ -125,9 +124,8 @@ func createAuthFailUnauthorized(t *testing.T) (*Authentication, *gomock.Controll
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth), ctrl
 }
 
 func createAuthFailSession(t *testing.T) (*Authentication, *gomock.Controller) {
@@ -139,9 +137,8 @@ func createAuthFailSession(t *testing.T) (*Authentication, *gomock.Controller) {
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth), ctrl
 }
 
 func createAuthFailUser(t *testing.T) (*Authentication, *gomock.Controller) {
@@ -155,9 +152,8 @@ func createAuthFailUser(t *testing.T) (*Authentication, *gomock.Controller) {
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth), ctrl
 }
 
 func createExpectedUser(email, pass string) (expected entity.User) {

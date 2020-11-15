@@ -7,12 +7,12 @@ import (
 	"server/src/infrastructure/config"
 )
 
-func enableCORS(cfg *config.CORSConfig, handler http.Handler) http.Handler {
+func enableCORS(handler http.Handler) http.Handler {
 	var (
-		allowedOrigins = handlers.AllowedOrigins(cfg.AllowedOrigins)
-		allowedHeaders = handlers.AllowedHeaders(cfg.AllowedHeaders)
-		exposedHeaders = handlers.ExposedHeaders(cfg.ExposedHeaders)
-		allowedMethods = handlers.AllowedMethods(cfg.AllowedMethods)
+		allowedOrigins = handlers.AllowedOrigins(config.GlobalConfig.GetStringSlice("CORS.allowedOrigins"))
+		allowedHeaders = handlers.AllowedHeaders(config.GlobalConfig.GetStringSlice("CORS.allowedHeaders"))
+		exposedHeaders = handlers.ExposedHeaders(config.GlobalConfig.GetStringSlice("CORS.exposedHeaders"))
+		allowedMethods = handlers.AllowedMethods(config.GlobalConfig.GetStringSlice("CORS.allowedMethods"))
 		credentials    = handlers.AllowCredentials()
 	)
 
@@ -21,6 +21,6 @@ func enableCORS(cfg *config.CORSConfig, handler http.Handler) http.Handler {
 
 func CORSMiddleware() mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
-		return enableCORS(&config.GlobalCORSConfig, next)
+		return enableCORS(next)
 	}
 }
