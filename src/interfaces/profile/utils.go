@@ -3,9 +3,12 @@ package profile
 import (
 	"encoding/json"
 	"errors"
-	"github.com/shopspring/decimal"
 	"net/http"
 	"server/src/domain/entity"
+	"server/src/infrastructure/logger"
+
+	"github.com/shopspring/decimal"
+	"github.com/sirupsen/logrus"
 )
 
 func (p *Profile) createErrorJSON(err error) (errs entity.ErrorJSON) {
@@ -28,14 +31,19 @@ func (p *Profile) createErrorJSON(err error) (errs entity.ErrorJSON) {
 func (p *Profile) createServerError(errs *entity.ErrorJSON, w http.ResponseWriter) {
 	res, err := json.Marshal(errs)
 	if err != nil {
-		p.log.Print(err)
+		logger.GlobalLogger.WithFields(logrus.Fields{
+			"status":   http.StatusInternalServerError,
+			"function": "createServerError",
+		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
 	w.WriteHeader(http.StatusBadRequest)
 	w.Header().Add("Content-Type", "application/json")
 	if _, err := w.Write(res); err != nil {
-		p.log.Print(err)
+		logger.GlobalLogger.WithFields(logrus.Fields{
+			"function": "createServerError",
+		}).Error(err)
 	}
 }
 
@@ -43,7 +51,10 @@ func (p *Profile) checkWalletFrom(w http.ResponseWriter, id uint64, transaction 
 	var exist bool
 	var err error
 	if exist, err = p.userApp.CheckWallet(id, transaction.From); err != nil {
-		p.log.Info("func: checkWallets, with error while CheckWallet: ", err)
+		logger.GlobalLogger.WithFields(logrus.Fields{
+			"status":   http.StatusInternalServerError,
+			"function": "checkWalletFrom",
+		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return false
 	}
@@ -60,14 +71,20 @@ func (p *Profile) checkWalletTo(w http.ResponseWriter, id uint64, transaction en
 	var exist bool
 	var err error
 	if exist, err = p.userApp.CheckWallet(id, transaction.To); err != nil {
-		p.log.Info("func: checkWallets, with error while CheckWallet: ", err)
+		logger.GlobalLogger.WithFields(logrus.Fields{
+			"status":   http.StatusInternalServerError,
+			"function": "checkWalletTo",
+		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return false
 	}
 
 	if !exist {
 		if err = p.userApp.CreateWallet(id, transaction.To); err != nil {
-			p.log.Info("func: checkWallets, with error while CreateWallet: ", err)
+			logger.GlobalLogger.WithFields(logrus.Fields{
+				"status":   http.StatusInternalServerError,
+				"function": "checkWallets",
+			}).Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return false
 		}
@@ -81,14 +98,22 @@ func (p *Profile) checkWalletPayment(
 	var currencyFrom entity.Currency
 	var err error
 	if currencyFrom, err = p.rateApp.GetLastRate(transaction.From); err != nil {
-		p.log.Info("func: checkWalletPayment, with error while GetLastRate(", transaction.From, "): ", err)
+		logger.GlobalLogger.WithFields(logrus.Fields{
+			"status":          http.StatusInternalServerError,
+			"function":        "checkWalletPayment",
+			"transactionFrom": transaction.From,
+		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return err, decimal.Decimal{}
 	}
 
 	var currencyTo entity.Currency
 	if currencyTo, err = p.rateApp.GetLastRate(transaction.To); err != nil {
-		p.log.Info("func: checkWalletPayment, with error while GetLastRate(", transaction.To, "): ", err)
+		logger.GlobalLogger.WithFields(logrus.Fields{
+			"status":          http.StatusInternalServerError,
+			"function":        "checkWalletPayment",
+			"transactionFrom": transaction.To,
+		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return err, decimal.Decimal{}
 	}
@@ -103,7 +128,11 @@ func (p *Profile) getPay(
 
 	var wallet entity.Wallet
 	if wallet, err = p.userApp.GetWallet(id, transaction.From); err != nil {
-		p.log.Info("func: checkWalletPayment, with error while GetWallet(", transaction.From, "): ", err)
+		logger.GlobalLogger.WithFields(logrus.Fields{
+			"status":          http.StatusInternalServerError,
+			"function":        "getPay",
+			"transactionFrom": transaction.From,
+		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return err, decimal.Decimal{}
 	}

@@ -1,20 +1,19 @@
 package profile
 
 import (
-	"github.com/microcosm-cc/bluemonday"
 	"server/src/application"
-	"server/src/infrastructure/log"
+
+	"github.com/microcosm-cc/bluemonday"
 )
 
 type Profile struct {
 	userApp   application.UserApp
 	rateApp   application.RateApp
 	auth      application.UserAuth
-	log       log.LogHandler
 	sanitizer bluemonday.Policy
 }
 
 func NewProfile(
-	uApp application.UserApp, auth application.UserAuth, rApp application.RateApp, log log.LogHandler) *Profile {
-	return &Profile{userApp: uApp, auth: auth, log: log, sanitizer: *bluemonday.UGCPolicy(), rateApp: rApp}
+	uApp application.UserApp, auth application.UserAuth, rApp application.RateApp) *Profile {
+	return &Profile{userApp: uApp, auth: auth, sanitizer: *bluemonday.UGCPolicy(), rateApp: rApp}
 }

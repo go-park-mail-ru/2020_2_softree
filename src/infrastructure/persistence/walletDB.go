@@ -3,11 +3,11 @@ package persistence
 import (
 	"context"
 	"database/sql"
-	"fmt"
-	"github.com/shopspring/decimal"
 	"server/src/domain/entity"
 	"server/src/infrastructure/config"
 	"time"
+
+	"github.com/shopspring/decimal"
 )
 
 type WalletDBManager struct {
@@ -15,19 +15,13 @@ type WalletDBManager struct {
 }
 
 func NewWalletDBManager() (*WalletDBManager, error) {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		config.UserDatabaseConfig.Host,
-		5432,
-		config.UserDatabaseConfig.User,
-		config.UserDatabaseConfig.Password,
-		config.UserDatabaseConfig.Schema)
-
-	db, err := sql.Open("postgres", psqlInfo)
-
+	db, err := sql.Open("postgres", config.GlobalConfig.GetString("postgres.URL"))
+	if err != nil {
+		return nil, err
+	}
 	db.SetMaxOpenConns(10)
 
-	err = db.Ping() // вот тут будет первое подключение к базе
+	err = db.Ping()
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +75,7 @@ func (wm *WalletDBManager) GetWallets(id uint64) ([]entity.Wallet, error) {
 	return wallets, nil
 }
 
-func (wm *WalletDBManager) createInitialWallet(id uint64) error  {
+func (wm *WalletDBManager) createInitialWallet(id uint64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -108,7 +102,7 @@ func (wm *WalletDBManager) createInitialWallet(id uint64) error  {
 	return nil
 }
 
-func (wm *WalletDBManager) CreateWallet(id uint64, title string) error  {
+func (wm *WalletDBManager) CreateWallet(id uint64, title string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -148,7 +142,7 @@ func (wm *WalletDBManager) CheckWallet(id uint64, title string) (bool, error) {
 	row := tx.QueryRow("SELECT COUNT(user_id) FROM accounts WHERE EXISTS(select * FROM accounts WHERE user_id = $1 AND title = $2)",
 		id,
 		title,
-		)
+	)
 
 	var exists int
 	if err = row.Scan(&exists); err != nil {
@@ -161,7 +155,7 @@ func (wm *WalletDBManager) CheckWallet(id uint64, title string) (bool, error) {
 	return exists != 0, nil
 }
 
-func (wm *WalletDBManager) SetWallet(id uint64, wallet entity.Wallet) error  {
+func (wm *WalletDBManager) SetWallet(id uint64, wallet entity.Wallet) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -205,7 +199,7 @@ func (wm *WalletDBManager) GetWallet(id uint64, title string) (entity.Wallet, er
 	)
 
 	var wallet = entity.Wallet{Title: title}
-	if err = row.Scan(&wallet.Value);err != nil {
+	if err = row.Scan(&wallet.Value); err != nil {
 		return entity.Wallet{}, err
 	}
 

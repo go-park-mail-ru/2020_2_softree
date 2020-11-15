@@ -2,9 +2,12 @@ package profile
 
 import (
 	"encoding/json"
-	"github.com/shopspring/decimal"
 	"net/http"
 	"server/src/domain/entity"
+	"server/src/infrastructure/logger"
+
+	"github.com/shopspring/decimal"
+	"github.com/sirupsen/logrus"
 )
 
 func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
@@ -12,21 +15,31 @@ func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
 
 	history, err := p.userApp.GetAllPaymentHistory(id)
 	if err != nil {
-		p.log.Info("user id: ", id, ", func: GetAllPaymentHistory, with error: ", err)
+		logger.GlobalLogger.WithFields(logrus.Fields{
+			"status":   http.StatusInternalServerError,
+			"function": "GetTransactions",
+			"userID":   id,
+		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	res, err := json.Marshal(history)
 	if err != nil {
-		p.log.Info("func: GetHistory, with error while marshal: ", err)
+		logger.GlobalLogger.WithFields(logrus.Fields{
+			"status":   http.StatusInternalServerError,
+			"function": "GetTransactions",
+		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 	if _, err = w.Write(res); err != nil {
-		p.log.Info("func: GetAllPaymentHistory, with error: ", err)
+		logger.GlobalLogger.WithFields(logrus.Fields{
+			"status":   http.StatusInternalServerError,
+			"function": "GetTransactions",
+		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -38,7 +51,10 @@ func (p *Profile) SetTransactions(w http.ResponseWriter, r *http.Request) {
 	var transaction entity.PaymentHistory
 	err := json.NewDecoder(r.Body).Decode(&transaction)
 	if err != nil {
-		p.log.Info("func: SetTransactions, with error while decode json: ", err)
+		logger.GlobalLogger.WithFields(logrus.Fields{
+			"status":   http.StatusInternalServerError,
+			"function": "SetTransactions",
+		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -72,20 +88,29 @@ func (p *Profile) SetTransactions(w http.ResponseWriter, r *http.Request) {
 
 	val = val.Mul(decimal.New(-1, 0))
 	if err = p.userApp.UpdateWallet(id, entity.Wallet{Title: transaction.From, Value: val}); err != nil {
-		p.log.Info("func: SetTransactions, with error while UpdateWallet: ", err)
+		logger.GlobalLogger.WithFields(logrus.Fields{
+			"status":   http.StatusInternalServerError,
+			"function": "SetTransactions",
+		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	if err = p.userApp.UpdateWallet(id, entity.Wallet{Title: transaction.To, Value: transaction.Amount}); err != nil {
-		p.log.Info("func: SetTransactions, with error while UpdateWallet: ", err)
+		logger.GlobalLogger.WithFields(logrus.Fields{
+			"status":   http.StatusInternalServerError,
+			"function": "SetTransactions",
+		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	transaction.Value = div
 	if err = p.userApp.AddToPaymentHistory(id, transaction); err != nil {
-		p.log.Info("func: SetTransactions, with error while UpdateWallet: ", err)
+		logger.GlobalLogger.WithFields(logrus.Fields{
+			"status":   http.StatusInternalServerError,
+			"function": "SetTransactions",
+		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -99,7 +124,10 @@ func (p *Profile) GetHistoryInInterval(w http.ResponseWriter, r *http.Request) {
 	var interval entity.Interval
 	err := json.NewDecoder(r.Body).Decode(&interval)
 	if err != nil {
-		p.log.Info("func: GetHistoryInInterval, with error while decode json: ", err)
+		logger.GlobalLogger.WithFields(logrus.Fields{
+			"status":   http.StatusInternalServerError,
+			"function": "GetHistoryInInterval",
+		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -107,21 +135,30 @@ func (p *Profile) GetHistoryInInterval(w http.ResponseWriter, r *http.Request) {
 
 	history, err := p.userApp.GetIntervalPaymentHistory(id, interval)
 	if err != nil {
-		p.log.Info("func: GetHistoryInInterval, with GetIntervalPaymentHistory error: ", err)
+		logger.GlobalLogger.WithFields(logrus.Fields{
+			"status":   http.StatusInternalServerError,
+			"function": "GetHistoryInInterval",
+		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	res, err := json.Marshal(history)
 	if err != nil {
-		p.log.Info("func: GetHistoryInInterval, with error while marshal: ", err)
+		logger.GlobalLogger.WithFields(logrus.Fields{
+			"status":   http.StatusInternalServerError,
+			"function": "GetHistoryInInterval",
+		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 	if _, err = w.Write(res); err != nil {
-		p.log.Info("func: GetHistoryInInterval, with error: ", err)
+		logger.GlobalLogger.WithFields(logrus.Fields{
+			"status":   http.StatusInternalServerError,
+			"function": "GetHistoryInInterval",
+		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

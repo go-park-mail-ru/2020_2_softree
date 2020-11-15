@@ -3,13 +3,17 @@ package rates
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+	"server/src/infrastructure/config"
+	"server/src/infrastructure/financial"
+	"server/src/infrastructure/logger"
+	"server/src/infrastructure/persistence"
+	"time"
+
 	"github.com/Finnhub-Stock-API/finnhub-go"
 	"github.com/antihax/optional"
 	"github.com/gorilla/mux"
-	"net/http"
-	"server/src/infrastructure/financial"
-	"server/src/infrastructure/persistence"
-	"time"
+	"github.com/sirupsen/logrus"
 )
 
 func (rates *Rates) GetRatesFromApi() {
@@ -18,7 +22,7 @@ func (rates *Rates) GetRatesFromApi() {
 
 	api := finnhub.NewAPIClient(finnhub.NewConfiguration()).DefaultApi
 	auth := context.WithValue(context.Background(), finnhub.ContextAPIKey, finnhub.APIKey{
-		Key: "bttn28748v6ojt2hev60",
+		Key: config.GlobalConfig.GetString("finnhub-api.token"),
 	})
 
 	forexRates, _, _ := api.ForexRates(auth, &finnhub.ForexRatesOpts{Base: optional.NewString("USD")})
@@ -34,19 +38,25 @@ func (rates *Rates) GetRatesFromApi() {
 
 		err := rates.rateApp.SaveRates(finance)
 		if err != nil {
-			rates.log.Print(err)
+			logger.GlobalLogger.WithFields(logrus.Fields{
+				"function": "GetRatesFromApi",
+			}).Error(err)
 			return
 		}
 
 		if currencies, err := rates.rateApp.GetInitialCurrency(); len(currencies) == 0 {
 			if err = rates.rateApp.SaveCurrency(finance); err != nil {
-				rates.log.Print(err)
+				logger.GlobalLogger.WithFields(logrus.Fields{
+					"function": "GetRatesFromApi",
+				}).Error(err)
 				return
 			}
 		}
 		if time.Now().Hour() == 10 && time.Now().Minute() == 2 { // 10:02
 			if err = rates.rateApp.SaveCurrency(finance); err != nil {
-				rates.log.Print(err)
+				logger.GlobalLogger.WithFields(logrus.Fields{
+					"function": "GetRatesFromApi",
+				}).Error(err)
 				return
 			}
 		}
@@ -56,7 +66,10 @@ func (rates *Rates) GetRatesFromApi() {
 func (rates *Rates) GetRates(w http.ResponseWriter, r *http.Request) {
 	resRates, err := rates.rateApp.GetRates()
 	if err != nil {
-		rates.log.Print(err)
+		logger.GlobalLogger.WithFields(logrus.Fields{
+			"status":   http.StatusInternalServerError,
+			"function": "GetRates",
+		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -66,7 +79,9 @@ func (rates *Rates) GetRates(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	if _, err := w.Write(result); err != nil {
-		rates.log.Print(err)
+		logger.GlobalLogger.WithFields(logrus.Fields{
+			"function": "GetRates",
+		}).Error(err)
 	}
 }
 
@@ -75,14 +90,21 @@ func (rates *Rates) GetURLRate(w http.ResponseWriter, r *http.Request) {
 
 	title := vars["title"]
 	if !validate(title) {
-		rates.log.Print("bad title: " + title)
+		logger.GlobalLogger.WithFields(logrus.Fields{
+			"status":   http.StatusBadRequest,
+			"function": "GetURLRate",
+			"title":    title,
+		}).Error("Bad title")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	resRates, err := rates.rateApp.GetRate(title)
 	if err != nil {
-		rates.log.Print(err)
+		logger.GlobalLogger.WithFields(logrus.Fields{
+			"status":   http.StatusInternalServerError,
+			"function": "GetURLRate",
+		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -92,7 +114,9 @@ func (rates *Rates) GetURLRate(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	if _, err := w.Write(result); err != nil {
-		rates.log.Print(err)
+		logger.GlobalLogger.WithFields(logrus.Fields{
+			"function": "GetURLRate",
+		}).Error(err)
 	}
 }
 
@@ -132,6 +156,8 @@ func (rates *Rates) GetMarkets(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	if _, err := w.Write(result); err != nil {
-		rates.log.Print(err)
+		logger.GlobalLogger.WithFields(logrus.Fields{
+			"function": "GetMarkets",
+		}).Error(err)
 	}
 }

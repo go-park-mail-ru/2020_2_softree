@@ -2,15 +2,15 @@ package authorization
 
 import (
 	"errors"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"server/src/application"
-	"server/src/infrastructure/log"
 	mocks "server/src/infrastructure/mock"
 	"strings"
 	"testing"
+
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestLogin_Success(t *testing.T) {
@@ -92,9 +92,8 @@ func createLoginSuccess(t *testing.T) (*Authentication, *gomock.Controller) {
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth), ctrl
 }
 
 func createLoginFailValidation(t *testing.T) (*Authentication, *gomock.Controller) {
@@ -104,9 +103,8 @@ func createLoginFailValidation(t *testing.T) (*Authentication, *gomock.Controlle
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth), ctrl
 }
 
 func createLoginFailNoUser(t *testing.T) (*Authentication, *gomock.Controller) {
@@ -118,9 +116,8 @@ func createLoginFailNoUser(t *testing.T) (*Authentication, *gomock.Controller) {
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth), ctrl
 }
 
 func createLoginFailCreateAuth(t *testing.T) (*Authentication, *gomock.Controller) {
@@ -136,7 +133,6 @@ func createLoginFailCreateAuth(t *testing.T) (*Authentication, *gomock.Controlle
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth), ctrl
 }

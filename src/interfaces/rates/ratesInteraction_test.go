@@ -2,15 +2,15 @@ package rates
 
 import (
 	"errors"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"server/src/application"
 	"server/src/domain/entity"
-	"server/src/infrastructure/log"
 	mocks "server/src/infrastructure/mock"
 	"testing"
+
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetRates_Success(t *testing.T) {
@@ -80,7 +80,6 @@ func createForexRateSuccess(t *testing.T) (*Rates, *gomock.Controller) {
 	dayCurrMock := mocks.NewDayCurrencyRepositoryForMock(ctrl)
 
 	servicesDB := application.NewRateApp(rateMock, dayCurrMock)
-	servicesLog := log.NewLogrusLogger()
 
 	return NewRates(*servicesDB, servicesLog), ctrl
 }
@@ -94,7 +93,6 @@ func createForexRateFail(t *testing.T) (*Rates, *gomock.Controller) {
 	dayCurrMock := mocks.NewDayCurrencyRepositoryForMock(ctrl)
 
 	servicesDB := application.NewRateApp(rateMock, dayCurrMock)
-	servicesLog := log.NewLogrusLogger()
 
 	return NewRates(*servicesDB, servicesLog), ctrl
 }
@@ -107,7 +105,6 @@ func createGetURLRateFail(t *testing.T) (*Rates, *gomock.Controller) {
 	dayCurrMock := mocks.NewDayCurrencyRepositoryForMock(ctrl)
 
 	servicesDB := application.NewRateApp(rateMock, dayCurrMock)
-	servicesLog := log.NewLogrusLogger()
 
 	return NewRates(*servicesDB, servicesLog), ctrl
 }
@@ -120,7 +117,6 @@ func createGetMarketsSuccess(t *testing.T) (*Rates, *gomock.Controller) {
 	dayCurrMock := mocks.NewDayCurrencyRepositoryForMock(ctrl)
 
 	servicesDB := application.NewRateApp(rateMock, dayCurrMock)
-	servicesLog := log.NewLogrusLogger()
 
 	return NewRates(*servicesDB, servicesLog), ctrl
 }

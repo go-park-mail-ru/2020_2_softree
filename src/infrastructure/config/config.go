@@ -1,73 +1,53 @@
 package config
 
 import (
-	"io/ioutil"
+	"fmt"
+	"path/filepath"
 
-	"gopkg.in/yaml.v2"
+	"github.com/spf13/viper"
 )
 
-type ServerConfig struct {
-	Port       string `yaml:"port"`
-	IP         string `yaml:"ip"`
-	Domain     string `yaml:"domain"`
-	Secure     bool   `yaml:"secure"`
-	LogLevel   string `yaml:"logLevel"`
-	LogFile    string `yaml:"logFile"`
-	ConfigFile string
-}
+// GlobalConfig instance of application configuration
+var GlobalConfig = viper.New()
 
-type CORSConfig struct {
-	AllowedOrigins []string
-	AllowedHeaders []string
-	AllowedMethods []string
-	ExposedHeaders []string
-}
+// ParseConfig push application settings in global store
+func ParseConfig(filename string, defaults map[string]interface{}) error {
+	for key, value := range defaults {
+		GlobalConfig.SetDefault(key, value)
+	}
 
-var GlobalServerConfig = ServerConfig{}
-
-var GlobalCORSConfig = CORSConfig{
-	AllowedOrigins: []string{"http://localhost", "https://softree.group", "http://localhost:3000", "http://self.ru"},
-	AllowedHeaders: []string{"If-Modified-Since", "Cache-Control", "Content-Type", "Range"},
-	AllowedMethods: []string{"GET", "POST", "OPTIONS", "PUT", "PATCH", "DELETE"},
-	ExposedHeaders: []string{"Content-Length", "Content-Range"},
-}
-
-type RedisConfig struct {
-	AddressSessions    string `yaml:"redis_session_path"`
-	AddressDayCurrency string `yaml:"redis_currency_path"`
-}
-
-var SessionDatabaseConfig = RedisConfig{}
-
-type UserBDConfig struct {
-	User     string `yaml:"postgres_user"`
-	Password string `yaml:"postgres_password"`
-	Host     string `yaml:"postgres_host"`
-	Schema   string `yaml:"postgres_db"`
-}
-
-var UserDatabaseConfig = UserBDConfig{}
-
-func ParseConfig() error {
-	yamlFile, err := ioutil.ReadFile(GlobalServerConfig.ConfigFile)
+	fullpath, err := filepath.Abs(filename)
 	if err != nil {
 		return err
 	}
 
-	err = yaml.Unmarshal(yamlFile, &GlobalServerConfig)
-	if err != nil {
+	GlobalConfig.SetConfigFile(fullpath)
+	GlobalConfig.AutomaticEnv()
+	if err := GlobalConfig.ReadInConfig(); err != nil {
 		return err
 	}
-
-	err = yaml.Unmarshal(yamlFile, &SessionDatabaseConfig)
-	if err != nil {
-		return err
-	}
-
-	err = yaml.Unmarshal(yamlFile, &UserDatabaseConfig)
-	if err != nil {
-		return err
-	}
-
+	createURLS()
 	return nil
+}
+
+func createURLS() {
+	GlobalConfig.Set("redis.sessionURL", fmt.Sprintf("redis://%s:%s:%d%s",
+		GlobalConfig.GetString("redis.user"),
+		GlobalConfig.GetString("redis.host"),
+		GlobalConfig.GetInt("redis.port"),
+		GlobalConfig.GetString("redis.sessionPath")))
+
+	GlobalConfig.Set("redis.currencyURL", fmt.Sprintf("redis://%s:%s:%d%s",
+		GlobalConfig.GetString("redis.user"),
+		GlobalConfig.GetString("redis.host"),
+		GlobalConfig.GetInt("redis.port"),
+		GlobalConfig.GetString("redis.currencyPath")))
+
+	GlobalConfig.Set("postgres.URL", fmt.Sprintf(
+		"host=%s port=%d user=%s "+"password=%s dbname=%s sslmode=disable",
+		GlobalConfig.GetString("postgres.host"),
+		GlobalConfig.GetInt("postgres.port"),
+		GlobalConfig.GetString("postgres.user"),
+		GlobalConfig.GetString("postgres.password"),
+		GlobalConfig.GetString("postgres.db")))
 }
