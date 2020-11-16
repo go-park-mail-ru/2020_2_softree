@@ -1,8 +1,8 @@
 package main
 
 import (
-	"log"
 	"fmt"
+	"log"
 	"math/rand"
 	"net/http"
 	"os"
@@ -88,6 +88,7 @@ func init() {
 					"Content-Range",
 				},
 			},
+
 			"finnhub-api": map[string]interface{}{
 				"token": "",
 			},
