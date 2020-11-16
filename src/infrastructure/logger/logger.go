@@ -29,7 +29,6 @@ func setOutput() error {
 		if err != nil {
 			return err
 		}
-
 		logFile, err := os.OpenFile(fullpath, os.O_WRONLY, 0777)
 		if err != nil {
 			return err
@@ -51,7 +50,6 @@ func ConfigureLogger() error {
 	if err := setLevel(); err != nil {
 		return err
 	}
-
 	if err := setOutput(); err != nil {
 		return err
 	}

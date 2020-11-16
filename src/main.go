@@ -105,7 +105,7 @@ func main() {
 	if err != nil {
 		logger.GlobalLogger.WithFields(logrus.Fields{
 			"function": "main",
-		}).Fatal(err)
+		}).Error(err)
 	}
 
 	go rateRates.GetRatesFromApi()
@@ -122,5 +122,4 @@ func main() {
 			"function": "main",
 		}).Fatal("Server cannot start", err)
 	}
-	logger.GlobalLogger.Info("Server listening")
 }

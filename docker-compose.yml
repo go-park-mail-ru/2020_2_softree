@@ -11,7 +11,6 @@ services:
     depends_on:
       - "postgres"
       - "redis"
-    restart: on-failure
 
   postgres:
     image: postgres:latest
@@ -21,8 +20,6 @@ services:
       POSTGRES_DB: moneycat
     volumes:
       - ./backup.sql:/backup.sql
-    restart: on-failure
 
   redis:
     image: redis:alpine
-    restart: on-failure
