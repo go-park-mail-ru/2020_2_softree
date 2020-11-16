@@ -55,6 +55,8 @@ func ConfigureLogger() error {
 	if err := setOutput(); err != nil {
 		return err
 	}
-	GlobalLogger.SetFormatter(&logrus.JSONFormatter{})
+	GlobalLogger.SetFormatter(&logrus.JSONFormatter{
+		PrettyPrint: true,
+	})
 	return nil
 }

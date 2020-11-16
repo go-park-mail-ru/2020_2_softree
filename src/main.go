@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -28,7 +29,7 @@ func init() {
 	}
 
 	if viper.GetString("config") == "" {
-		fmt.Fprint(os.Stderr, "There is must explicitly specify the config file`\n")
+		fmt.Fprintln(os.Stderr, "There is must explicitly specify the config file")
 		pflag.Usage()
 		os.Exit(1)
 	}
@@ -91,8 +92,7 @@ func init() {
 				"token": "",
 			},
 		}); err != nil {
-		fmt.Fprint(os.Stderr, "Error during parse defaults \n", err, "\n")
-		os.Exit(1)
+		log.Fatalln("Error during parse defaults", err)
 	}
 
 	logger.ConfigureLogger()
@@ -104,8 +104,7 @@ func main() {
 	if err != nil {
 		logger.GlobalLogger.WithFields(logrus.Fields{
 			"function": "main",
-		}).Error(err)
-		return
+		}).Fatal(err)
 	}
 
 	go rateRates.GetRatesFromApi()
@@ -120,8 +119,7 @@ func main() {
 	if err := server.ListenAndServe(); err != nil {
 		logger.GlobalLogger.WithFields(logrus.Fields{
 			"function": "main",
-		}).Error("Server cannot start", err)
-		os.Exit(1)
+		}).Fatal("Server cannot start", err)
 	}
 	logger.GlobalLogger.Info("Server listening")
 }
