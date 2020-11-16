@@ -21,6 +21,7 @@ func ParseConfig(filename string, defaults map[string]interface{}) error {
 		return err
 	}
 
+	GlobalConfig.SetConfigType("yaml")
 	GlobalConfig.SetConfigFile(fullpath)
 	GlobalConfig.AutomaticEnv()
 	if err := GlobalConfig.ReadInConfig(); err != nil {

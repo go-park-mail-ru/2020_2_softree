@@ -1,17 +1,18 @@
 package router
 
 import (
-	"fmt"
 	"server/src/application"
 	"server/src/infrastructure/auth"
 	"server/src/infrastructure/config"
 	"server/src/infrastructure/financial"
+	"server/src/infrastructure/logger"
 	"server/src/infrastructure/persistence"
 	"server/src/interfaces/authorization"
 	"server/src/interfaces/profile"
 	"server/src/interfaces/rates"
 
 	"github.com/gomodule/redigo/redis"
+	"github.com/sirupsen/logrus"
 )
 
 func createAuthenticate() (*authorization.Authentication, error) {
@@ -84,7 +85,6 @@ func createRates() (*rates.Rates, error) {
 
 	connect, err := redis.DialURL(config.GlobalConfig.GetString("redis.currencyURL"))
 	if err != nil {
-		println("4")
 		return nil, err
 	}
 	dbAuth := financial.NewCurrencyManager(connect)
@@ -97,19 +97,25 @@ func createRates() (*rates.Rates, error) {
 func CreateAppStructs() (*authorization.Authentication, *profile.Profile, *rates.Rates, error) {
 	userAuthenticate, err := createAuthenticate()
 	if err != nil {
-		fmt.Println("userAuthenticate", err)
+		logger.GlobalLogger.WithFields(logrus.Fields{
+			"function": "createAuthenticate",
+		}).Error(err)
 		return nil, nil, nil, err
 	}
 
 	userProfile, err := createProfile()
 	if err != nil {
-		fmt.Println("userProfile", err)
+		logger.GlobalLogger.WithFields(logrus.Fields{
+			"function": "createProfile",
+		}).Error(err)
 		return nil, nil, nil, err
 	}
 
 	rateRates, err := createRates()
 	if err != nil {
-		fmt.Println("userProfile", err)
+		logger.GlobalLogger.WithFields(logrus.Fields{
+			"function": "createRates",
+		}).Error(err)
 		return nil, nil, nil, err
 	}
 

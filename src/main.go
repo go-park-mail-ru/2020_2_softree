@@ -96,7 +96,6 @@ func init() {
 	}
 
 	logger.ConfigureLogger()
-
 	rand.Seed(time.Now().UnixNano())
 }
 
@@ -105,7 +104,7 @@ func main() {
 	if err != nil {
 		logger.GlobalLogger.WithFields(logrus.Fields{
 			"function": "main",
-		}).Error("err")
+		}).Error(err)
 		return
 	}
 

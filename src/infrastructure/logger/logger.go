@@ -24,13 +24,13 @@ func setLevel() error {
 func setOutput() error {
 	var writer io.Writer
 	writer = os.Stdout
-	if config.GlobalConfig.GetString("config.logFile") != "" {
-		fullpath, err := filepath.Abs(config.GlobalConfig.GetString("config.logFile"))
+	if config.GlobalConfig.GetString("server.logFile") != "" {
+		fullpath, err := filepath.Abs(config.GlobalConfig.GetString("server.logFile"))
 		if err != nil {
 			return err
 		}
 
-		logFile, err := os.Open(fullpath)
+		logFile, err := os.OpenFile(fullpath, os.O_WRONLY, 0777)
 		if err != nil {
 			return err
 		}
