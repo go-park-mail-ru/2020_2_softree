@@ -1,18 +1,19 @@
 package corsInteraction
 
 import (
+	"net/http"
+
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"net/http"
-	"server/src/infrastructure/config"
+	"github.com/spf13/viper"
 )
 
 func enableCORS(handler http.Handler) http.Handler {
 	var (
-		allowedOrigins = handlers.AllowedOrigins(config.GlobalConfig.GetStringSlice("CORS.allowedOrigins"))
-		allowedHeaders = handlers.AllowedHeaders(config.GlobalConfig.GetStringSlice("CORS.allowedHeaders"))
-		exposedHeaders = handlers.ExposedHeaders(config.GlobalConfig.GetStringSlice("CORS.exposedHeaders"))
-		allowedMethods = handlers.AllowedMethods(config.GlobalConfig.GetStringSlice("CORS.allowedMethods"))
+		allowedOrigins = handlers.AllowedOrigins(viper.GetStringSlice("CORS.allowedOrigins"))
+		allowedHeaders = handlers.AllowedHeaders(viper.GetStringSlice("CORS.allowedHeaders"))
+		exposedHeaders = handlers.ExposedHeaders(viper.GetStringSlice("CORS.exposedHeaders"))
+		allowedMethods = handlers.AllowedMethods(viper.GetStringSlice("CORS.allowedMethods"))
 		credentials    = handlers.AllowCredentials()
 	)
 

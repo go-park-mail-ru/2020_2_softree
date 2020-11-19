@@ -3,12 +3,12 @@ package auth
 import (
 	"errors"
 	"net/http"
-	"server/src/infrastructure/config"
 	"server/src/infrastructure/security"
 	"strconv"
 	"time"
 
 	"github.com/gomodule/redigo/redis"
+	"github.com/spf13/viper"
 )
 
 const day = 60 * 60 * 24
@@ -82,8 +82,8 @@ func (sm *SessionManager) CreateCookie() (http.Cookie, error) {
 		Name:     "session_id",
 		Value:    hash,
 		Expires:  time.Now().Add(24 * time.Hour),
-		Domain:   config.GlobalConfig.GetString("server.domain"),
-		Secure:   config.GlobalConfig.GetBool("server.secure"),
+		Domain:   viper.GetString("server.domain"),
+		Secure:   viper.GetBool("server.secure"),
 		HttpOnly: true,
 		Path:     "/",
 	}, nil

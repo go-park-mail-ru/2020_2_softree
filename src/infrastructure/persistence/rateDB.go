@@ -5,8 +5,9 @@ import (
 	"database/sql"
 	"server/src/domain/entity"
 	"server/src/domain/repository"
-	"server/src/infrastructure/config"
 	"time"
+
+	"github.com/spf13/viper"
 )
 
 var ListOfCurrencies = [...]string{
@@ -38,7 +39,7 @@ type RateDBManager struct {
 }
 
 func NewRateDBManager() (*RateDBManager, error) {
-	db, err := sql.Open("postgres", config.GlobalConfig.GetString("postgres.URL"))
+	db, err := sql.Open("postgres", viper.GetString("postgres.URL"))
 	if err != nil {
 		return nil, err
 	}

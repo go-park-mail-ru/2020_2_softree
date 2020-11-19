@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"server/src/domain/entity"
-	"server/src/infrastructure/logger"
 
 	"github.com/sirupsen/logrus"
 )
@@ -25,7 +24,7 @@ func (a *Authentication) checkGetUserByLoginErrors(err error) (errs entity.Error
 func (a *Authentication) createServerError(errors *entity.ErrorJSON, w http.ResponseWriter) {
 	res, err := json.Marshal(errors)
 	if err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"status": http.StatusInternalServerError}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
@@ -33,7 +32,7 @@ func (a *Authentication) createServerError(errors *entity.ErrorJSON, w http.Resp
 	w.WriteHeader(http.StatusBadRequest)
 	w.Header().Add("Content-Type", "application/json")
 	if _, err := w.Write(res); err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"status": http.StatusInternalServerError}).Error(err)
 	}
 }

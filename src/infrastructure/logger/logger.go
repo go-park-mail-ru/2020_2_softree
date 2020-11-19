@@ -4,28 +4,25 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"server/src/infrastructure/config"
 
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
-// GlobalLogger instance
-var GlobalLogger = logrus.New()
-
 func setLevel() error {
-	level, error := logrus.ParseLevel(config.GlobalConfig.GetString("server.logLevel"))
+	level, error := logrus.ParseLevel(viper.GetString("server.logLevel"))
 	if error != nil {
 		return error
 	}
-	GlobalLogger.SetLevel(level)
+	logrus.SetLevel(level)
 	return nil
 }
 
 func setOutput() error {
 	var writer io.Writer
 	writer = os.Stdout
-	if config.GlobalConfig.GetString("server.logFile") != "" {
-		fullpath, err := filepath.Abs(config.GlobalConfig.GetString("server.logFile"))
+	if viper.GetString("server.logFile") != "" {
+		fullpath, err := filepath.Abs(viper.GetString("server.logFile"))
 		if err != nil {
 			return err
 		}
@@ -41,7 +38,7 @@ func setOutput() error {
 		})
 		writer = logFile
 	}
-	GlobalLogger.SetOutput(writer)
+	logrus.SetOutput(writer)
 	return nil
 }
 
@@ -53,7 +50,7 @@ func ConfigureLogger() error {
 	if err := setOutput(); err != nil {
 		return err
 	}
-	GlobalLogger.SetFormatter(&logrus.JSONFormatter{
+	logrus.SetFormatter(&logrus.JSONFormatter{
 		PrettyPrint: true,
 	})
 	return nil

@@ -5,11 +5,11 @@ import (
 	"database/sql"
 	"errors"
 	"server/src/domain/entity"
-	"server/src/infrastructure/config"
 	"server/src/infrastructure/security"
 	"time"
 
 	_ "github.com/lib/pq"
+	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -18,7 +18,7 @@ type UserDBManager struct {
 }
 
 func NewUserDBManager() (*UserDBManager, error) {
-	db, err := sql.Open("postgres", config.GlobalConfig.GetString("postgres.URL"))
+	db, err := sql.Open("postgres", viper.GetString("postgres.URL"))
 	if err != nil {
 		return nil, err
 	}

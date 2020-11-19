@@ -17,7 +17,7 @@ import (
 )
 
 func init() {
-	pflag.StringP("config", "c", "", "path to config file")
+	pflag.StringP("viper", "c", "", "path to viper file")
 	pflag.BoolP("help", "h", false, "usage info")
 
 	pflag.Parse()
@@ -28,14 +28,14 @@ func init() {
 		os.Exit(0)
 	}
 
-	if viper.GetString("config") == "" {
-		fmt.Fprintln(os.Stderr, "There is must explicitly specify the config file")
+	if viper.GetString("viper") == "" {
+		fmt.Fprintln(os.Stderr, "There is must explicitly specify the viper file")
 		pflag.Usage()
 		os.Exit(1)
 	}
 
 	if err := config.ParseConfig(
-		viper.GetString("config"),
+		viper.GetString("viper"),
 		map[string]interface{}{
 			"server": map[string]interface{}{
 				"ip":       "127.0.0.1",
@@ -103,22 +103,22 @@ func init() {
 func main() {
 	userAuthenticate, userProfile, rateRates, err := router.CreateAppStructs()
 	if err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"function": "main",
-		}).Error(err)
+		}).Fatal(err)
 	}
 
 	go rateRates.GetRatesFromApi()
 
 	server := &http.Server{
-		Addr:         fmt.Sprintf("%s:%d", config.GlobalConfig.GetString("server.ip"), config.GlobalConfig.GetInt("server.port")),
+		Addr:         fmt.Sprintf("%s:%d", viper.GetString("server.ip"), viper.GetInt("server.port")),
 		Handler:      router.NewRouter(userAuthenticate, userProfile, rateRates),
-		WriteTimeout: time.Duration(config.GlobalConfig.GetInt("server.timeout")) * time.Second,
-		ReadTimeout:  time.Duration(config.GlobalConfig.GetInt("server.timeout")) * time.Second,
+		WriteTimeout: time.Duration(viper.GetInt("server.timeout")) * time.Second,
+		ReadTimeout:  time.Duration(viper.GetInt("server.timeout")) * time.Second,
 	}
 
 	if err := server.ListenAndServe(); err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"function": "main",
 		}).Fatal("Server cannot start", err)
 	}

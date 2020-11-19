@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"server/src/domain/entity"
-	"server/src/infrastructure/logger"
 
 	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
@@ -15,7 +14,7 @@ func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
 
 	history, err := p.userApp.GetAllPaymentHistory(id)
 	if err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "GetTransactions",
 			"userID":   id,
@@ -26,7 +25,7 @@ func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
 
 	res, err := json.Marshal(history)
 	if err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "GetTransactions",
 		}).Error(err)
@@ -36,7 +35,7 @@ func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	if _, err = w.Write(res); err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "GetTransactions",
 		}).Error(err)
@@ -51,7 +50,7 @@ func (p *Profile) SetTransactions(w http.ResponseWriter, r *http.Request) {
 	var transaction entity.PaymentHistory
 	err := json.NewDecoder(r.Body).Decode(&transaction)
 	if err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "SetTransactions",
 		}).Error(err)
@@ -88,7 +87,7 @@ func (p *Profile) SetTransactions(w http.ResponseWriter, r *http.Request) {
 
 	val = val.Mul(decimal.New(-1, 0))
 	if err = p.userApp.UpdateWallet(id, entity.Wallet{Title: transaction.From, Value: val}); err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "SetTransactions",
 		}).Error(err)
@@ -97,7 +96,7 @@ func (p *Profile) SetTransactions(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = p.userApp.UpdateWallet(id, entity.Wallet{Title: transaction.To, Value: transaction.Amount}); err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "SetTransactions",
 		}).Error(err)
@@ -107,7 +106,7 @@ func (p *Profile) SetTransactions(w http.ResponseWriter, r *http.Request) {
 
 	transaction.Value = div
 	if err = p.userApp.AddToPaymentHistory(id, transaction); err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "SetTransactions",
 		}).Error(err)
@@ -124,7 +123,7 @@ func (p *Profile) GetHistoryInInterval(w http.ResponseWriter, r *http.Request) {
 	var interval entity.Interval
 	err := json.NewDecoder(r.Body).Decode(&interval)
 	if err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "GetHistoryInInterval",
 		}).Error(err)
@@ -135,7 +134,7 @@ func (p *Profile) GetHistoryInInterval(w http.ResponseWriter, r *http.Request) {
 
 	history, err := p.userApp.GetIntervalPaymentHistory(id, interval)
 	if err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "GetHistoryInInterval",
 		}).Error(err)
@@ -145,7 +144,7 @@ func (p *Profile) GetHistoryInInterval(w http.ResponseWriter, r *http.Request) {
 
 	res, err := json.Marshal(history)
 	if err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "GetHistoryInInterval",
 		}).Error(err)
@@ -155,7 +154,7 @@ func (p *Profile) GetHistoryInInterval(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	if _, err = w.Write(res); err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "GetHistoryInInterval",
 		}).Error(err)

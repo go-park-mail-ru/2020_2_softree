@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/http"
 	"server/src/domain/entity"
-	"server/src/infrastructure/logger"
 
 	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
@@ -31,7 +30,7 @@ func (p *Profile) createErrorJSON(err error) (errs entity.ErrorJSON) {
 func (p *Profile) createServerError(errs *entity.ErrorJSON, w http.ResponseWriter) {
 	res, err := json.Marshal(errs)
 	if err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "createServerError",
 		}).Error(err)
@@ -41,7 +40,7 @@ func (p *Profile) createServerError(errs *entity.ErrorJSON, w http.ResponseWrite
 	w.WriteHeader(http.StatusBadRequest)
 	w.Header().Add("Content-Type", "application/json")
 	if _, err := w.Write(res); err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"function": "createServerError",
 		}).Error(err)
 	}
@@ -51,7 +50,7 @@ func (p *Profile) checkWalletFrom(w http.ResponseWriter, id uint64, transaction 
 	var exist bool
 	var err error
 	if exist, err = p.userApp.CheckWallet(id, transaction.From); err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "checkWalletFrom",
 		}).Error(err)
@@ -71,7 +70,7 @@ func (p *Profile) checkWalletTo(w http.ResponseWriter, id uint64, transaction en
 	var exist bool
 	var err error
 	if exist, err = p.userApp.CheckWallet(id, transaction.To); err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "checkWalletTo",
 		}).Error(err)
@@ -81,7 +80,7 @@ func (p *Profile) checkWalletTo(w http.ResponseWriter, id uint64, transaction en
 
 	if !exist {
 		if err = p.userApp.CreateWallet(id, transaction.To); err != nil {
-			logger.GlobalLogger.WithFields(logrus.Fields{
+			logrus.WithFields(logrus.Fields{
 				"status":   http.StatusInternalServerError,
 				"function": "checkWallets",
 			}).Error(err)
@@ -98,7 +97,7 @@ func (p *Profile) checkWalletPayment(
 	var currencyFrom entity.Currency
 	var err error
 	if currencyFrom, err = p.rateApp.GetLastRate(transaction.From); err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"status":          http.StatusInternalServerError,
 			"function":        "checkWalletPayment",
 			"transactionFrom": transaction.From,
@@ -109,7 +108,7 @@ func (p *Profile) checkWalletPayment(
 
 	var currencyTo entity.Currency
 	if currencyTo, err = p.rateApp.GetLastRate(transaction.To); err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"status":          http.StatusInternalServerError,
 			"function":        "checkWalletPayment",
 			"transactionFrom": transaction.To,
@@ -128,7 +127,7 @@ func (p *Profile) getPay(
 
 	var wallet entity.Wallet
 	if wallet, err = p.userApp.GetWallet(id, transaction.From); err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"status":          http.StatusInternalServerError,
 			"function":        "getPay",
 			"transactionFrom": transaction.From,

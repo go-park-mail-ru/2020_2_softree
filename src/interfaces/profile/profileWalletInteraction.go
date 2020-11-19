@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"server/src/domain/entity"
-	"server/src/infrastructure/logger"
 
 	"github.com/sirupsen/logrus"
 )
@@ -14,7 +13,7 @@ func (p *Profile) GetWallets(w http.ResponseWriter, r *http.Request) {
 
 	wallet, err := p.userApp.GetWallets(id)
 	if err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "GetWallets",
 			"userID":   id,
@@ -25,7 +24,7 @@ func (p *Profile) GetWallets(w http.ResponseWriter, r *http.Request) {
 
 	res, err := json.Marshal(wallet)
 	if err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "GetWallets",
 			"userID":   id,
@@ -37,7 +36,7 @@ func (p *Profile) GetWallets(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	if _, err = w.Write(res); err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "GetWallets",
 			"userID":   id,
@@ -54,7 +53,7 @@ func (p *Profile) SetWallet(w http.ResponseWriter, r *http.Request) {
 	var wallet entity.Wallet
 	err := json.NewDecoder(r.Body).Decode(&wallet)
 	if err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "SetWallet",
 		}).Error(err)
@@ -64,7 +63,7 @@ func (p *Profile) SetWallet(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	if err = p.userApp.CreateWallet(id, wallet.Title); err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "SetWallet",
 		}).Error(err)

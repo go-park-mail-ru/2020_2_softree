@@ -3,9 +3,7 @@ package router
 import (
 	"server/src/application"
 	"server/src/infrastructure/auth"
-	"server/src/infrastructure/config"
 	"server/src/infrastructure/financial"
-	"server/src/infrastructure/logger"
 	"server/src/infrastructure/persistence"
 	"server/src/interfaces/authorization"
 	"server/src/interfaces/profile"
@@ -13,6 +11,7 @@ import (
 
 	"github.com/gomodule/redigo/redis"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 func createAuthenticate() (*authorization.Authentication, error) {
@@ -28,7 +27,7 @@ func createAuthenticate() (*authorization.Authentication, error) {
 	if err != nil {
 		return nil, err
 	}
-	connect, err := redis.DialURL(config.GlobalConfig.GetString("redis.sessionURL"))
+	connect, err := redis.DialURL(viper.GetString("redis.sessionURL"))
 	if err != nil {
 		return nil, err
 	}
@@ -58,13 +57,13 @@ func createProfile() (*profile.Profile, error) {
 		return nil, err
 	}
 
-	connect, err := redis.DialURL(config.GlobalConfig.GetString("redis.sessionURL"))
+	connect, err := redis.DialURL(viper.GetString("redis.sessionURL"))
 	if err != nil {
 		return nil, err
 	}
 	dbAuth := auth.NewSessionManager(connect)
 
-	connectRedis, err := redis.DialURL(config.GlobalConfig.GetString("redis.currencyURL"))
+	connectRedis, err := redis.DialURL(viper.GetString("redis.currencyURL"))
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +82,7 @@ func createRates() (*rates.Rates, error) {
 		return nil, err
 	}
 
-	connect, err := redis.DialURL(config.GlobalConfig.GetString("redis.currencyURL"))
+	connect, err := redis.DialURL(viper.GetString("redis.currencyURL"))
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +96,7 @@ func createRates() (*rates.Rates, error) {
 func CreateAppStructs() (*authorization.Authentication, *profile.Profile, *rates.Rates, error) {
 	userAuthenticate, err := createAuthenticate()
 	if err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"function": "createAuthenticate",
 		}).Error(err)
 		return nil, nil, nil, err
@@ -105,7 +104,7 @@ func CreateAppStructs() (*authorization.Authentication, *profile.Profile, *rates
 
 	userProfile, err := createProfile()
 	if err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"function": "createProfile",
 		}).Error(err)
 		return nil, nil, nil, err
@@ -113,7 +112,7 @@ func CreateAppStructs() (*authorization.Authentication, *profile.Profile, *rates
 
 	rateRates, err := createRates()
 	if err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"function": "createRates",
 		}).Error(err)
 		return nil, nil, nil, err

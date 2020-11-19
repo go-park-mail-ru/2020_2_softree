@@ -4,8 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"server/src/domain/entity"
-	"server/src/infrastructure/config"
 	"time"
+
+	"github.com/spf13/viper"
 )
 
 type PaymentDBManager struct {
@@ -13,7 +14,7 @@ type PaymentDBManager struct {
 }
 
 func NewPaymentDBManager() (*PaymentDBManager, error) {
-	db, err := sql.Open("postgres", config.GlobalConfig.GetString("postgres.URL"))
+	db, err := sql.Open("postgres", viper.GetString("postgres.URL"))
 	if err != nil {
 		return nil, err
 	}

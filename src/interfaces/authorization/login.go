@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"server/src/domain/entity"
-	"server/src/infrastructure/logger"
 
 	"github.com/sirupsen/logrus"
 )
@@ -13,7 +12,7 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 	var user entity.User
 	var err error
 	if err = json.NewDecoder(r.Body).Decode(&user); err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"status": http.StatusInternalServerError}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -31,7 +30,7 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 
 	var exist bool
 	if exist, err = a.userApp.CheckExistence(user.Email); err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"status": http.StatusInternalServerError}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -51,7 +50,7 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 
 	var cookie http.Cookie
 	if cookie, err = a.auth.CreateAuth(user.ID); err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"status": http.StatusInternalServerError}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -60,7 +59,7 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 
 	res, err := json.Marshal(user.MakePublicUser())
 	if err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"status": http.StatusInternalServerError}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -69,7 +68,7 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if _, err := w.Write(res); err != nil {
-		logger.GlobalLogger.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"status": http.StatusInternalServerError}).Error(err)
 	}
 }
