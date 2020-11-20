@@ -1,73 +1,51 @@
 package config
 
 import (
-	"io/ioutil"
+	"fmt"
+	"path/filepath"
 
-	"gopkg.in/yaml.v2"
+	"github.com/spf13/viper"
 )
 
-type ServerConfig struct {
-	Port       string `yaml:"port"`
-	IP         string `yaml:"ip"`
-	Domain     string `yaml:"domain"`
-	Secure     bool   `yaml:"secure"`
-	LogLevel   string `yaml:"logLevel"`
-	LogFile    string `yaml:"logFile"`
-	ConfigFile string
-}
+// ParseConfig set defaults and read from config file
+func ParseConfig(filename string, defaults map[string]interface{}) error {
+	for key, value := range defaults {
+		viper.SetDefault(key, value)
+	}
 
-type CORSConfig struct {
-	AllowedOrigins []string
-	AllowedHeaders []string
-	AllowedMethods []string
-	ExposedHeaders []string
-}
-
-var GlobalServerConfig = ServerConfig{}
-
-var GlobalCORSConfig = CORSConfig{
-	AllowedOrigins: []string{"http://localhost", "https://softree.group", "http://localhost:3000", "http://self.ru"},
-	AllowedHeaders: []string{"If-Modified-Since", "Cache-Control", "Content-Type", "Range"},
-	AllowedMethods: []string{"GET", "POST", "OPTIONS", "PUT", "PATCH", "DELETE"},
-	ExposedHeaders: []string{"Content-Length", "Content-Range"},
-}
-
-type RedisConfig struct {
-	AddressSessions    string `yaml:"redis_session_path"`
-	AddressDayCurrency string `yaml:"redis_currency_path"`
-}
-
-var SessionDatabaseConfig = RedisConfig{}
-
-type UserBDConfig struct {
-	User     string `yaml:"postgres_user"`
-	Password string `yaml:"postgres_password"`
-	Host     string `yaml:"postgres_host"`
-	Schema   string `yaml:"postgres_db"`
-}
-
-var UserDatabaseConfig = UserBDConfig{}
-
-func ParseConfig() error {
-	yamlFile, err := ioutil.ReadFile(GlobalServerConfig.ConfigFile)
+	fullpath, err := filepath.Abs(filename)
 	if err != nil {
 		return err
 	}
 
-	err = yaml.Unmarshal(yamlFile, &GlobalServerConfig)
-	if err != nil {
+	viper.SetConfigType("yaml")
+	viper.SetConfigFile(fullpath)
+	viper.AutomaticEnv()
+	if err := viper.ReadInConfig(); err != nil {
 		return err
 	}
-
-	err = yaml.Unmarshal(yamlFile, &SessionDatabaseConfig)
-	if err != nil {
-		return err
-	}
-
-	err = yaml.Unmarshal(yamlFile, &UserDatabaseConfig)
-	if err != nil {
-		return err
-	}
-
+	createURLS()
 	return nil
+}
+
+func createURLS() {
+	viper.Set("redis.sessionURL", fmt.Sprintf("redis://%s:%s:%d%s",
+		viper.GetString("redis.user"),
+		viper.GetString("redis.host"),
+		viper.GetInt("redis.port"),
+		viper.GetString("redis.sessionPath")))
+
+	viper.Set("redis.currencyURL", fmt.Sprintf("redis://%s:%s:%d%s",
+		viper.GetString("redis.user"),
+		viper.GetString("redis.host"),
+		viper.GetInt("redis.port"),
+		viper.GetString("redis.currencyPath")))
+
+	viper.Set("postgres.URL", fmt.Sprintf(
+		"host=%s port=%d user=%s "+"password=%s dbname=%s sslmode=disable",
+		viper.GetString("postgres.host"),
+		viper.GetInt("postgres.port"),
+		viper.GetString("postgres.user"),
+		viper.GetString("postgres.password"),
+		viper.GetString("postgres.db")))
 }

@@ -6,38 +6,42 @@ import (
 )
 
 type RateApp struct {
-	rr  repository.RateRepository
-	dcr repository.DayCurrencyRepository
+	rateRepository        repository.RateRepository
+	dayCurrencyRepository repository.DayCurrencyRepository
 }
 
 func NewRateApp(repo repository.RateRepository, dcr repository.DayCurrencyRepository) *RateApp {
-	return &RateApp{rr: repo, dcr: dcr}
+	return &RateApp{rateRepository: repo, dayCurrencyRepository: dcr}
 }
 
-func (ra *RateApp) SaveCurrency(financial repository.FinancialRepository) error {
-	return ra.dcr.SaveCurrency(financial)
+func (rateApp *RateApp) SaveCurrency(financial repository.FinancialRepository) error {
+	return rateApp.dayCurrencyRepository.SaveCurrency(financial)
 }
 
-func (ra *RateApp) GetInitialCurrency() ([]entity.Currency, error) {
-	return ra.dcr.GetInitialCurrency()
+func (rateApp *RateApp) GetInitialCurrency() ([]entity.Currency, error) {
+	return rateApp.dayCurrencyRepository.GetInitialCurrency()
 }
 
-func (ra *RateApp) SaveRates(financial repository.FinancialRepository) error {
-	return ra.rr.SaveRates(financial)
+func (rateApp *RateApp) SaveRates(financial repository.FinancialRepository) error {
+	return rateApp.rateRepository.SaveRates(financial)
 }
 
-func (ra *RateApp) UpdateRate(id uint64, rate entity.Currency) (entity.Currency, error) {
-	return ra.rr.UpdateRate(id, rate)
+func (rateApp *RateApp) UpdateRate(id uint64, rate entity.Currency) (entity.Currency, error) {
+	return rateApp.rateRepository.UpdateRate(id, rate)
 }
 
-func (ra *RateApp) DeleteRate(id uint64) error {
-	return ra.rr.DeleteRate(id)
+func (rateApp *RateApp) DeleteRate(id uint64) error {
+	return rateApp.rateRepository.DeleteRate(id)
 }
 
-func (ra *RateApp) GetRates() ([]entity.Currency, error) {
-	return ra.rr.GetRates()
+func (rateApp *RateApp) GetRates() ([]entity.Currency, error) {
+	return rateApp.rateRepository.GetRates()
 }
 
-func (ra *RateApp) GetRate(title string) ([]entity.Currency, error) {
-	return ra.rr.GetRate(title)
+func (rateApp *RateApp) GetRate(title string) ([]entity.Currency, error) {
+	return rateApp.rateRepository.GetRate(title)
+}
+
+func (rateApp *RateApp) GetLastRate(title string) (entity.Currency, error) {
+	return rateApp.rateRepository.GetLastRate(title)
 }

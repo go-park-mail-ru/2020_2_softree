@@ -2,16 +2,18 @@ package persistence
 
 import (
 	"errors"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/require"
-	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 	"server/src/domain/entity"
 	finMock "server/src/infrastructure/mock"
 	"testing"
 	"time"
+
+	"github.com/golang/mock/gomock"
+	"github.com/shopspring/decimal"
+	"github.com/stretchr/testify/require"
+	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 )
 
-var testData = map[string]interface{} {
+var testData = map[string]interface{}{
 	"USD": 1.0,
 	"RUB": 2.0,
 	"EUR": 3.0,
@@ -140,7 +142,7 @@ func TestRateDBManager_GetRateSuccess(t *testing.T) {
 	defer db.Close()
 
 	date := time.Now()
-	expected := entity.Currency{Title:"USD", Value: 1.0, UpdatedAt: date}
+	expected := entity.Currency{Title: "USD", Value: decimal.NewFromFloat(1.0), UpdatedAt: date}
 	rows := sqlmock.NewRows([]string{"value", "updated_at"})
 	rows = rows.AddRow(expected.Value, date)
 
@@ -176,4 +178,3 @@ func TestRateDBManager_GetRateFail(t *testing.T) {
 	_, err = repo.GetRate("USD")
 	require.NotEmpty(t, err)
 }
-

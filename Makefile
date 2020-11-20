@@ -39,7 +39,7 @@ build:
 
 .PHONY: test
 test:
-	go test -count=1 -cover -v -race -timeout 30s ./...
+	sh test.sh
 
 .PHONY: fmt
 fmt:

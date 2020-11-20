@@ -3,15 +3,15 @@ package auth
 import (
 	"errors"
 	"net/http"
-	"server/src/infrastructure/config"
 	"server/src/infrastructure/security"
 	"strconv"
 	"time"
 
 	"github.com/gomodule/redigo/redis"
+	"github.com/spf13/viper"
 )
 
-const day = 60*60*24
+const day = 60 * 60 * 24
 
 type Session struct {
 	id    uint64
@@ -51,7 +51,7 @@ func (sm *SessionManager) CheckAuth(sessionValue string) (uint64, error) {
 	if err == redis.ErrNil {
 		return 0, errors.New("no session")
 	} else if err != nil {
-		return 0, errors.New("redis error during checking session")
+		return 0, err
 	}
 
 	strRes := string(data)
@@ -82,8 +82,8 @@ func (sm *SessionManager) CreateCookie() (http.Cookie, error) {
 		Name:     "session_id",
 		Value:    hash,
 		Expires:  time.Now().Add(24 * time.Hour),
-		Domain:   config.GlobalServerConfig.Domain,
-		Secure:   config.GlobalServerConfig.Secure,
+		Domain:   viper.GetString("server.domain"),
+		Secure:   viper.GetBool("server.secure"),
 		HttpOnly: true,
 		Path:     "/",
 	}, nil

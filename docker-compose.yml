@@ -1,23 +1,19 @@
 version: "3.8"
 services:
   api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: moneycat
+    build: .
+    image: moneycat:dev
     ports:
-    - 8000:80
+    - 127.0.0.1:8000:80
     volumes:
-    - ./configs:/etc/moneycat
-    command: ["-f", "/etc/moneycat/local.yml"]
+    - ./config.yml:/etc/moneycat/moneycat.yml
+    command: ["-c", "/etc/moneycat/moneycat.yml"]
     depends_on:
       - "postgres"
       - "redis"
-    restart: on-failure
 
   postgres:
     image: postgres:latest
-    restart: on-failure
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: NeverGonnaGiveYouUp
@@ -26,7 +22,4 @@ services:
       - ./backup.sql:/backup.sql
 
   redis:
-    image: redis
-    restart: on-failure
-    volumes:
-      - ./configs/redis.conf:/usr/local/etc/redis/redis.conf
+    image: redis:alpine

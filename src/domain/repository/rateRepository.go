@@ -8,6 +8,7 @@ type RateRepository interface {
 	rateEraser
 	ratesReceiver
 	rateReceiver
+	rateReceiverLast
 }
 
 type ratesSaver interface {
@@ -28,4 +29,8 @@ type ratesReceiver interface {
 
 type rateReceiver interface {
 	GetRate(string) ([]entity.Currency, error)
+}
+
+type rateReceiverLast interface {
+	GetLastRate(string) (entity.Currency, error)
 }

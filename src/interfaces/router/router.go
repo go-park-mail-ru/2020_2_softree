@@ -25,7 +25,7 @@ func NewRouter(userAuthenticate *authorization.Authentication, userProfile *prof
 	r.HandleFunc("/rates", rateRates.GetRates).
 		Methods(http.MethodGet, http.MethodOptions)
 
-	r.HandleFunc("/rates/{title}/", rateRates.GetURLRate).
+	r.HandleFunc("/rates/{title}", rateRates.GetURLRate).
 		Methods(http.MethodGet, http.MethodOptions)
 
 	r.HandleFunc("/users", userAuthenticate.Signup).
@@ -37,14 +37,26 @@ func NewRouter(userAuthenticate *authorization.Authentication, userProfile *prof
 	r.HandleFunc("/users", userProfile.Auth(userProfile.GetUser)).
 		Methods(http.MethodGet, http.MethodOptions)
 
-	r.HandleFunc("/watchers", userProfile.Auth(userProfile.GetUserWatchlist)).
-		Methods(http.MethodGet, http.MethodOptions)
-
 	r.HandleFunc("/users/change-password", userProfile.Auth(userProfile.UpdateUserPassword)).
 		Methods(http.MethodPut, http.MethodOptions)
 
+	r.HandleFunc("/watchers", userProfile.Auth(userProfile.GetUserWatchlist)).
+		Methods(http.MethodGet, http.MethodOptions)
+
 	r.HandleFunc("/markets", rateRates.GetMarkets).
 		Methods(http.MethodGet, http.MethodOptions)
+
+	r.HandleFunc("/accounts", userProfile.Auth(userProfile.GetWallets)).
+		Methods(http.MethodGet, http.MethodOptions)
+
+	r.HandleFunc("/accounts", userProfile.Auth(userProfile.SetWallet)).
+		Methods(http.MethodPost, http.MethodOptions)
+
+	r.HandleFunc("/transactions", userProfile.Auth(userProfile.GetTransactions)).
+		Methods(http.MethodGet, http.MethodOptions)
+
+	r.HandleFunc("/transactions", userProfile.Auth(userProfile.SetTransactions)).
+		Methods(http.MethodPost, http.MethodOptions)
 
 	r.Use(corsInteraction.CORSMiddleware())
 

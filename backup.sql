@@ -1,4 +1,7 @@
 DROP TABLE IF EXISTS user_trade Cascade;
+DROP TABLE IF EXISTS watchlist;
+DROP TABLE IF EXISTS wallet;
+DROP TABLE IF EXISTS payment_history;
 
 CREATE TABLE user_trade
 (
@@ -7,8 +10,6 @@ CREATE TABLE user_trade
     password text,
     avatar   text default ''
 );
-
-DROP TABLE IF EXISTS watchlist Cascade;
 
 CREATE TABLE watchlist
 (
@@ -19,6 +20,34 @@ CREATE TABLE watchlist
     FOREIGN KEY (user_id) REFERENCES user_trade (id)
         ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+CREATE TABLE accounts
+(
+    user_id bigint NOT NULL,
+    title   text,
+    value   decimal,
+
+    FOREIGN KEY (user_id) REFERENCES user_trade (id)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE payment_history
+(
+    user_id    bigint NOT NULL,
+    from_title text,
+    to_title   text,
+    value      decimal,
+    amount     decimal,
+    updated_at timestamp,
+
+    FOREIGN KEY (user_id) REFERENCES user_trade (id)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+truncate user_trade cascade;
+truncate watchlist;
+truncate accounts;
+truncate payment_history;
 
 DROP TABLE IF EXISTS history_currency_by_minutes;
 DROP TABLE IF EXISTS history_currency_by_hours;
