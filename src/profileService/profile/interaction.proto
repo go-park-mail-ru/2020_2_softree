@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package profile;
+
+message User {
+  int64  ID          = 1;
+  string Email       = 2;
+  string Password    = 3;
+  string OldPassword = 4;
+  string NewPassword = 5;
+  string Avatar      = 6;
+}
+
+message PublicUser {
+  int64  ID     = 1;
+  string Email  = 2;
+  string Avatar = 3;
+}
+
+message Currency {
+  string base = 1;
+  string title = 2;
+}
+
+message Currencies {
+  repeated Currency watchlist = 1;
+}
+
+message UserID {
+  int64 id = 1;
+}
+
+message UpdateFields {
+  int64 id = 1;
+  User user = 2;
+}
+
+message Check {
+  bool existence = 1;
+}
+
+message Empty {}
+
+service profileService {
+  rpc SaveUser(User) returns (PublicUser) {}
+  rpc UpdateUserAvatar(UpdateFields) returns (Empty) {}
+  rpc UpdateUserPassword(UpdateFields) returns (Empty) {}
+  rpc DeleteUser(UserID) returns (Empty) {}
+  rpc GetUserById(UserID) returns (PublicUser) {}
+  rpc GetUserByLogin(User) returns (PublicUser) {}
+  rpc CheckExistence(User) returns (Check) {}
+  rpc CheckPassword(User) returns (Check) {}
+  rpc GetUserWatchlist(UserID) returns (Currencies) {}
+}
