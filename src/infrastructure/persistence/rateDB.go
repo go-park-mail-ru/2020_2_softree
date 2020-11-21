@@ -162,11 +162,11 @@ func (rm *RateDBManager) GetRate(title string) ([]entity.Currency, error) {
 	return currencies, nil
 }
 
-func (rm *RateDBManager) DeleteRate(uint64) error {
+func (rm *RateDBManager) DeleteRate(int64) error {
 	return nil
 }
 
-func (rm *RateDBManager) UpdateRate(uint64, entity.Currency) (entity.Currency, error) {
+func (rm *RateDBManager) UpdateRate(int64, entity.Currency) (entity.Currency, error) {
 	return entity.Currency{}, nil
 }
 

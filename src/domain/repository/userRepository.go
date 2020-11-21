@@ -21,19 +21,19 @@ type userSaver interface {
 }
 
 type userAvatarUpdater interface {
-	UpdateUserAvatar(uint64, entity.User) error
+	UpdateUserAvatar(int64, entity.User) error
 }
 
 type userPasswordUpdater interface {
-	UpdateUserPassword(uint64, entity.User) error
+	UpdateUserPassword(int64, entity.User) error
 }
 
 type userEraser interface {
-	DeleteUser(uint64) error
+	DeleteUser(int64) error
 }
 
 type userReceiverById interface {
-	GetUserById(uint64) (entity.User, error)
+	GetUserById(int64) (entity.User, error)
 }
 
 type userReceiverByFormData interface {
@@ -41,7 +41,7 @@ type userReceiverByFormData interface {
 }
 
 type userReceiverWatchlist interface {
-	GetUserWatchlist(uint64) ([]entity.Currency, error)
+	GetUserWatchlist(int64) ([]entity.Currency, error)
 }
 
 type userCheckExistence interface {
@@ -49,5 +49,5 @@ type userCheckExistence interface {
 }
 
 type userCheckPassword interface {
-	CheckPassword(uint64, string) (bool, error)
+	CheckPassword(int64, string) (bool, error)
 }

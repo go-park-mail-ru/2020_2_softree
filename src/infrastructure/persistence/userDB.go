@@ -32,7 +32,7 @@ func NewUserDBManager() (*UserDBManager, error) {
 	return &UserDBManager{DB: db}, nil
 }
 
-func (h *UserDBManager) GetUserById(id uint64) (entity.User, error) {
+func (h *UserDBManager) GetUserById(id int64) (entity.User, error) {
 	user := entity.User{}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -79,7 +79,7 @@ func (h *UserDBManager) CheckExistence(email string) (bool, error) {
 	return exists != 0, nil
 }
 
-func (h *UserDBManager) CheckPassword(id uint64, password string) (bool, error) {
+func (h *UserDBManager) CheckPassword(id int64, password string) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -127,12 +127,12 @@ func (h *UserDBManager) SaveUser(user entity.User) (entity.User, error) {
 		return entity.User{}, err
 	}
 
-	newUser := entity.User{ID: uint64(lastID), Email: user.Email, Password: password}
+	newUser := entity.User{ID: lastID, Email: user.Email, Password: password}
 
 	return newUser, nil
 }
 
-func (h *UserDBManager) UpdateUserAvatar(id uint64, user entity.User) error {
+func (h *UserDBManager) UpdateUserAvatar(id int64, user entity.User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -153,7 +153,7 @@ func (h *UserDBManager) UpdateUserAvatar(id uint64, user entity.User) error {
 	return nil
 }
 
-func (h *UserDBManager) UpdateUserPassword(id uint64, user entity.User) error {
+func (h *UserDBManager) UpdateUserPassword(id int64, user entity.User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -179,7 +179,7 @@ func (h *UserDBManager) UpdateUserPassword(id uint64, user entity.User) error {
 	return nil
 }
 
-func (h *UserDBManager) DeleteUser(id uint64) error {
+func (h *UserDBManager) DeleteUser(id int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -229,7 +229,7 @@ func (h *UserDBManager) GetUserByLogin(email string, password string) (entity.Us
 	return user, nil
 }
 
-func (h *UserDBManager) GetUserWatchlist(id uint64) ([]entity.Currency, error) {
+func (h *UserDBManager) GetUserWatchlist(id int64) ([]entity.Currency, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 

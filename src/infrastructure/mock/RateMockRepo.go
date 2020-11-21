@@ -43,11 +43,11 @@ func (r *RecorderRateMockRepository) SaveRates(financial interface{}) *gomock.Ca
 	)
 }
 
-func (a *RateRepositoryForMock) UpdateRate(u uint64, rate entity.Currency) (entity.Currency, error) {
+func (a *RateRepositoryForMock) UpdateRate(u int64, rate entity.Currency) (entity.Currency, error) {
 	panic("implement me")
 }
 
-func (a *RateRepositoryForMock) DeleteRate(u uint64) error {
+func (a *RateRepositoryForMock) DeleteRate(u int64) error {
 	panic("implement me")
 }
 

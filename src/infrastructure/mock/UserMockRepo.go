@@ -43,7 +43,7 @@ func (r *RecorderUserMockRepository) SaveUser(u interface{}) *gomock.Call {
 	)
 }
 
-func (m *UserRepositoryForMock) UpdateUserAvatar(id uint64, u entity.User) error {
+func (m *UserRepositoryForMock) UpdateUserAvatar(id int64, u entity.User) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateUserAvatar", id, u)
 	err, _ := ret[0].(error)
@@ -61,7 +61,7 @@ func (r *RecorderUserMockRepository) UpdateUserAvatar(id, u interface{}) *gomock
 	)
 }
 
-func (m *UserRepositoryForMock) UpdateUserPassword(id uint64, u entity.User) error {
+func (m *UserRepositoryForMock) UpdateUserPassword(id int64, u entity.User) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateUserPassword", id, u)
 	err, _ := ret[0].(error)
@@ -79,7 +79,7 @@ func (r *RecorderUserMockRepository) UpdateUserPassword(id, u interface{}) *gomo
 	)
 }
 
-func (m *UserRepositoryForMock) DeleteUser(id uint64) error {
+func (m *UserRepositoryForMock) DeleteUser(id int64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteUser", id)
 	err, _ := ret[0].(error)
@@ -96,7 +96,7 @@ func (r *RecorderUserMockRepository) DeleteUser(id interface{}) *gomock.Call {
 	)
 }
 
-func (m *UserRepositoryForMock) GetUserById(id uint64) (entity.User, error) {
+func (m *UserRepositoryForMock) GetUserById(id int64) (entity.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserById", id)
 	user, _ := ret[0].(entity.User)
@@ -151,7 +151,7 @@ func (r *RecorderUserMockRepository) CheckExistence(email interface{}) *gomock.C
 	)
 }
 
-func (m *UserRepositoryForMock) CheckPassword(id uint64, password string) (bool, error) {
+func (m *UserRepositoryForMock) CheckPassword(id int64, password string) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CheckPassword", id, password)
 	user, _ := ret[0].(bool)
@@ -170,7 +170,7 @@ func (r *RecorderUserMockRepository) CheckPassword(id, password interface{}) *go
 	)
 }
 
-func (m *UserRepositoryForMock) GetUserWatchlist(id uint64) ([]entity.Currency, error) {
+func (m *UserRepositoryForMock) GetUserWatchlist(id int64) ([]entity.Currency, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveUser", id)
 	currencies, _ := ret[0].([]entity.Currency)

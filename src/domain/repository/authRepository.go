@@ -12,11 +12,11 @@ type AuthRepository interface {
 }
 
 type authCreator interface {
-	CreateAuth(uint64) (http.Cookie, error)
+	CreateAuth(int64) (http.Cookie, error)
 }
 
 type authChecker interface {
-	CheckAuth(string) (uint64, error)
+	CheckAuth(string) (int64, error)
 }
 
 type authEraser interface {

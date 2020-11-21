@@ -25,7 +25,7 @@ func (p *PaymentHistoryRepositoryForMock) EXPECT() *RecorderPaymentHistoryMockRe
 	return p.recorder
 }
 
-func (p *PaymentHistoryRepositoryForMock) GetAllPaymentHistory(id uint64) ([]entity.PaymentHistory, error) {
+func (p *PaymentHistoryRepositoryForMock) GetAllPaymentHistory(id int64) ([]entity.PaymentHistory, error) {
 	p.ctrl.T.Helper()
 	ret := p.ctrl.Call(p, "GetAllPaymentHistory", id)
 	history, _ := ret[0].([]entity.PaymentHistory)
@@ -43,7 +43,7 @@ func (r *RecorderPaymentHistoryMockRepository) GetAllPaymentHistory(id interface
 	)
 }
 
-func (p *PaymentHistoryRepositoryForMock) GetIntervalPaymentHistory(id uint64,
+func (p *PaymentHistoryRepositoryForMock) GetIntervalPaymentHistory(id int64,
 	i entity.Interval) ([]entity.PaymentHistory, error) {
 	p.ctrl.T.Helper()
 	ret := p.ctrl.Call(p, "GetIntervalPaymentHistory", id, i)
@@ -63,7 +63,7 @@ func (r *RecorderPaymentHistoryMockRepository) GetIntervalPaymentHistory(id, i i
 	)
 }
 
-func (p *PaymentHistoryRepositoryForMock) AddToPaymentHistory(id uint64, history entity.PaymentHistory) error {
+func (p *PaymentHistoryRepositoryForMock) AddToPaymentHistory(id int64, history entity.PaymentHistory) error {
 	p.ctrl.T.Helper()
 	ret := p.ctrl.Call(p, "AddToPaymentHistory", id, history)
 	err, _ := ret[0].(error)

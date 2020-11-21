@@ -11,13 +11,13 @@ type PaymentHistoryRepository interface {
 }
 
 type paymentHistoryReceiverAll interface {
-	GetAllPaymentHistory(uint64) ([]entity.PaymentHistory, error)
+	GetAllPaymentHistory(int64) ([]entity.PaymentHistory, error)
 }
 
 type paymentHistoryReceiverInterval interface {
-	GetIntervalPaymentHistory(uint64, entity.Interval) ([]entity.PaymentHistory, error)
+	GetIntervalPaymentHistory(int64, entity.Interval) ([]entity.PaymentHistory, error)
 }
 
 type paymentHistoryAddPayment interface {
-	AddToPaymentHistory(uint64, entity.PaymentHistory) error
+	AddToPaymentHistory(int64, entity.PaymentHistory) error
 }

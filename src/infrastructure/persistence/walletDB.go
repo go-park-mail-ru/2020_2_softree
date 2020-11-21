@@ -29,7 +29,7 @@ func NewWalletDBManager() (*WalletDBManager, error) {
 	return &WalletDBManager{DB: db}, nil
 }
 
-func (wm *WalletDBManager) GetWallets(id uint64) ([]entity.Wallet, error) {
+func (wm *WalletDBManager) GetWallets(id int64) ([]entity.Wallet, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -75,7 +75,7 @@ func (wm *WalletDBManager) GetWallets(id uint64) ([]entity.Wallet, error) {
 	return wallets, nil
 }
 
-func (wm *WalletDBManager) createInitialWallet(id uint64) error {
+func (wm *WalletDBManager) createInitialWallet(id int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -102,7 +102,7 @@ func (wm *WalletDBManager) createInitialWallet(id uint64) error {
 	return nil
 }
 
-func (wm *WalletDBManager) CreateWallet(id uint64, title string) error {
+func (wm *WalletDBManager) CreateWallet(id int64, title string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -129,7 +129,7 @@ func (wm *WalletDBManager) CreateWallet(id uint64, title string) error {
 	return nil
 }
 
-func (wm *WalletDBManager) CheckWallet(id uint64, title string) (bool, error) {
+func (wm *WalletDBManager) CheckWallet(id int64, title string) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -155,7 +155,7 @@ func (wm *WalletDBManager) CheckWallet(id uint64, title string) (bool, error) {
 	return exists != 0, nil
 }
 
-func (wm *WalletDBManager) SetWallet(id uint64, wallet entity.Wallet) error {
+func (wm *WalletDBManager) SetWallet(id int64, wallet entity.Wallet) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -182,7 +182,7 @@ func (wm *WalletDBManager) SetWallet(id uint64, wallet entity.Wallet) error {
 	return nil
 }
 
-func (wm *WalletDBManager) GetWallet(id uint64, title string) (entity.Wallet, error) {
+func (wm *WalletDBManager) GetWallet(id int64, title string) (entity.Wallet, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -210,7 +210,7 @@ func (wm *WalletDBManager) GetWallet(id uint64, title string) (entity.Wallet, er
 	return wallet, nil
 }
 
-func (wm *WalletDBManager) UpdateWallet(id uint64, wallet entity.Wallet) error {
+func (wm *WalletDBManager) UpdateWallet(id int64, wallet entity.Wallet) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 

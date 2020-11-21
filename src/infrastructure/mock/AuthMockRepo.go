@@ -25,7 +25,7 @@ func (a *AuthRepositoryForMock) EXPECT() *RecorderAuthMockRepository {
 	return a.recorder
 }
 
-func (a *AuthRepositoryForMock) CreateAuth(id uint64) (http.Cookie, error) {
+func (a *AuthRepositoryForMock) CreateAuth(id int64) (http.Cookie, error) {
 	a.ctrl.T.Helper()
 	ret := a.ctrl.Call(a, "CreateAuth", id)
 	cookie, _ := ret[0].(http.Cookie)
@@ -43,10 +43,10 @@ func (r *RecorderAuthMockRepository) CreateAuth(id interface{}) *gomock.Call {
 	)
 }
 
-func (a *AuthRepositoryForMock) CheckAuth(val string) (uint64, error) {
+func (a *AuthRepositoryForMock) CheckAuth(val string) (int64, error) {
 	a.ctrl.T.Helper()
 	ret := a.ctrl.Call(a, "CheckAuth", val)
-	id, _ := ret[0].(uint64)
+	id, _ := ret[0].(int64)
 	err, _ := ret[1].(error)
 	return id, err
 }

@@ -5,7 +5,7 @@ import (
 )
 
 type User struct {
-	ID          uint64 `json:"id"`
+	ID          int64  `json:"id"`
 	Email       string `json:"email" valid:"email"`
 	Password    string `json:"password" valid:"required"`
 	OldPassword string `json:"old_password"`
@@ -14,12 +14,10 @@ type User struct {
 }
 
 type PublicUser struct {
-	ID     uint64 `json:"id"`
+	ID     int64  `json:"id"`
 	Email  string `json:"email"`
 	Avatar string `json:"avatar"`
 }
-
-var Users []PublicUser
 
 func (u *User) MakePublicUser() PublicUser {
 	return PublicUser{

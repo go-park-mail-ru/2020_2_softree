@@ -12,25 +12,25 @@ type WalletRepository interface {
 }
 
 type userWalletsReceiver interface {
-	GetWallets(uint64) ([]entity.Wallet, error)
+	GetWallets(int64) ([]entity.Wallet, error)
 }
 
 type userWalletReceiver interface {
-	GetWallet(uint64, string) (entity.Wallet, error)
+	GetWallet(int64, string) (entity.Wallet, error)
 }
 
 type userWalletSet interface {
-	SetWallet(uint64, entity.Wallet) error
+	SetWallet(int64, entity.Wallet) error
 }
 
 type userWalletCheck interface {
-	CheckWallet(uint64, string) (bool, error)
+	CheckWallet(int64, string) (bool, error)
 }
 
 type userWalletCreateEmpty interface {
-	CreateWallet(uint64, string) error
+	CreateWallet(int64, string) error
 }
 
 type userUpdateWallet interface {
-	UpdateWallet(uint64, entity.Wallet) error
+	UpdateWallet(int64, entity.Wallet) error
 }

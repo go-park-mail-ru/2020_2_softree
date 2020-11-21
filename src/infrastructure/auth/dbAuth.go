@@ -28,7 +28,7 @@ func NewSessionManager(conn redis.Conn) *SessionManager {
 	}
 }
 
-func (sm *SessionManager) CreateAuth(id uint64) (cookie http.Cookie, err error) {
+func (sm *SessionManager) CreateAuth(id int64) (cookie http.Cookie, err error) {
 	if cookie, err = sm.CreateCookie(); err != nil {
 		return http.Cookie{}, err
 	}
@@ -45,7 +45,7 @@ func (sm *SessionManager) CreateAuth(id uint64) (cookie http.Cookie, err error) 
 	return cookie, nil
 }
 
-func (sm *SessionManager) CheckAuth(sessionValue string) (uint64, error) {
+func (sm *SessionManager) CheckAuth(sessionValue string) (int64, error) {
 	mkey := "sessions:" + sessionValue
 	data, err := redis.Bytes(sm.RedisConn.Do("GET", mkey))
 	if err == redis.ErrNil {
@@ -55,7 +55,7 @@ func (sm *SessionManager) CheckAuth(sessionValue string) (uint64, error) {
 	}
 
 	strRes := string(data)
-	uintRes, parseErr := strconv.ParseUint(strRes, 10, 64)
+	uintRes, parseErr := strconv.ParseInt(strRes, 10, 64)
 	if parseErr != nil {
 		return 0, errors.New("internal server error")
 	}
