@@ -2,16 +2,17 @@ package authorization
 
 import (
 	"server/src/application"
+	"server/src/authorizationService/session"
 
 	"github.com/microcosm-cc/bluemonday"
 )
 
 type Authentication struct {
 	userApp   application.UserApp
-	auth      application.UserAuth
+	auth      session.AuthorizationServiceClient
 	sanitizer bluemonday.Policy
 }
 
-func NewAuthenticate(uApp application.UserApp, auth application.UserAuth) *Authentication {
+func NewAuthenticate(uApp application.UserApp, auth session.AuthorizationServiceClient) *Authentication {
 	return &Authentication{userApp: uApp, auth: auth, sanitizer: *bluemonday.UGCPolicy()}
 }

@@ -3,6 +3,7 @@ package authorization
 import (
 	"encoding/json"
 	"net/http"
+	"server/src/authorizationService/session"
 	"server/src/domain/entity"
 
 	"github.com/sirupsen/logrus"
@@ -49,7 +50,14 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var cookie http.Cookie
-	if cookie, err = a.auth.CreateAuth(user.ID); err != nil {
+	if cookie, err = CreateCookie(); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"status": http.StatusInternalServerError}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if _, err = a.auth.Create(r.Context(), &session.Session{Id: user.ID, SessionId: cookie.Value}); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status": http.StatusInternalServerError}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)

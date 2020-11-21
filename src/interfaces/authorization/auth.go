@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"server/src/authorizationService/session"
 	"server/src/domain/entity"
 
 	"github.com/sirupsen/logrus"
@@ -17,7 +18,7 @@ func (a *Authentication) Auth(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		id, err := a.auth.CheckAuth(cookie.Value)
+		id, err := a.auth.Check(r.Context(), &session.SessionID{SessionId: cookie.Value})
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
 				"status": http.StatusBadRequest}).Error(err)
@@ -34,11 +35,11 @@ func (a *Authentication) Auth(next http.HandlerFunc) http.HandlerFunc {
 }
 
 func (a *Authentication) Authenticate(w http.ResponseWriter, r *http.Request) {
-	id := r.Context().Value("id").(uint64)
+	id := r.Context().Value("id").(*session.UserID)
 
 	var user entity.User
 	var err error
-	if user, err = a.userApp.GetUserById(id); err != nil {
+	if user, err = a.userApp.GetUserById(id.Id); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status": http.StatusBadRequest}).Error(err)
 		w.WriteHeader(http.StatusBadRequest)

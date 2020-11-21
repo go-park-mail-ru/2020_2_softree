@@ -2,6 +2,7 @@ package authorization
 
 import (
 	"net/http"
+	"server/src/authorizationService/session"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -14,14 +15,14 @@ func (a *Authentication) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = a.auth.DeleteAuth(cookie.Value); err != nil {
+	if _, err = a.auth.Delete(r.Context(), &session.SessionID{SessionId: cookie.Value}); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status": http.StatusInternalServerError}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	newCookie, err := a.auth.CreateCookie()
+	newCookie, err := CreateCookie()
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status": http.StatusInternalServerError}).Error(err)
