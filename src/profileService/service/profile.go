@@ -30,12 +30,12 @@ func NewUserDBManager() (*UserDBManager, error) {
 	return &UserDBManager{DB: db}, nil
 }
 
-func (h *UserDBManager) GetUserById(ctx context.Context, in *profile.UserID) (*profile.PublicUser, error) {
+func (managerDB *UserDBManager) GetUserById(ctx context.Context, in *profile.UserID) (*profile.PublicUser, error) {
 	user := profile.PublicUser{}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	tx, err := h.DB.BeginTx(ctx, nil)
+	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -53,11 +53,11 @@ func (h *UserDBManager) GetUserById(ctx context.Context, in *profile.UserID) (*p
 	return &user, nil
 }
 
-func (h *UserDBManager) CheckExistence(ctx context.Context, in *profile.User) (*profile.Check, error) {
+func (managerDB *UserDBManager) CheckExistence(ctx context.Context, in *profile.User) (*profile.Check, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	tx, err := h.DB.BeginTx(ctx, nil)
+	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -76,11 +76,11 @@ func (h *UserDBManager) CheckExistence(ctx context.Context, in *profile.User) (*
 	return &profile.Check{Existence: exists != 0}, nil
 }
 
-func (h *UserDBManager) CheckPassword(ctx context.Context, in *profile.User) (*profile.Check, error) {
+func (managerDB *UserDBManager) CheckPassword(ctx context.Context, in *profile.User) (*profile.Check, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	tx, err := h.DB.BeginTx(ctx, nil)
+	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -95,24 +95,27 @@ func (h *UserDBManager) CheckPassword(ctx context.Context, in *profile.User) (*p
 		return nil, err
 	}
 
-	check := profile.Check{Existence: bcrypt.CompareHashAndPassword([]byte(userPassword), []byte(in.Password)) == nil}
+	check := profile.Check{
+		Existence: bcrypt.CompareHashAndPassword([]byte(userPassword), []byte(in.OldPassword)) == nil,
+	}
 	return &check, nil
 }
 
-func (h *UserDBManager) SaveUser(ctx context.Context, in *profile.User) (*profile.PublicUser, error) {
+func (managerDB *UserDBManager) SaveUser(ctx context.Context, in *profile.User) (*profile.PublicUser, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	tx, err := h.DB.BeginTx(ctx, nil)
+	var password string
+	var err error
+	if password, err = security.MakeShieldedPassword(in.Password); err != nil {
+		return nil, err
+	}
+
+	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
-
-	var password string
-	if password, err = security.MakeShieldedPassword(in.Password); err != nil {
-		return nil, err
-	}
 
 	var lastID int64
 	err = tx.
@@ -130,11 +133,11 @@ func (h *UserDBManager) SaveUser(ctx context.Context, in *profile.User) (*profil
 	return &newUser, nil
 }
 
-func (h *UserDBManager) UpdateUserAvatar(ctx context.Context, in *profile.UpdateFields) (*profile.Empty, error) {
+func (managerDB *UserDBManager) UpdateUserAvatar(ctx context.Context, in *profile.UpdateFields) (*profile.Empty, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	tx, err := h.DB.BeginTx(ctx, nil)
+	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -151,22 +154,17 @@ func (h *UserDBManager) UpdateUserAvatar(ctx context.Context, in *profile.Update
 	return nil, nil
 }
 
-func (h *UserDBManager) UpdateUserPassword(ctx context.Context, in *profile.UpdateFields) (*profile.Empty, error) {
+func (managerDB *UserDBManager) UpdateUserPassword(ctx context.Context, in *profile.UpdateFields) (*profile.Empty, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	tx, err := h.DB.BeginTx(ctx, nil)
+	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	newPassword, err := security.MakeShieldedPassword(in.User.NewPassword)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = tx.Exec("UPDATE user_trade SET password = $1 WHERE id = $2", newPassword, in.Id)
+	_, err = tx.Exec("UPDATE user_trade SET password = $1 WHERE id = $2", in.User.NewPassword, in.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -177,11 +175,11 @@ func (h *UserDBManager) UpdateUserPassword(ctx context.Context, in *profile.Upda
 	return nil, nil
 }
 
-func (h *UserDBManager) DeleteUser(ctx context.Context, in *profile.UserID) (*profile.Empty, error) {
+func (managerDB *UserDBManager) DeleteUser(ctx context.Context, in *profile.UserID) (*profile.Empty, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	tx, err := h.DB.BeginTx(ctx, nil)
+	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -199,11 +197,11 @@ func (h *UserDBManager) DeleteUser(ctx context.Context, in *profile.UserID) (*pr
 	return nil, nil
 }
 
-func (h *UserDBManager) GetUserByLogin(ctx context.Context, in *profile.User) (*profile.PublicUser, error) {
+func (managerDB *UserDBManager) GetUserByLogin(ctx context.Context, in *profile.User) (*profile.PublicUser, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	tx, err := h.DB.BeginTx(ctx, nil)
+	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -226,12 +224,12 @@ func (h *UserDBManager) GetUserByLogin(ctx context.Context, in *profile.User) (*
 	return &profile.PublicUser{ID: user.ID, Email: user.Email, Avatar: user.Avatar}, nil
 }
 
-func (h *UserDBManager) GetUserWatchlist(ctx context.Context, in *profile.UserID) (
+func (managerDB *UserDBManager) GetUserWatchlist(ctx context.Context, in *profile.UserID) (
 	currencies *profile.Currencies, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	tx, err := h.DB.BeginTx(ctx, nil)
+	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}

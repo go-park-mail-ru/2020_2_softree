@@ -42,10 +42,9 @@ func (sm *SessionManager) Check(ctx context.Context, in *session.SessionID) (*se
 		return nil, err
 	}
 
-	strRes := string(data)
-	id, parseErr := strconv.ParseInt(strRes, 10, 64)
-	if parseErr != nil {
-		return nil, errors.New("internal server error")
+	var id int64
+	if id, err = strconv.ParseInt(string(data), 10, 64); err != nil {
+		return nil, err
 	}
 
 	return &session.UserID{Id: id}, nil

@@ -1,89 +1,64 @@
 package profile
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
 	"server/src/domain/entity"
+	"server/src/infrastructure/security"
+	"server/src/profileService/profile"
 
-	"github.com/asaskevich/govalidator"
 	"github.com/sirupsen/logrus"
 )
 
-func (p *Profile) Auth(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		cookie, err := r.Cookie("session_id")
-		if err == http.ErrNoCookie {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-
-		id, err := p.auth.CheckAuth(cookie.Value)
-		if err != nil {
-			logrus.WithFields(logrus.Fields{
-				"status": http.StatusBadRequest,
-				"cookie": cookie.Value,
-			}).Error(err)
-
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-
-		ctx := context.WithValue(r.Context(), "id", id)
-		r = r.Clone(ctx)
-
-		next.ServeHTTP(w, r)
-	}
-}
-
 func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
-	id := r.Context().Value("id").(uint64)
-
-	var user entity.User
-	err := json.NewDecoder(r.Body).Decode(&user)
-	if err != nil {
+	var user profile.User
+	var err error
+	if err = json.NewDecoder(r.Body).Decode(&user); err != nil {
 		logrus.WithFields(logrus.Fields{
-			"status": http.StatusInternalServerError,
+			"status":   http.StatusInternalServerError,
+			"function": "UpdateUserAvatar",
+			"action":   "Decode",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	user.ID = r.Context().Value("id").(int64)
 	defer r.Body.Close()
 
-	if govalidator.IsNull(user.Avatar) {
-		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusBadRequest,
-			"function": "UpdateUserAvatar",
-		}).Error("No user avatar from json")
+	if !p.validate("Avatar", &user) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	p.sanitizer.SanitizeBytes([]byte(user.Avatar))
-	if err = p.userApp.UpdateUserAvatar(id, user); err != nil {
+	if _, err = p.userApp.UpdateUserAvatar(r.Context(), &profile.UpdateFields{Id: user.ID, User: &user}); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "UpdateUserAvatar",
+			"action":   "UpdateUserAvatar",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	if user, err = p.userApp.GetUserById(id); err != nil {
-		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusInternalServerError,
-			"function": "UpdateUserAvatar",
-		}).Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	res, err := json.Marshal(user.MakePublicUser())
+	public, err := p.userApp.GetUserById(r.Context(), &profile.UserID{Id: user.ID})
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "UpdateUserAvatar",
+			"action":   "GetUserById",
+		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	p.sanitizer.SanitizeBytes([]byte(public.Avatar))
+	res, err := json.Marshal(public)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"status":   http.StatusInternalServerError,
+			"function": "UpdateUserAvatar",
+			"action":   "Marshal",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -99,26 +74,20 @@ func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
-	id := r.Context().Value("id").(uint64)
-
-	var user entity.User
+	var user profile.User
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "UpdateUserPassword",
+			"action":   "Decode",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	user.ID = r.Context().Value("id").(int64)
 
-	if govalidator.IsNull(user.OldPassword) || govalidator.IsNull(user.NewPassword) {
-		logrus.WithFields(logrus.Fields{
-			"status":      http.StatusBadRequest,
-			"function":    "UpdateUserPassword",
-			"oldPassword": user.OldPassword,
-			"newPassword": user.NewPassword,
-		}).Error(err)
+	if !p.validate("Passwords", &user) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -126,51 +95,63 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 	p.sanitizer.Sanitize(user.OldPassword)
 	p.sanitizer.Sanitize(user.NewPassword)
 
-	errs := user.ValidateUpdate()
-	if errs.NotEmpty {
+	if errs := p.ValidateUpdate(&user); errs.NotEmpty {
 		p.createServerError(&errs, w)
 		return
 	}
 
-	var check bool
-	if check, err = p.userApp.CheckPassword(id, user.OldPassword); err != nil {
+	var check *profile.Check
+	if check, err = p.userApp.CheckPassword(r.Context(), &user); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "UpdateUserPassword",
+			"action":   "CheckPassword",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
-	if !check {
+	if !check.Existence {
 		errs := p.createErrorJSON(errors.New("wrong old password"))
 		p.createServerError(&errs, w)
 		return
 	}
 
-	if err = p.userApp.UpdateUserPassword(id, user); err != nil {
+	if user.NewPassword, err = security.MakeShieldedPassword(user.NewPassword); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "UpdateUserPassword",
+			"action":   "MakeShieldedPassword",
+		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if _, err = p.userApp.UpdateUserPassword(r.Context(), &profile.UpdateFields{Id: user.ID, User: &user}); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"status":   http.StatusInternalServerError,
+			"function": "UpdateUserPassword",
+			"action":   "UpdateUserPassword",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	if user, err = p.userApp.GetUserById(id); err != nil {
+	var public *profile.PublicUser
+	if public, err = p.userApp.GetUserById(r.Context(), &profile.UserID{Id: user.ID}); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "UpdateUserPassword",
+			"action":   "GetUserById",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	res, err := json.Marshal(user.MakePublicUser())
+	res, err := json.Marshal(public)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "UpdateUserPassword",
+			"action":   "Marshal",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -181,29 +162,32 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write(res); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"function": "UpdateUserPassword",
+			"action":   "Write",
 		}).Error(err)
 	}
 }
 
 func (p *Profile) GetUser(w http.ResponseWriter, r *http.Request) {
-	id := r.Context().Value("id").(uint64)
+	id := r.Context().Value("id").(int64)
 
-	var user entity.User
 	var err error
-	if user, err = p.userApp.GetUserById(id); err != nil {
+	var public *profile.PublicUser
+	if public, err = p.userApp.GetUserById(r.Context(), &profile.UserID{Id: id}); err != nil {
 		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusBadRequest,
+			"status":   http.StatusInternalServerError,
 			"function": "GetUser",
+			"action":   "GetUserById",
 		}).Error(err)
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	res, err := json.Marshal(user.MakePublicUser())
+	res, err := json.Marshal(public)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "GetUser",
+			"action":   "Marshal",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -214,18 +198,20 @@ func (p *Profile) GetUser(w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write(res); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"function": "GetUser",
+			"action":   "Write",
 		}).Error(err)
 	}
 }
 
 func (p *Profile) GetUserWatchlist(w http.ResponseWriter, r *http.Request) {
-	id := r.Context().Value("id").(uint64)
+	id := r.Context().Value("id").(int64)
 
-	currencies, err := p.userApp.GetUserWatchlist(id)
+	currencies, err := p.userApp.GetUserWatchlist(r.Context(), &profile.UserID{Id: id})
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
-			"function": "GetUserWatchlist",
 			"status":   http.StatusBadRequest,
+			"function": "GetUserWatchlist",
+			"action":   "GetUserWatchlist",
 		}).Error(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -234,8 +220,9 @@ func (p *Profile) GetUserWatchlist(w http.ResponseWriter, r *http.Request) {
 	res, err := json.Marshal(currencies)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
-			"function": "GetUserWatchlist",
 			"status":   http.StatusInternalServerError,
+			"function": "GetUserWatchlist",
+			"action":   "Marshal",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -246,6 +233,7 @@ func (p *Profile) GetUserWatchlist(w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write(res); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"function": "GetUserWatchlist",
+			"action":   "Write",
 		}).Error(err)
 	}
 }
@@ -258,8 +246,9 @@ func (p *Profile) createOldPassError(w http.ResponseWriter) {
 	res, err := json.Marshal(errs)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
-			"function": "createOldPassError",
 			"status":   http.StatusInternalServerError,
+			"function": "createOldPassError",
+			"action":   "Marshal",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -270,6 +259,7 @@ func (p *Profile) createOldPassError(w http.ResponseWriter) {
 	if _, err := w.Write(res); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"function": "createOldPassError",
+			"action":   "Write",
 		}).Error(err)
 	}
 	return

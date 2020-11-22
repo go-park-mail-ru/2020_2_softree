@@ -1,19 +1,20 @@
 syntax = "proto3";
 
 package profile;
+import "google/protobuf/timestamp.proto";
 
 message User {
-  int64  ID          = 1;
-  string Email       = 2;
-  string Password    = 3;
+  int64  ID = 1;
+  string Email = 2;
+  string Password = 3;
   string OldPassword = 4;
   string NewPassword = 5;
-  string Avatar      = 6;
+  string Avatar = 6;
 }
 
 message PublicUser {
-  int64  ID     = 1;
-  string Email  = 2;
+  int64  ID = 1;
+  string Email = 2;
   string Avatar = 3;
 }
 
@@ -39,6 +40,42 @@ message Check {
   bool existence = 1;
 }
 
+message PaymentHistory {
+  string From = 1;
+  string To = 2;
+  double Amount = 3;
+  google.protobuf.Timestamp Datetime = 4;
+  double Value = 5;
+}
+
+message AllHistory {
+  repeated PaymentHistory History = 1;
+}
+
+message AddToHistory {
+  int64 id = 1;
+  PaymentHistory transaction = 2;
+}
+
+message Wallet {
+  string Title = 1;
+  double Value = 2;
+}
+
+message Wallets {
+  repeated Wallet AllWallets = 1;
+}
+
+message ConcreteWallet {
+  int64 Id = 1;
+  string Title = 2;
+}
+
+message ToSetWallet {
+  int64 Id = 1;
+  Wallet NewWallet = 2;
+}
+
 message Empty {}
 
 service profileService {
@@ -51,4 +88,14 @@ service profileService {
   rpc CheckExistence(User) returns (Check) {}
   rpc CheckPassword(User) returns (Check) {}
   rpc GetUserWatchlist(UserID) returns (Currencies) {}
+
+  rpc GetAllPaymentHistory(UserID) returns (AllHistory) {}
+  rpc AddToPaymentHistory(AddToHistory) returns (Empty) {}
+
+  rpc GetWallets(UserID) returns (Wallets) {}
+  rpc GetWallet(ConcreteWallet) returns (Wallet) {}
+  rpc SetWallet(ToSetWallet) returns (Empty) {}
+  rpc CheckWallet(ConcreteWallet) returns (Check) {}
+  rpc CreateWallet(ConcreteWallet) returns (Empty) {}
+  rpc UpdateWallet(ToSetWallet) returns (Empty) {}
 }

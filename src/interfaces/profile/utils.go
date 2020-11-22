@@ -3,8 +3,10 @@ package profile
 import (
 	"encoding/json"
 	"errors"
+	"github.com/asaskevich/govalidator"
 	"net/http"
 	"server/src/domain/entity"
+	"server/src/profileService/profile"
 
 	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
@@ -141,4 +143,44 @@ func (p *Profile) getPay(
 	}
 
 	return nil, needToPay
+}
+
+func (p *Profile) validate(action string, user *profile.User) bool {
+	switch action {
+	case "Avatar":
+		if govalidator.IsNull(user.Avatar) {
+			logrus.WithFields(logrus.Fields{
+				"status":   http.StatusBadRequest,
+				"function": "UpdateUserAvatar",
+				"action":   "validation",
+			}).Error("No user avatar from json")
+			return false
+		}
+	case "Passwords":
+		if govalidator.IsNull(user.OldPassword) || govalidator.IsNull(user.NewPassword) {
+			logrus.WithFields(logrus.Fields{
+				"status":      http.StatusBadRequest,
+				"function":    "UpdateUserPassword",
+				"oldPassword": user.OldPassword,
+				"newPassword": user.NewPassword,
+			}).Error(err)
+			return false
+		}
+	}
+
+	return true
+}
+
+func (p *Profile) ValidateUpdate(u *profile.User) (errors entity.ErrorJSON) {
+	if govalidator.HasWhitespace(u.NewPassword) {
+		errors.Password = append(errors.Email, "Некорректный новый пароль")
+		errors.NotEmpty = true
+	}
+
+	if govalidator.HasWhitespace(u.OldPassword) {
+		errors.Password = append(errors.Email, "Некорректный старый пароль")
+		errors.NotEmpty = true
+	}
+
+	return errors
 }
