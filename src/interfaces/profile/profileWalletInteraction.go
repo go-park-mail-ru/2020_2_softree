@@ -3,32 +3,34 @@ package profile
 import (
 	"encoding/json"
 	"net/http"
-	"server/src/domain/entity"
+	"server/src/profileService/profile"
 
 	"github.com/sirupsen/logrus"
 )
 
 func (p *Profile) GetWallets(w http.ResponseWriter, r *http.Request) {
-	id := r.Context().Value("id").(uint64)
+	id := r.Context().Value("id").(int64)
 
-	wallet, err := p.userApp.GetWallets(id)
+	wallets, err := p.userApp.GetWallets(r.Context(), &profile.UserID{Id: id})
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "GetWallets",
+			"action":   "GetWallets",
 			"userID":   id,
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	res, err := json.Marshal(wallet)
+	res, err := json.Marshal(wallets)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "GetWallets",
+			"action":   "Marshal",
 			"userID":   id,
-			"wallet":   wallet,
+			"wallets":  wallets,
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -39,8 +41,9 @@ func (p *Profile) GetWallets(w http.ResponseWriter, r *http.Request) {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "GetWallets",
+			"action":   "Write",
 			"userID":   id,
-			"wallet":   wallet,
+			"wallet":   wallets,
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -48,24 +51,26 @@ func (p *Profile) GetWallets(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Profile) SetWallet(w http.ResponseWriter, r *http.Request) {
-	id := r.Context().Value("id").(uint64)
-
-	var wallet entity.Wallet
+	var wallet profile.ConcreteWallet
 	err := json.NewDecoder(r.Body).Decode(&wallet)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "SetWallet",
+			"action":   "Decode",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	defer r.Body.Close()
+	wallet.Id = r.Context().Value("id").(int64)
 
-	if err = p.userApp.CreateWallet(id, wallet.Title); err != nil {
+	if _, err = p.userApp.CreateWallet(r.Context(), &wallet); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "SetWallet",
+			"action":   "CreateWallet",
+			"wallet":   &wallet,
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return

@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
 	"server/src/infrastructure/security"
 	"server/src/profileService/profile"
@@ -15,19 +14,8 @@ type UserDBManager struct {
 	DB *sql.DB
 }
 
-func NewUserDBManager() (*UserDBManager, error) {
-	db, err := sql.Open("postgres", viper.GetString("postgres.URL"))
-	if err != nil {
-		return nil, err
-	}
-	db.SetMaxOpenConns(10)
-
-	err = db.Ping()
-	if err != nil {
-		return nil, err
-	}
-
-	return &UserDBManager{DB: db}, nil
+func NewUserDBManager(DB *sql.DB) *UserDBManager {
+	return &UserDBManager{DB}
 }
 
 func (managerDB *UserDBManager) GetUserById(ctx context.Context, in *profile.UserID) (*profile.PublicUser, error) {

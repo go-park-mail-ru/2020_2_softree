@@ -1,8 +1,8 @@
 package profile
 
 import (
+	"context"
 	"encoding/json"
-	"errors"
 	"github.com/asaskevich/govalidator"
 	"net/http"
 	"server/src/domain/entity"
@@ -48,53 +48,52 @@ func (p *Profile) createServerError(errs *entity.ErrorJSON, w http.ResponseWrite
 	}
 }
 
-func (p *Profile) checkWalletFrom(w http.ResponseWriter, id uint64, transaction entity.PaymentHistory) bool {
-	var exist bool
+func (p *Profile) checkWalletFrom(ctx context.Context, wallet *profile.ConcreteWallet) (bool, int) {
+	var exist *profile.Check
 	var err error
-	if exist, err = p.userApp.CheckWallet(id, transaction.From); err != nil {
+	if exist, err = p.userApp.CheckWallet(ctx, wallet); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "checkWalletFrom",
+			"action":   "CheckWallet",
 		}).Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return false
+		return false, http.StatusInternalServerError
 	}
 
-	if !exist {
-		w.WriteHeader(http.StatusBadRequest)
-		return false
+	if !exist.Existence {
+		return false, http.StatusBadRequest
 	}
 
-	return true
+	return true, 0
 }
 
-func (p *Profile) checkWalletTo(w http.ResponseWriter, id uint64, transaction entity.PaymentHistory) bool {
-	var exist bool
+func (p *Profile) checkWalletTo(ctx context.Context, wallet *profile.ConcreteWallet) (bool, int) {
+	var exist *profile.Check
 	var err error
-	if exist, err = p.userApp.CheckWallet(id, transaction.To); err != nil {
+	if exist, err = p.userApp.CheckWallet(ctx, wallet); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "checkWalletTo",
+			"action":   "CheckWallet",
 		}).Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return false
+		return false, http.StatusInternalServerError
 	}
 
-	if !exist {
-		if err = p.userApp.CreateWallet(id, transaction.To); err != nil {
+	if !exist.Existence {
+		if _, err = p.userApp.CreateWallet(ctx, wallet); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"status":   http.StatusInternalServerError,
 				"function": "checkWallets",
+				"action":   "CreateWallet",
 			}).Error(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return false
+			return false, http.StatusInternalServerError
 		}
 	}
 
-	return true
+	return true, 0
 }
 
-func (p *Profile) checkWalletPayment(
+func (p *Profile) getCurrencyDiv(
 	w http.ResponseWriter, transaction entity.PaymentHistory) (error, decimal.Decimal) {
 	var currencyFrom entity.Currency
 	var err error
@@ -123,26 +122,26 @@ func (p *Profile) checkWalletPayment(
 	return nil, div
 }
 
-func (p *Profile) getPay(
-	w http.ResponseWriter, id uint64, transaction entity.PaymentHistory, div decimal.Decimal) (err error, needToPay decimal.Decimal) {
-	needToPay = div.Mul(transaction.Amount)
+const notEnoughPayment = 1
 
-	var wallet entity.Wallet
-	if wallet, err = p.userApp.GetWallet(id, transaction.From); err != nil {
+func (p *Profile) getPay(ctx context.Context, userWallet *profile.ConcreteWallet, needToPay decimal.Decimal) int {
+	var wallet *profile.Wallet
+	var err error
+	if wallet, err = p.userApp.GetWallet(ctx, userWallet); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":          http.StatusInternalServerError,
 			"function":        "getPay",
-			"transactionFrom": transaction.From,
+			"transactionFrom": userWallet.Title,
+			"action":          "GetWallet",
 		}).Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return err, decimal.Decimal{}
+		return http.StatusInternalServerError
 	}
 
-	if needToPay.GreaterThan(wallet.Value) {
-		return errors.New("not enough payment"), decimal.Decimal{}
+	if needToPay.GreaterThan(decimal.NewFromFloat(wallet.Value)) {
+		return notEnoughPayment
 	}
 
-	return nil, needToPay
+	return 0
 }
 
 func (p *Profile) validate(action string, user *profile.User) bool {
@@ -163,7 +162,7 @@ func (p *Profile) validate(action string, user *profile.User) bool {
 				"function":    "UpdateUserPassword",
 				"oldPassword": user.OldPassword,
 				"newPassword": user.NewPassword,
-			}).Error(err)
+			}).Error("No user passwords from json")
 			return false
 		}
 	}
