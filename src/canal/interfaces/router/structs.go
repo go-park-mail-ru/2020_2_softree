@@ -1,42 +1,27 @@
 package router
 
 import (
+	"google.golang.org/grpc"
+	"log"
+	session "server/src/authorization/session/gen"
 	"server/src/canal/application"
 	"server/src/canal/infrastructure/auth"
 	"server/src/canal/infrastructure/financial"
 	"server/src/canal/infrastructure/persistence"
 	"server/src/canal/interfaces/authorization"
-	"server/src/canal/interfaces/profile"
 	"server/src/canal/interfaces/rates"
+	profile "server/src/profile/profile/gen"
 
 	"github.com/gomodule/redigo/redis"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
-func createAuthenticate() (*authorization.Authentication, error) {
-	dbRepo, err := persistence.NewUserDBManager()
-	if err != nil {
-		return nil, err
-	}
-	dbHistory, err := persistence.NewPaymentDBManager()
-	if err != nil {
-		return nil, err
-	}
-	dbWallet, err := persistence.NewWalletDBManager()
-	if err != nil {
-		return nil, err
-	}
-	connect, err := redis.DialURL(viper.GetString("redis.sessionURL"))
-	if err != nil {
-		return nil, err
-	}
-	dbAuth := auth.NewSessionManager(connect)
+func createAuthenticate(profileConn, sessionConn *grpc.ClientConn) *authorization.Authentication {
+	sessionManager := session.NewAuthorizationServiceClient(sessionConn)
+	profileManager := profile.NewProfileServiceClient(profileConn)
 
-	servicesDB := application.NewUserApp(dbRepo, dbHistory, dbWallet)
-	servicesAuth := application.NewUserAuth(dbAuth)
-
-	return authorization.NewAuthenticate(*servicesDB, *servicesAuth), nil
+	return authorization.NewAuthenticate(profileManager, sessionManager)
 }
 
 func createProfile() (*profile.Profile, error) {

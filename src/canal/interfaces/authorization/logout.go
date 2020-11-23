@@ -17,7 +17,11 @@ func (a *Authentication) Logout(w http.ResponseWriter, r *http.Request) {
 
 	if _, err = a.auth.Delete(r.Context(), &session.SessionID{SessionId: cookie.Value}); err != nil {
 		logrus.WithFields(logrus.Fields{
-			"status": http.StatusInternalServerError}).Error(err)
+			"status":     http.StatusInternalServerError,
+			"function":   "Logout",
+			"action":     "Delete auth",
+			"session_id": session.SessionID{SessionId: cookie.Value},
+		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -25,7 +29,10 @@ func (a *Authentication) Logout(w http.ResponseWriter, r *http.Request) {
 	newCookie, err := CreateCookie()
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
-			"status": http.StatusInternalServerError}).Error(err)
+			"status":   http.StatusInternalServerError,
+			"function": "Logout",
+			"action":   "CreateCookie",
+		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

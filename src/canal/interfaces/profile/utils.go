@@ -6,7 +6,7 @@ import (
 	"github.com/asaskevich/govalidator"
 	"net/http"
 	"server/src/canal/domain/entity"
-	"server/src/profile/profile"
+	profile "server/src/profile/profile/gen"
 
 	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"

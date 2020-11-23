@@ -2,17 +2,17 @@ package authorization
 
 import (
 	session "server/src/authorization/session/gen"
-	"server/src/canal/application"
+	profile "server/src/profile/profile/gen"
 
 	"github.com/microcosm-cc/bluemonday"
 )
 
 type Authentication struct {
-	userApp   application.UserApp
+	profile   profile.ProfileServiceClient
 	auth      session.AuthorizationServiceClient
 	sanitizer bluemonday.Policy
 }
 
-func NewAuthenticate(uApp application.UserApp, auth session.AuthorizationServiceClient) *Authentication {
-	return &Authentication{userApp: uApp, auth: auth, sanitizer: *bluemonday.UGCPolicy()}
+func NewAuthenticate(profile profile.ProfileServiceClient, auth session.AuthorizationServiceClient) *Authentication {
+	return &Authentication{profile: profile, auth: auth, sanitizer: *bluemonday.UGCPolicy()}
 }

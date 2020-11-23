@@ -2,10 +2,12 @@ package authorization
 
 import (
 	"encoding/json"
+	"github.com/asaskevich/govalidator"
 	"github.com/spf13/viper"
 	"net/http"
 	"server/src/canal/domain/entity"
 	"server/src/canal/infrastructure/security"
+	profile "server/src/profile/profile/gen"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -38,6 +40,30 @@ func (a *Authentication) createServerError(errors *entity.ErrorJSON, w http.Resp
 		logrus.WithFields(logrus.Fields{
 			"status": http.StatusInternalServerError}).Error(err)
 	}
+}
+
+func (a *Authentication) validate(user *profile.User) (errs entity.ErrorJSON) {
+	if !govalidator.IsEmail(user.Email) {
+		errs.Email = append(errs.Email, "Некорректный email или пароль")
+		errs.NotEmpty = true
+	}
+
+	if user.Password == "" {
+		errs.Password = append(errs.Email, "Некорректный email или пароль")
+		errs.NotEmpty = true
+	}
+
+	if govalidator.IsNull(user.Password) {
+		errs.Password = append(errs.Email, "Некорректный email или пароль")
+		errs.NotEmpty = true
+	}
+
+	if govalidator.HasWhitespace(user.Password) {
+		errs.Password = append(errs.Email, "Некорректный email или пароль")
+		errs.NotEmpty = true
+	}
+
+	return
 }
 
 func CreateCookie() (http.Cookie, error) {

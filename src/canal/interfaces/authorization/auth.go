@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	session "server/src/authorization/session/gen"
-	"server/src/canal/domain/entity"
+	profile "server/src/profile/profile/gen"
 
 	"github.com/sirupsen/logrus"
 )
@@ -27,7 +27,7 @@ func (a *Authentication) Auth(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "id", id)
+		ctx := context.WithValue(r.Context(), "id", id.Id)
 		r = r.Clone(ctx)
 
 		next.ServeHTTP(w, r)
@@ -35,21 +35,29 @@ func (a *Authentication) Auth(next http.HandlerFunc) http.HandlerFunc {
 }
 
 func (a *Authentication) Authenticate(w http.ResponseWriter, r *http.Request) {
-	id := r.Context().Value("id").(*session.UserID)
+	id := r.Context().Value("id").(int64)
 
-	var user entity.User
+	var user *profile.PublicUser
 	var err error
-	if user, err = a.userApp.GetUserById(id.Id); err != nil {
+	if user, err = a.profile.GetUserById(r.Context(), &profile.UserID{Id: id}); err != nil {
 		logrus.WithFields(logrus.Fields{
-			"status": http.StatusBadRequest}).Error(err)
+			"status":   http.StatusBadRequest,
+			"function": "Authenticate",
+			"UserID":   id,
+			"action":   "GetUserById",
+		}).Error(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	res, err := json.Marshal(user.MakePublicUser())
+	res, err := json.Marshal(user)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
-			"status": http.StatusBadRequest}).Error(err)
+			"status":   http.StatusInternalServerError,
+			"function": "Authenticate",
+			"UserID":   id,
+			"action":   "Marshal",
+		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -58,6 +66,9 @@ func (a *Authentication) Authenticate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	if _, err := w.Write(res); err != nil {
 		logrus.WithFields(logrus.Fields{
-			"status": http.StatusBadRequest}).Error(err)
+			"function": "Authenticate",
+			"UserID":   id,
+			"action":   "Write",
+		}).Error(err)
 	}
 }
