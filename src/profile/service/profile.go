@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"golang.org/x/crypto/bcrypt"
-	"server/src/main/infrastructure/security"
+	"server/src/canal/infrastructure/security"
 	profile "server/src/profile/profile/gen"
 	"time"
 )
