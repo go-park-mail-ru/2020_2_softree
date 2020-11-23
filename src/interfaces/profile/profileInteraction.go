@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"server/src/domain/entity"
 	"server/src/infrastructure/security"
-	"server/src/profileService/profile"
+	profile "server/src/profileService/profile/gen"
 
 	"github.com/sirupsen/logrus"
 )

@@ -2,7 +2,7 @@ package profile
 
 import (
 	"server/src/application"
-	"server/src/profileService/profile"
+	profile "server/src/profileService/profile/gen"
 
 	"github.com/microcosm-cc/bluemonday"
 )

@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"github.com/shopspring/decimal"
-	"server/src/profileService/profile"
+	profile "server/src/profileService/profile/gen"
 	"time"
 )
 

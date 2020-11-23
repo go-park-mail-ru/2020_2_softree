@@ -2,7 +2,7 @@ package authorization
 
 import (
 	"server/src/application"
-	"server/src/authorizationService/session"
+	session "server/src/authorizationService/session/gen"
 
 	"github.com/microcosm-cc/bluemonday"
 )

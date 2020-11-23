@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"server/src/profileService/profile"
+	profile "server/src/profileService/profile/gen"
 	"time"
 )
 

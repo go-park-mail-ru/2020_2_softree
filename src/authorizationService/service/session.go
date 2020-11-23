@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/gomodule/redigo/redis"
-	"server/src/authorizationService/session"
+	session "server/src/authorizationService/session/gen"
 	"strconv"
 )
 

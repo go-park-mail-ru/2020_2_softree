@@ -3,7 +3,7 @@ package profile
 import (
 	"encoding/json"
 	"net/http"
-	"server/src/profileService/profile"
+	profile "server/src/profileService/profile/gen"
 
 	"github.com/sirupsen/logrus"
 )

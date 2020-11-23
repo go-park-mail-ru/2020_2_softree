@@ -3,7 +3,7 @@ package authorization
 import (
 	"encoding/json"
 	"net/http"
-	"server/src/authorizationService/session"
+	session "server/src/authorizationService/session/gen"
 	"server/src/domain/entity"
 
 	"github.com/sirupsen/logrus"

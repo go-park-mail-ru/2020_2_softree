@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"net"
-	"server/src/profileService/profile"
+	profile "server/src/profileService/profile/gen"
 )
 
 func main() {

@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"net"
-	"server/src/authorizationService/session"
+	session "server/src/authorizationService/session/gen"
 )
 
 func main() {

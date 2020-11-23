@@ -2,7 +2,7 @@ package authorization
 
 import (
 	"net/http"
-	"server/src/authorizationService/session"
+	session "server/src/authorizationService/session/gen"
 	"time"
 
 	"github.com/sirupsen/logrus"

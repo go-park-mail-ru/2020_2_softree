@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"server/src/profileService/profile"
+	profile "server/src/profileService/profile/gen"
 
 	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
@@ -48,7 +48,7 @@ func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (p *Profile) SetTransactions(w http.ResponseWriter, r *http.Request) {
+func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 	id := r.Context().Value("id").(int64)
 
 	var transaction profile.PaymentHistory

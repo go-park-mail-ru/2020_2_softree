@@ -6,7 +6,7 @@ import (
 	"errors"
 	"golang.org/x/crypto/bcrypt"
 	"server/src/infrastructure/security"
-	"server/src/profileService/profile"
+	profile "server/src/profileService/profile/gen"
 	"time"
 )
 
