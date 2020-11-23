@@ -2,6 +2,7 @@ package canal
 
 import (
 	"fmt"
+	"google.golang.org/grpc"
 	"log"
 	"math/rand"
 	"net/http"
@@ -101,12 +102,24 @@ func init() {
 }
 
 func main() {
-	userAuthenticate, userProfile, rateRates, err := router.CreateAppStructs()
+	sessionConn, err := grpc.Dial("127.0.0.1:8081", grpc.WithInsecure())
 	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"function": "canal",
-		}).Fatal(err)
+		log.Fatalf("cant connect to grpc")
 	}
+	profileConn, err := grpc.Dial("127.0.0.1:8081", grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("cant connect to grpc")
+	}
+	currencyConn, err := grpc.Dial("127.0.0.1:8081", grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("cant connect to grpc")
+	}
+
+	defer sessionConn.Close()
+	defer profileConn.Close()
+	defer currencyConn.Close()
+
+	userAuthenticate, userProfile, rateRates := router.CreateAppStructs(profileConn, sessionConn, currencyConn)
 
 	go rateRates.GetRatesFromApi()
 

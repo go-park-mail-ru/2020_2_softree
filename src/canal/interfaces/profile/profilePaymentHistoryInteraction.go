@@ -13,7 +13,7 @@ import (
 func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
 	id := r.Context().Value("id").(int64)
 
-	history, err := p.userApp.GetAllPaymentHistory(r.Context(), &profile.UserID{Id: id})
+	history, err := p.profile.GetAllPaymentHistory(r.Context(), &profile.UserID{Id: id})
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
@@ -92,7 +92,7 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 	needToPay = needToPay.Mul(decimal.New(-1, 0))
 	money, _ := needToPay.Float64()
 	toSetWallet := profile.ToSetWallet{Id: id, NewWallet: &profile.Wallet{Title: transaction.From, Value: money}}
-	if _, err = p.userApp.UpdateWallet(r.Context(), &toSetWallet); err != nil {
+	if _, err = p.profile.UpdateWallet(r.Context(), &toSetWallet); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "SetTransactions",
@@ -105,7 +105,7 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	toSetWallet = profile.ToSetWallet{Id: id, NewWallet: &profile.Wallet{Title: transaction.To, Value: transaction.Amount}}
-	if _, err = p.userApp.UpdateWallet(r.Context(), &toSetWallet); err != nil {
+	if _, err = p.profile.UpdateWallet(r.Context(), &toSetWallet); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "SetTransactions",
@@ -118,7 +118,7 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	transaction.Value, _ = div.Float64()
-	if _, err = p.userApp.AddToPaymentHistory(r.Context(), &profile.AddToHistory{Id: id, Transaction: &transaction}); err != nil {
+	if _, err = p.profile.AddToPaymentHistory(r.Context(), &profile.AddToHistory{Id: id, Transaction: &transaction}); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":      http.StatusInternalServerError,
 			"function":    "SetTransactions",

@@ -11,7 +11,7 @@ import (
 func (p *Profile) GetWallets(w http.ResponseWriter, r *http.Request) {
 	id := r.Context().Value("id").(int64)
 
-	wallets, err := p.userApp.GetWallets(r.Context(), &profile.UserID{Id: id})
+	wallets, err := p.profile.GetWallets(r.Context(), &profile.UserID{Id: id})
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
@@ -65,7 +65,7 @@ func (p *Profile) SetWallet(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	wallet.Id = r.Context().Value("id").(int64)
 
-	if _, err = p.userApp.CreateWallet(r.Context(), &wallet); err != nil {
+	if _, err = p.profile.CreateWallet(r.Context(), &wallet); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "SetWallet",

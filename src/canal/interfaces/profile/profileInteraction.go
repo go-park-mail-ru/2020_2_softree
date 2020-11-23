@@ -31,7 +31,7 @@ func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err = p.userApp.UpdateUserAvatar(r.Context(), &profile.UpdateFields{Id: user.ID, User: &user}); err != nil {
+	if _, err = p.profile.UpdateUserAvatar(r.Context(), &profile.UpdateFields{Id: user.ID, User: &user}); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "UpdateUserAvatar",
@@ -41,7 +41,7 @@ func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	public, err := p.userApp.GetUserById(r.Context(), &profile.UserID{Id: user.ID})
+	public, err := p.profile.GetUserById(r.Context(), &profile.UserID{Id: user.ID})
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
@@ -101,7 +101,7 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var check *profile.Check
-	if check, err = p.userApp.CheckPassword(r.Context(), &user); err != nil {
+	if check, err = p.profile.CheckPassword(r.Context(), &user); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "UpdateUserPassword",
@@ -125,7 +125,7 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	if _, err = p.userApp.UpdateUserPassword(r.Context(), &profile.UpdateFields{Id: user.ID, User: &user}); err != nil {
+	if _, err = p.profile.UpdateUserPassword(r.Context(), &profile.UpdateFields{Id: user.ID, User: &user}); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "UpdateUserPassword",
@@ -136,7 +136,7 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var public *profile.PublicUser
-	if public, err = p.userApp.GetUserById(r.Context(), &profile.UserID{Id: user.ID}); err != nil {
+	if public, err = p.profile.GetUserById(r.Context(), &profile.UserID{Id: user.ID}); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "UpdateUserPassword",
@@ -172,7 +172,7 @@ func (p *Profile) GetUser(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 	var public *profile.PublicUser
-	if public, err = p.userApp.GetUserById(r.Context(), &profile.UserID{Id: id}); err != nil {
+	if public, err = p.profile.GetUserById(r.Context(), &profile.UserID{Id: id}); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "GetUser",
@@ -206,7 +206,7 @@ func (p *Profile) GetUser(w http.ResponseWriter, r *http.Request) {
 func (p *Profile) GetUserWatchlist(w http.ResponseWriter, r *http.Request) {
 	id := r.Context().Value("id").(int64)
 
-	currencies, err := p.userApp.GetUserWatchlist(r.Context(), &profile.UserID{Id: id})
+	currencies, err := p.profile.GetUserWatchlist(r.Context(), &profile.UserID{Id: id})
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusBadRequest,

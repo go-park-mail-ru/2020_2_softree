@@ -31,31 +31,31 @@ func NewRouter(userAuthenticate *authorization.Authentication, userProfile *prof
 	r.HandleFunc("/users", userAuthenticate.Signup).
 		Methods(http.MethodPost, http.MethodOptions)
 
-	r.HandleFunc("/users", userProfile.Auth(userProfile.UpdateUserAvatar)).
+	r.HandleFunc("/users", userAuthenticate.Auth(userProfile.UpdateUserAvatar)).
 		Methods(http.MethodPut, http.MethodOptions)
 
-	r.HandleFunc("/users", userProfile.Auth(userProfile.GetUser)).
+	r.HandleFunc("/users", userAuthenticate.Auth(userProfile.GetUser)).
 		Methods(http.MethodGet, http.MethodOptions)
 
-	r.HandleFunc("/users/change-password", userProfile.Auth(userProfile.UpdateUserPassword)).
+	r.HandleFunc("/users/change-password", userAuthenticate.Auth(userProfile.UpdateUserPassword)).
 		Methods(http.MethodPut, http.MethodOptions)
 
-	r.HandleFunc("/watchers", userProfile.Auth(userProfile.GetUserWatchlist)).
+	r.HandleFunc("/watchers", userAuthenticate.Auth(userProfile.GetUserWatchlist)).
 		Methods(http.MethodGet, http.MethodOptions)
 
 	r.HandleFunc("/markets", rateRates.GetMarkets).
 		Methods(http.MethodGet, http.MethodOptions)
 
-	r.HandleFunc("/accounts", userProfile.Auth(userProfile.GetWallets)).
+	r.HandleFunc("/accounts", userAuthenticate.Auth(userProfile.GetWallets)).
 		Methods(http.MethodGet, http.MethodOptions)
 
-	r.HandleFunc("/accounts", userProfile.Auth(userProfile.SetWallet)).
+	r.HandleFunc("/accounts", userAuthenticate.Auth(userProfile.SetWallet)).
 		Methods(http.MethodPost, http.MethodOptions)
 
-	r.HandleFunc("/transactions", userProfile.Auth(userProfile.GetTransactions)).
+	r.HandleFunc("/transactions", userAuthenticate.Auth(userProfile.GetTransactions)).
 		Methods(http.MethodGet, http.MethodOptions)
 
-	r.HandleFunc("/transactions", userProfile.Auth(userProfile.SetTransactions)).
+	r.HandleFunc("/transactions", userAuthenticate.Auth(userProfile.SetTransaction)).
 		Methods(http.MethodPost, http.MethodOptions)
 
 	r.Use(corsInteraction.CORSMiddleware())

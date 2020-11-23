@@ -1,6 +1,7 @@
 package profile
 
 import (
+	session "server/src/authorization/session/gen"
 	"server/src/canal/application"
 	profile "server/src/profile/profile/gen"
 
@@ -8,13 +9,13 @@ import (
 )
 
 type Profile struct {
-	userApp   profile.ProfileServiceClient
+	profile   profile.ProfileServiceClient
 	rateApp   application.RateApp
-	auth      application.UserAuth
+	auth      session.AuthorizationServiceClient
 	sanitizer bluemonday.Policy
 }
 
 func NewProfile(
-	uApp profile.ProfileServiceClient, auth application.UserAuth, rApp application.RateApp) *Profile {
-	return &Profile{userApp: uApp, auth: auth, sanitizer: *bluemonday.UGCPolicy(), rateApp: rApp}
+	profile profile.ProfileServiceClient, auth session.AuthorizationServiceClient, rApp application.RateApp) *Profile {
+	return &Profile{profile: profile, auth: auth, sanitizer: *bluemonday.UGCPolicy(), rateApp: rApp}
 }
