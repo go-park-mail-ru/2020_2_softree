@@ -62,7 +62,7 @@ func TestNewSessionManager_CheckAuthFail(t *testing.T) {
 	require.EqualValues(t, 0, id)
 }
 
-func TestNewSessionManager_DeleteAuth (t *testing.T) {
+func TestNewSessionManager_DeleteAuth(t *testing.T) {
 	s, err := miniredis.Run()
 	require.NoError(t, err)
 	defer s.Close()

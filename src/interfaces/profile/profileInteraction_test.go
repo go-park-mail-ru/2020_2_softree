@@ -3,17 +3,17 @@ package profile
 import (
 	"context"
 	"errors"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"server/src/application"
 	"server/src/domain/entity"
-	"server/src/infrastructure/log"
 	mocks "server/src/infrastructure/mock"
 	"server/src/infrastructure/security"
 	"strings"
 	"testing"
+
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestUpdateUserAvatar_Success(t *testing.T) {
@@ -44,9 +44,11 @@ func createUpdateAvatarSuccess(t *testing.T, toUpdate entity.User) (*Profile, *g
 
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
 
-	servicesDB := application.NewUserApp(mockUser)
+	mockHistory := mocks.NewPaymentHistoryRepositoryForMock(ctrl)
+	mockWallet := mocks.NewWalletRepositoryForMock(ctrl)
+
+	servicesDB := application.NewUserApp(mockUser, mockHistory, mockWallet)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesLog := log.NewLogrusLogger()
 
 	return NewProfile(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
@@ -77,9 +79,11 @@ func createUpdateAvatarFail(t *testing.T, toUpdate entity.User) (*Profile, *gomo
 
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
 
-	servicesDB := application.NewUserApp(mockUser)
+	mockHistory := mocks.NewPaymentHistoryRepositoryForMock(ctrl)
+	mockWallet := mocks.NewWalletRepositoryForMock(ctrl)
+
+	servicesDB := application.NewUserApp(mockUser, mockHistory, mockWallet)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesLog := log.NewLogrusLogger()
 
 	return NewProfile(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
@@ -113,9 +117,11 @@ func createUpdatePasswordSuccess(t *testing.T, toUpdate entity.User) (*Profile, 
 
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
 
-	servicesDB := application.NewUserApp(mockUser)
+	mockHistory := mocks.NewPaymentHistoryRepositoryForMock(ctrl)
+	mockWallet := mocks.NewWalletRepositoryForMock(ctrl)
+
+	servicesDB := application.NewUserApp(mockUser, mockHistory, mockWallet)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesLog := log.NewLogrusLogger()
 
 	return NewProfile(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
@@ -137,9 +143,11 @@ func createAuthFailUnauthorized(t *testing.T) (*Profile, *gomock.Controller) {
 	mockUser := mocks.NewUserRepositoryForMock(ctrl)
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
 
-	servicesDB := application.NewUserApp(mockUser)
+	mockHistory := mocks.NewPaymentHistoryRepositoryForMock(ctrl)
+	mockWallet := mocks.NewWalletRepositoryForMock(ctrl)
+
+	servicesDB := application.NewUserApp(mockUser, mockHistory, mockWallet)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesLog := log.NewLogrusLogger()
 
 	return NewProfile(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
@@ -169,9 +177,11 @@ func createUpdatePasswordFail(t *testing.T, toUpdate entity.User) (*Profile, *go
 
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
 
-	servicesDB := application.NewUserApp(mockUser)
+	mockHistory := mocks.NewPaymentHistoryRepositoryForMock(ctrl)
+	mockWallet := mocks.NewWalletRepositoryForMock(ctrl)
+
+	servicesDB := application.NewUserApp(mockUser, mockHistory, mockWallet)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesLog := log.NewLogrusLogger()
 
 	return NewProfile(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
@@ -212,9 +222,11 @@ func createAuthSuccess(t *testing.T, toUpdate entity.User) (*Profile, *gomock.Co
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
 	mockAuth.EXPECT().CheckAuth("value").Return(id, nil)
 
-	servicesDB := application.NewUserApp(mockUser)
+	mockHistory := mocks.NewPaymentHistoryRepositoryForMock(ctrl)
+	mockWallet := mocks.NewWalletRepositoryForMock(ctrl)
+
+	servicesDB := application.NewUserApp(mockUser, mockHistory, mockWallet)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesLog := log.NewLogrusLogger()
 
 	return NewProfile(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
@@ -244,9 +256,11 @@ func createGetUserSuccess(t *testing.T) (*Profile, *gomock.Controller) {
 
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
 
-	servicesDB := application.NewUserApp(mockUser)
+	mockHistory := mocks.NewPaymentHistoryRepositoryForMock(ctrl)
+	mockWallet := mocks.NewWalletRepositoryForMock(ctrl)
+
+	servicesDB := application.NewUserApp(mockUser, mockHistory, mockWallet)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesLog := log.NewLogrusLogger()
 
 	return NewProfile(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
@@ -276,9 +290,11 @@ func createGetUserFail(t *testing.T) (*Profile, *gomock.Controller) {
 
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
 
-	servicesDB := application.NewUserApp(mockUser)
+	mockHistory := mocks.NewPaymentHistoryRepositoryForMock(ctrl)
+	mockWallet := mocks.NewWalletRepositoryForMock(ctrl)
+
+	servicesDB := application.NewUserApp(mockUser, mockHistory, mockWallet)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesLog := log.NewLogrusLogger()
 
 	return NewProfile(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
@@ -308,9 +324,11 @@ func createGetUserWatchlistSuccess(t *testing.T) (*Profile, *gomock.Controller) 
 
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
 
-	servicesDB := application.NewUserApp(mockUser)
+	mockHistory := mocks.NewPaymentHistoryRepositoryForMock(ctrl)
+	mockWallet := mocks.NewWalletRepositoryForMock(ctrl)
+
+	servicesDB := application.NewUserApp(mockUser, mockHistory, mockWallet)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesLog := log.NewLogrusLogger()
 
 	return NewProfile(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
@@ -340,9 +358,11 @@ func createGetUserWatchlistFail(t *testing.T) (*Profile, *gomock.Controller) {
 
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
 
-	servicesDB := application.NewUserApp(mockUser)
+	mockHistory := mocks.NewPaymentHistoryRepositoryForMock(ctrl)
+	mockWallet := mocks.NewWalletRepositoryForMock(ctrl)
+
+	servicesDB := application.NewUserApp(mockUser, mockHistory, mockWallet)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesLog := log.NewLogrusLogger()
 
 	return NewProfile(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
@@ -392,24 +412,26 @@ func createAuthFailNoSession(t *testing.T) (*Profile, *gomock.Controller) {
 	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
 	mockAuth.EXPECT().CheckAuth("value").Return(uint64(0), errors.New("no session"))
 
-	servicesDB := application.NewUserApp(mockUser)
+	mockHistory := mocks.NewPaymentHistoryRepositoryForMock(ctrl)
+	mockWallet := mocks.NewWalletRepositoryForMock(ctrl)
+
+	servicesDB := application.NewUserApp(mockUser, mockHistory, mockWallet)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesLog := log.NewLogrusLogger()
 
 	return NewProfile(*servicesDB, *servicesAuth, servicesLog), ctrl
 }
 
 func createExpectedUser() (expected entity.User) {
 	toSave := entity.User{
-		Email: "hound@psina.ru",
+		Email:    "hound@psina.ru",
 		Password: "str",
 	}
 	password, _ := security.MakeShieldedPassword(toSave.Password)
 	expected = entity.User{
-		ID: 1,
-		Email: toSave.Email,
+		ID:       1,
+		Email:    toSave.Email,
 		Password: password,
-		Avatar: "fake_image",
+		Avatar:   "fake_image",
 	}
 
 	return

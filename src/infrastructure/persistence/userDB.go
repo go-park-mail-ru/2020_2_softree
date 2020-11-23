@@ -4,13 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
-	_ "github.com/lib/pq"
-	"golang.org/x/crypto/bcrypt"
 	"server/src/domain/entity"
-	"server/src/infrastructure/config"
 	"server/src/infrastructure/security"
 	"time"
+
+	_ "github.com/lib/pq"
+	"github.com/spf13/viper"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserDBManager struct {
@@ -18,16 +18,10 @@ type UserDBManager struct {
 }
 
 func NewUserDBManager() (*UserDBManager, error) {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		config.UserDatabaseConfig.Host,
-		5432,
-		config.UserDatabaseConfig.User,
-		config.UserDatabaseConfig.Password,
-		config.UserDatabaseConfig.Schema)
-
-	db, err := sql.Open("postgres", psqlInfo)
-
+	db, err := sql.Open("postgres", viper.GetString("postgres.URL"))
+	if err != nil {
+		return nil, err
+	}
 	db.SetMaxOpenConns(10)
 
 	err = db.Ping()

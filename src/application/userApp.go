@@ -6,45 +6,86 @@ import (
 )
 
 type UserApp struct {
-	ur repository.UserRepository
+	userRepository   repository.UserRepository
+	paymentHistory   repository.PaymentHistoryRepository
+	walletRepository repository.WalletRepository
 }
 
-func NewUserApp(repo repository.UserRepository) *UserApp {
-	return &UserApp{ur: repo}
+func NewUserApp(
+	userRepository repository.UserRepository,
+	paymentHistory repository.PaymentHistoryRepository,
+	walletRepository repository.WalletRepository) *UserApp {
+	return &UserApp{userRepository, paymentHistory, walletRepository}
 }
 
-func (ua *UserApp) SaveUser(u entity.User) (entity.User, error) {
-	return ua.ur.SaveUser(u)
+func (userApp *UserApp) SaveUser(u entity.User) (entity.User, error) {
+	return userApp.userRepository.SaveUser(u)
 }
 
-func (ua *UserApp) UpdateUserAvatar(id uint64, u entity.User) error {
-	return ua.ur.UpdateUserAvatar(id, u)
+func (userApp *UserApp) UpdateUserAvatar(id uint64, u entity.User) error {
+	return userApp.userRepository.UpdateUserAvatar(id, u)
 }
 
-func (ua *UserApp) UpdateUserPassword(id uint64, u entity.User) error {
-	return ua.ur.UpdateUserPassword(id, u)
+func (userApp *UserApp) UpdateUserPassword(id uint64, u entity.User) error {
+	return userApp.userRepository.UpdateUserPassword(id, u)
 }
 
-func (ua *UserApp) DeleteUser(id uint64) error {
-	return ua.ur.DeleteUser(id)
+func (userApp *UserApp) DeleteUser(id uint64) error {
+	return userApp.userRepository.DeleteUser(id)
 }
 
-func (ua *UserApp) GetUserById(id uint64) (entity.User, error) {
-	return ua.ur.GetUserById(id)
+func (userApp *UserApp) GetUserById(id uint64) (entity.User, error) {
+	return userApp.userRepository.GetUserById(id)
 }
 
-func (ua *UserApp) GetUserByLogin(email, password string) (entity.User, error) {
-	return ua.ur.GetUserByLogin(email, password)
+func (userApp *UserApp) GetUserByLogin(email, password string) (entity.User, error) {
+	return userApp.userRepository.GetUserByLogin(email, password)
 }
 
-func (ua *UserApp) GetUserWatchlist(id uint64) ([]entity.Currency, error) {
-	return ua.ur.GetUserWatchlist(id)
+func (userApp *UserApp) GetUserWatchlist(id uint64) ([]entity.Currency, error) {
+	return userApp.userRepository.GetUserWatchlist(id)
 }
 
-func (ua *UserApp) CheckExistence(email string) (bool, error) {
-	return ua.ur.CheckExistence(email)
+func (userApp *UserApp) CheckExistence(email string) (bool, error) {
+	return userApp.userRepository.CheckExistence(email)
 }
 
-func (ua *UserApp) CheckPassword(id uint64, password string) (bool, error) {
-	return ua.ur.CheckPassword(id, password)
+func (userApp *UserApp) CheckPassword(id uint64, password string) (bool, error) {
+	return userApp.userRepository.CheckPassword(id, password)
+}
+
+func (userApp *UserApp) GetAllPaymentHistory(id uint64) ([]entity.PaymentHistory, error) {
+	return userApp.paymentHistory.GetAllPaymentHistory(id)
+}
+
+func (userApp *UserApp) GetIntervalPaymentHistory(id uint64, i entity.Interval) ([]entity.PaymentHistory, error) {
+	return userApp.paymentHistory.GetIntervalPaymentHistory(id, i)
+}
+
+func (userApp *UserApp) AddToPaymentHistory(id uint64, history entity.PaymentHistory) error {
+	return userApp.paymentHistory.AddToPaymentHistory(id, history)
+}
+
+func (userApp *UserApp) GetWallets(id uint64) ([]entity.Wallet, error) {
+	return userApp.walletRepository.GetWallets(id)
+}
+
+func (userApp *UserApp) GetWallet(id uint64, title string) (entity.Wallet, error) {
+	return userApp.walletRepository.GetWallet(id, title)
+}
+
+func (userApp *UserApp) SetWallet(id uint64, wallet entity.Wallet) error {
+	return userApp.walletRepository.SetWallet(id, wallet)
+}
+
+func (userApp *UserApp) CheckWallet(id uint64, title string) (bool, error) {
+	return userApp.walletRepository.CheckWallet(id, title)
+}
+
+func (userApp *UserApp) CreateWallet(id uint64, title string) error {
+	return userApp.walletRepository.CreateWallet(id, title)
+}
+
+func (userApp *UserApp) UpdateWallet(id uint64, wallet entity.Wallet) error {
+	return userApp.walletRepository.UpdateWallet(id, wallet)
 }

@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"server/src/domain/entity"
+
+	"github.com/sirupsen/logrus"
 )
 
 func (a *Authentication) Auth(next http.HandlerFunc) http.HandlerFunc {
@@ -17,7 +19,9 @@ func (a *Authentication) Auth(next http.HandlerFunc) http.HandlerFunc {
 
 		id, err := a.auth.CheckAuth(cookie.Value)
 		if err != nil {
-			a.log.Print(err)
+			logrus.WithFields(logrus.Fields{
+				"status": http.StatusBadRequest}).Error(err)
+
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -35,14 +39,16 @@ func (a *Authentication) Authenticate(w http.ResponseWriter, r *http.Request) {
 	var user entity.User
 	var err error
 	if user, err = a.userApp.GetUserById(id); err != nil {
-		a.log.Print(err)
+		logrus.WithFields(logrus.Fields{
+			"status": http.StatusBadRequest}).Error(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	res, err := json.Marshal(user.MakePublicUser())
 	if err != nil {
-		a.log.Print(err)
+		logrus.WithFields(logrus.Fields{
+			"status": http.StatusBadRequest}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -50,6 +56,7 @@ func (a *Authentication) Authenticate(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-Type", "application/json")
 	if _, err := w.Write(res); err != nil {
-		a.log.Print(err)
+		logrus.WithFields(logrus.Fields{
+			"status": http.StatusBadRequest}).Error(err)
 	}
 }

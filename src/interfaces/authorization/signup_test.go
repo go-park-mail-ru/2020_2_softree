@@ -2,16 +2,16 @@ package authorization
 
 import (
 	"errors"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"server/src/application"
 	"server/src/domain/entity"
-	"server/src/infrastructure/log"
 	mocks "server/src/infrastructure/mock"
 	"strings"
 	"testing"
+
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSignup_Success(t *testing.T) {
@@ -134,9 +134,8 @@ func createSignupSuccess(t *testing.T, userToSave entity.User) (*Authentication,
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth), ctrl
 }
 
 func createSignupFail(t *testing.T) (*Authentication, *gomock.Controller) {
@@ -146,9 +145,8 @@ func createSignupFail(t *testing.T) (*Authentication, *gomock.Controller) {
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth), ctrl
 }
 
 func createSignupFailBcrypt(t *testing.T, u entity.User) (*Authentication, *gomock.Controller) {
@@ -161,9 +159,8 @@ func createSignupFailBcrypt(t *testing.T, u entity.User) (*Authentication, *gomo
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth), ctrl
 }
 
 func createSignupFailUserExist(t *testing.T) (*Authentication, *gomock.Controller) {
@@ -175,9 +172,8 @@ func createSignupFailUserExist(t *testing.T) (*Authentication, *gomock.Controlle
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth), ctrl
 }
 
 func createSignupFailUserExistFailDB(t *testing.T) (*Authentication, *gomock.Controller) {
@@ -189,7 +185,6 @@ func createSignupFailUserExistFailDB(t *testing.T) (*Authentication, *gomock.Con
 
 	servicesDB := application.NewUserApp(mockUser)
 	servicesAuth := application.NewUserAuth(mockAuth)
-	servicesLog := log.NewLogrusLogger()
 
-	return NewAuthenticate(*servicesDB, *servicesAuth, servicesLog), ctrl
+	return NewAuthenticate(*servicesDB, *servicesAuth), ctrl
 }

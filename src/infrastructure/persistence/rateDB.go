@@ -3,11 +3,11 @@ package persistence
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"server/src/domain/entity"
 	"server/src/domain/repository"
-	"server/src/infrastructure/config"
 	"time"
+
+	"github.com/spf13/viper"
 )
 
 var ListOfCurrencies = [...]string{
@@ -39,19 +39,13 @@ type RateDBManager struct {
 }
 
 func NewRateDBManager() (*RateDBManager, error) {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		config.UserDatabaseConfig.Host,
-		5432,
-		config.UserDatabaseConfig.User,
-		config.UserDatabaseConfig.Password,
-		config.UserDatabaseConfig.Schema)
-
-	db, err := sql.Open("postgres", psqlInfo)
-
+	db, err := sql.Open("postgres", viper.GetString("postgres.URL"))
+	if err != nil {
+		return nil, err
+	}
 	db.SetMaxOpenConns(10)
 
-	err = db.Ping() // вот тут будет первое подключение к базе
+	err = db.Ping()
 	if err != nil {
 		return nil, err
 	}
@@ -174,4 +168,27 @@ func (rm *RateDBManager) DeleteRate(uint64) error {
 
 func (rm *RateDBManager) UpdateRate(uint64, entity.Currency) (entity.Currency, error) {
 	return entity.Currency{}, nil
+}
+
+func (rm *RateDBManager) GetLastRate(title string) (entity.Currency, error) {
+	currency := entity.Currency{Title: title}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	tx, err := rm.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return entity.Currency{}, err
+	}
+	defer tx.Rollback()
+	row := tx.QueryRow("SELECT value, updated_at FROM history_currency_by_minutes WHERE title = $1 ORDER BY updated_at DESC LIMIT 1", title)
+
+	if err = row.Scan(&currency.Value, &currency.UpdatedAt); err != nil {
+		return entity.Currency{}, err
+	}
+	if err = tx.Commit(); err != nil {
+		return entity.Currency{}, err
+	}
+
+	return currency, nil
 }
