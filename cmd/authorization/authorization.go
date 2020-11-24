@@ -10,7 +10,7 @@ import (
 	"log"
 	"net"
 	"os"
-	"server/src/authorization/pkg/infrastructure/persistense"
+	"server/src/authorization/pkg/infrastructure/persistence"
 	session "server/src/authorization/pkg/session/gen"
 	"server/src/canal/pkg/infrastructure/config"
 )
@@ -63,7 +63,7 @@ func main() {
 			"action":  "connect to redis",
 		}).Error(err)
 	}
-	session.RegisterAuthorizationServiceServer(server, persistense.NewSessionManager(connect))
+	session.RegisterAuthorizationServiceServer(server, persistence.NewSessionManager(connect))
 
 	fmt.Println("starting server at :8081")
 	server.Serve(lis)

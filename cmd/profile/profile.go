@@ -10,7 +10,7 @@ import (
 	"net"
 	"os"
 	"server/src/canal/pkg/infrastructure/config"
-	"server/src/profile/pkg/infrastructure/persistense"
+	"server/src/profile/pkg/infrastructure/persistence"
 	profile "server/src/profile/pkg/profile/gen"
 )
 
@@ -65,7 +65,7 @@ func main() {
 	}
 	db.SetMaxOpenConns(10)
 
-	profile.RegisterProfileServiceServer(server, persistense.NewUserDBManager(db))
+	profile.RegisterProfileServiceServer(server, persistence.NewUserDBManager(db))
 
 	fmt.Println("starting server at :8082")
 	server.Serve(lis)

@@ -1,11 +1,10 @@
-package persistense
+package persistence
 
 import (
 	"context"
 	"database/sql"
 	"errors"
 	"golang.org/x/crypto/bcrypt"
-	"server/src/canal/pkg/infrastructure/security"
 	profile "server/src/profile/pkg/profile/gen"
 	"time"
 )
@@ -93,12 +92,6 @@ func (managerDB *UserDBManager) SaveUser(ctx context.Context, in *profile.User) 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	var password string
-	var err error
-	if password, err = security.MakeShieldedPassword(in.Password); err != nil {
-		return nil, err
-	}
-
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
@@ -107,7 +100,7 @@ func (managerDB *UserDBManager) SaveUser(ctx context.Context, in *profile.User) 
 
 	var lastID int64
 	err = tx.
-		QueryRow("INSERT INTO user_trade (email, password) VALUES ($1, $2)  RETURNING id", in.Email, password).
+		QueryRow("INSERT INTO user_trade (email, password) VALUES ($1, $2)  RETURNING id", in.Email, in.Password).
 		Scan(&lastID)
 	if err != nil {
 		return nil, err
