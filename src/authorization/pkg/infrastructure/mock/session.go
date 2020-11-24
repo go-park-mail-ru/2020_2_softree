@@ -7,77 +7,77 @@ import (
 	session "server/src/authorization/pkg/session/gen"
 )
 
-type AuthMock struct {
+type SessionMock struct {
 	ctrl     *gomock.Controller
-	recorder *RecorderAuth
+	recorder *RecorderSession
 }
 
-type RecorderAuth struct {
-	mock *AuthMock
+type RecorderSession struct {
+	mock *SessionMock
 }
 
-func NewAuthRepositoryForMock(ctrl *gomock.Controller) *AuthMock {
-	mock := &AuthMock{ctrl: ctrl}
-	mock.recorder = &RecorderAuth{mock: mock}
+func NewAuthRepositoryForMock(ctrl *gomock.Controller) *SessionMock {
+	mock := &SessionMock{ctrl: ctrl}
+	mock.recorder = &RecorderSession{mock: mock}
 	return mock
 }
 
-func (auth *AuthMock) EXPECT() *RecorderAuth {
-	return auth.recorder
+func (sessionMock *SessionMock) EXPECT() *RecorderSession {
+	return sessionMock.recorder
 }
 
-func (auth *AuthMock) Create(ctx context.Context, in *session.Session) (*session.UserID, error) {
-	auth.ctrl.T.Helper()
-	ret := auth.ctrl.Call(auth, "Create", ctx, in)
+func (sessionMock *SessionMock) Create(ctx context.Context, in *session.Session) (*session.UserID, error) {
+	sessionMock.ctrl.T.Helper()
+	ret := sessionMock.ctrl.Call(sessionMock, "Create", ctx, in)
 	out, _ := ret[0].(*session.UserID)
 	err, _ := ret[1].(error)
 	return out, err
 }
 
-func (recorderAuth *RecorderAuth) Create(ctx, in interface{}) *gomock.Call {
+func (recorderAuth *RecorderSession) Create(ctx, in interface{}) *gomock.Call {
 	recorderAuth.mock.ctrl.T.Helper()
 	return recorderAuth.mock.ctrl.RecordCallWithMethodType(
 		recorderAuth.mock,
 		"Create",
-		reflect.TypeOf((*AuthMock)(nil).Create),
+		reflect.TypeOf((*SessionMock)(nil).Create),
 		ctx,
 		in,
 	)
 }
 
-func (auth *AuthMock) Check(ctx context.Context, in *session.SessionID) (*session.UserID, error) {
-	auth.ctrl.T.Helper()
-	ret := auth.ctrl.Call(auth, "Check", ctx, in)
+func (sessionMock *SessionMock) Check(ctx context.Context, in *session.SessionID) (*session.UserID, error) {
+	sessionMock.ctrl.T.Helper()
+	ret := sessionMock.ctrl.Call(sessionMock, "Check", ctx, in)
 	out, _ := ret[0].(*session.UserID)
 	err, _ := ret[1].(error)
 	return out, err
 }
 
-func (recorderAuth *RecorderAuth) Check(ctx, in interface{}) *gomock.Call {
+func (recorderAuth *RecorderSession) Check(ctx, in interface{}) *gomock.Call {
 	recorderAuth.mock.ctrl.T.Helper()
 	return recorderAuth.mock.ctrl.RecordCallWithMethodType(
 		recorderAuth.mock,
 		"Check",
-		reflect.TypeOf((*AuthMock)(nil).Check),
+		reflect.TypeOf((*SessionMock)(nil).Check),
 		ctx,
 		in,
 	)
 }
 
-func (auth *AuthMock) Delete(ctx context.Context, in *session.SessionID) (*session.Empty, error) {
-	auth.ctrl.T.Helper()
-	ret := auth.ctrl.Call(auth, "Delete", ctx, in)
+func (sessionMock *SessionMock) Delete(ctx context.Context, in *session.SessionID) (*session.Empty, error) {
+	sessionMock.ctrl.T.Helper()
+	ret := sessionMock.ctrl.Call(sessionMock, "Delete", ctx, in)
 	out, _ := ret[0].(*session.Empty)
 	err, _ := ret[1].(error)
 	return out, err
 }
 
-func (recorderAuth *RecorderAuth) Delete(ctx, in interface{}) *gomock.Call {
+func (recorderAuth *RecorderSession) Delete(ctx, in interface{}) *gomock.Call {
 	recorderAuth.mock.ctrl.T.Helper()
 	return recorderAuth.mock.ctrl.RecordCallWithMethodType(
 		recorderAuth.mock,
 		"Delete",
-		reflect.TypeOf((*AuthMock)(nil).Delete),
+		reflect.TypeOf((*SessionMock)(nil).Delete),
 		ctx,
 		in,
 	)
