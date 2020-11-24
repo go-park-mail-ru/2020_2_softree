@@ -2,6 +2,7 @@ package persistence
 
 import (
 	"context"
+	"github.com/golang/protobuf/ptypes"
 	profile "server/src/profile/pkg/profile/gen"
 	"time"
 )
@@ -55,7 +56,7 @@ func (managerDB *UserDBManager) AddToPaymentHistory(ctx context.Context, in *pro
 	}
 	defer tx.Rollback()
 
-	in.Transaction.Datetime.Seconds = time.Now().Unix()
+	in.Transaction.Datetime = ptypes.TimestampNow()
 	_, err = tx.Exec(
 		"INSERT INTO payment_history (user_id, from_title, to_title, value, amount, updated_at) VALUES ($1, $2, $3, $4, $5, $6)",
 		in.Id,
