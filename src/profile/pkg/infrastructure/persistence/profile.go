@@ -18,7 +18,6 @@ func NewUserDBManager(DB *sql.DB) *UserDBManager {
 }
 
 func (managerDB *UserDBManager) GetUserById(ctx context.Context, in *profile.UserID) (*profile.PublicUser, error) {
-	user := profile.PublicUser{}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -28,8 +27,9 @@ func (managerDB *UserDBManager) GetUserById(ctx context.Context, in *profile.Use
 	}
 	defer tx.Rollback()
 
-	row := tx.QueryRow("SELECT id, email, password, avatar FROM user_trade WHERE id = $1", in.Id)
+	row := tx.QueryRow("SELECT id, email, avatar FROM user_trade WHERE id = $1", in.Id)
 
+	user := profile.PublicUser{}
 	if err = row.Scan(&user.ID, &user.Email, &user.Avatar); err != nil {
 		return nil, err
 	}
@@ -109,9 +109,7 @@ func (managerDB *UserDBManager) SaveUser(ctx context.Context, in *profile.User) 
 		return nil, err
 	}
 
-	newUser := profile.PublicUser{ID: lastID, Email: in.Email, Avatar: ""}
-
-	return &newUser, nil
+	return &profile.PublicUser{ID: lastID, Email: in.Email, Avatar: ""}, nil
 }
 
 func (managerDB *UserDBManager) UpdateUserAvatar(ctx context.Context, in *profile.UpdateFields) (*profile.Empty, error) {
@@ -188,25 +186,24 @@ func (managerDB *UserDBManager) GetUserByLogin(ctx context.Context, in *profile.
 	}
 	defer tx.Rollback()
 
-	user := profile.User{Email: in.Email}
-	row := tx.QueryRow("SELECT id, password, avatar FROM user_trade WHERE email = $1", user.Email)
+	var password string
+	row := tx.QueryRow("SELECT id, password, avatar FROM user_trade WHERE email = $1", in.Email)
 
-	if err = row.Scan(&user.ID, &user.Password, &user.Avatar); err != nil {
+	if err = row.Scan(&in.ID, &password, &in.Avatar); err != nil {
 		return nil, err
 	}
 	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
 
-	if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(in.Password)) != nil {
+	if bcrypt.CompareHashAndPassword([]byte(password), []byte(in.Password)) != nil {
 		return nil, errors.New("wrong password")
 	}
 
-	return &profile.PublicUser{ID: user.ID, Email: user.Email, Avatar: user.Avatar}, nil
+	return &profile.PublicUser{ID: in.ID, Email: in.Email, Avatar: in.Avatar}, nil
 }
 
-func (managerDB *UserDBManager) GetUserWatchlist(ctx context.Context, in *profile.UserID) (
-	currencies *profile.Currencies, err error) {
+func (managerDB *UserDBManager) GetUserWatchlist(ctx context.Context, in *profile.UserID) (*profile.Currencies, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -222,6 +219,7 @@ func (managerDB *UserDBManager) GetUserWatchlist(ctx context.Context, in *profil
 	}
 	defer result.Close()
 
+	var currencies profile.Currencies
 	for result.Next() {
 		var currency profile.Currency
 		if err := result.Scan(&currency.Base, &currency.Title); err != nil {
@@ -242,5 +240,5 @@ func (managerDB *UserDBManager) GetUserWatchlist(ctx context.Context, in *profil
 		currencies.Watchlist = append(currencies.Watchlist, &profile.Currency{Base: "USD", Title: "RUB"})
 	}
 
-	return
+	return &currencies, nil
 }
