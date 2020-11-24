@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package session;
+
+option go_package = "gen;gen";
+
+message UserID {
+  int64 id = 1;
+}
+
+message SessionID {
+  string session_id = 1;
+}
+
+message Session {
+  int64  id = 1;
+  string session_id = 2;
+}
+
+message Empty {}
+
+service authorizationService {
+  rpc Create (Session)   returns (UserID) {}
+  rpc Check  (SessionID) returns (UserID) {}
+  rpc Delete (SessionID) returns (Empty) {}
+}
