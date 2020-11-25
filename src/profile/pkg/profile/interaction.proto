@@ -6,18 +6,18 @@ import "google/protobuf/timestamp.proto";
 option go_package = "gen;gen";
 
 message User {
-  int64  ID = 1;
-  string Email = 2;
-  string Password = 3;
-  string OldPassword = 4;
-  string NewPassword = 5;
-  string Avatar = 6;
+  int64  id = 1;
+  string email = 2;
+  string password = 3;
+  string old_password = 4;
+  string new_password = 5;
+  string avatar = 6;
 }
 
 message PublicUser {
-  int64  ID = 1;
-  string Email = 2;
-  string Avatar = 3;
+  int64  id = 1;
+  string email = 2;
+  string avatar = 3;
 }
 
 message Currency {
@@ -26,7 +26,7 @@ message Currency {
 }
 
 message Currencies {
-  repeated Currency watchlist = 1;
+  repeated Currency currencies = 1;
 }
 
 message UserID {
@@ -43,15 +43,15 @@ message Check {
 }
 
 message PaymentHistory {
-  string From = 1;
-  string To = 2;
-  double Amount = 3;
-  google.protobuf.Timestamp Datetime = 4;
-  double Value = 5;
+  string from = 1;
+  string to = 2;
+  double amount = 3;
+  google.protobuf.Timestamp updated_at = 4;
+  double value = 5;
 }
 
 message AllHistory {
-  repeated PaymentHistory History = 1;
+  repeated PaymentHistory history = 1;
 }
 
 message AddToHistory {
@@ -60,22 +60,22 @@ message AddToHistory {
 }
 
 message Wallet {
-  string Title = 1;
-  double Value = 2;
+  string title = 1;
+  double value = 2;
 }
 
 message Wallets {
-  repeated Wallet AllWallets = 1;
+  repeated Wallet wallets = 1;
 }
 
 message ConcreteWallet {
-  int64 Id = 1;
-  string Title = 2;
+  int64 id = 1;
+  string title = 2;
 }
 
 message ToSetWallet {
-  int64 Id = 1;
-  Wallet NewWallet = 2;
+  int64 id = 1;
+  Wallet new_wallet = 2;
 }
 
 message Empty {}
