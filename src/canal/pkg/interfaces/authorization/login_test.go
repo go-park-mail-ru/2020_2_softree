@@ -36,7 +36,7 @@ func TestLogin_Success(t *testing.T) {
 
 func TestLogin_FailValidation(t *testing.T) {
 	url := "http://127.0.0.1:8000/login"
-	body := strings.NewReader(fmt.Sprintf("{\"email\": %s, \"password\": %s}", email, password))
+	body := strings.NewReader(fmt.Sprintf("{\"email\": \"%s\", \"password\": \"%s\"}", "", password))
 
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
@@ -53,7 +53,7 @@ func TestLogin_FailValidation(t *testing.T) {
 
 func TestLogin_FailNoUser(t *testing.T) {
 	url := "http://127.0.0.1:8000/login"
-	body := strings.NewReader(fmt.Sprintf("{\"email\": %s, \"password\": %s}", email, password))
+	body := strings.NewReader(fmt.Sprintf("{\"email\": \"%s\", \"password\": \"%s\"}", email, password))
 
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
@@ -71,7 +71,7 @@ func TestLogin_FailNoUser(t *testing.T) {
 
 func TestLogin_FailCreateAuth(t *testing.T) {
 	url := "http://127.0.0.1:8000/login"
-	body := strings.NewReader(fmt.Sprintf("{\"email\": %s, \"password\": %s}", email, password))
+	body := strings.NewReader(fmt.Sprintf("{\"email\": \"%s\", \"password\": \"%s\"}", email, password))
 
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
@@ -116,7 +116,7 @@ func createLoginFailNoUser(t *testing.T, ctx context.Context) (*Authentication, 
 	ctrl := gomock.NewController(t)
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockUser.EXPECT().
-		CheckExistence(ctx, &profile.User{Email: email}).
+		CheckExistence(ctx, &profile.User{Email: email, Password: password}).
 		Return(&profile.Check{Existence: false}, nil)
 
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
@@ -129,8 +129,8 @@ func createLoginFailCreateAuth(t *testing.T, ctx context.Context) (*Authenticati
 
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockUser.EXPECT().
-		CheckExistence(ctx, &profile.User{Email: email}).
-		Return(&profile.Check{Existence: false}, nil)
+		CheckExistence(ctx, &profile.User{Email: email, Password: password}).
+		Return(&profile.Check{Existence: true}, nil)
 	mockUser.
 		EXPECT().GetUserByLogin(ctx, &profile.User{Email: email, Password: password}).
 		Return(createExpectedUser(), nil)
