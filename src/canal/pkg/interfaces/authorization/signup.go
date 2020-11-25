@@ -5,7 +5,6 @@ import (
 	"net/http"
 	session "server/src/authorization/pkg/session/gen"
 	"server/src/canal/pkg/domain/entity"
-	"server/src/canal/pkg/infrastructure/security"
 	profile "server/src/profile/pkg/profile/gen"
 
 	"github.com/sirupsen/logrus"
@@ -50,7 +49,7 @@ func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user.Password, err = security.MakeShieldedPassword(user.Password); err != nil {
+	if user.Password, err = a.security.MakeShieldedPassword(user.Password); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "Signup",

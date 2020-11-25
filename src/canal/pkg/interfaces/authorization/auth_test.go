@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	authMock "server/src/authorization/pkg/infrastructure/mock"
 	session "server/src/authorization/pkg/session/gen"
+	"server/src/canal/pkg/infrastructure/mock"
 	profileMock "server/src/profile/pkg/infrastructure/mock"
 	profile "server/src/profile/pkg/profile/gen"
 	"strings"
@@ -142,7 +143,7 @@ func createAuthSuccess(t *testing.T, ctx context.Context) (*Authentication, *gom
 
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
 
-	return NewAuthenticate(mockUser, mockAuth), ctrl
+	return NewAuthenticate(mockUser, mockAuth, mock.NewSecurityMock(ctrl)), ctrl
 }
 
 func createAuthFailUnauthorized(t *testing.T) (*Authentication, *gomock.Controller) {
@@ -150,7 +151,7 @@ func createAuthFailUnauthorized(t *testing.T) (*Authentication, *gomock.Controll
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
 
-	return NewAuthenticate(mockUser, mockAuth), ctrl
+	return NewAuthenticate(mockUser, mockAuth, mock.NewSecurityMock(ctrl)), ctrl
 }
 
 func createAuthCheckSuccess(t *testing.T, ctx context.Context) (*Authentication, *gomock.Controller) {
@@ -161,7 +162,7 @@ func createAuthCheckSuccess(t *testing.T, ctx context.Context) (*Authentication,
 		Check(ctx, &session.SessionID{SessionId: value}).
 		Return(&session.UserID{Id: id}, nil)
 
-	return NewAuthenticate(mockUser, mockAuth), ctrl
+	return NewAuthenticate(mockUser, mockAuth, mock.NewSecurityMock(ctrl)), ctrl
 }
 
 func createAuthFailSession(t *testing.T, ctx context.Context) (*Authentication, *gomock.Controller) {
@@ -173,7 +174,7 @@ func createAuthFailSession(t *testing.T, ctx context.Context) (*Authentication, 
 		Check(ctx, &session.SessionID{SessionId: value}).
 		Return(nil, errors.New("no session"))
 
-	return NewAuthenticate(mockUser, mockAuth), ctrl
+	return NewAuthenticate(mockUser, mockAuth, mock.NewSecurityMock(ctrl)), ctrl
 }
 
 func createAuthFailUser(t *testing.T, ctx context.Context) (*Authentication, *gomock.Controller) {
@@ -186,7 +187,7 @@ func createAuthFailUser(t *testing.T, ctx context.Context) (*Authentication, *go
 
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
 
-	return NewAuthenticate(mockUser, mockAuth), ctrl
+	return NewAuthenticate(mockUser, mockAuth, mock.NewSecurityMock(ctrl)), ctrl
 }
 
 func empty(w http.ResponseWriter, r *http.Request) {

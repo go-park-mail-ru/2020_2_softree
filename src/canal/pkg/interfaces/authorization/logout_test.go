@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	authMock "server/src/authorization/pkg/infrastructure/mock"
 	session "server/src/authorization/pkg/session/gen"
+	"server/src/canal/pkg/infrastructure/mock"
 	profileMock "server/src/profile/pkg/infrastructure/mock"
 	"strings"
 	"testing"
@@ -88,7 +89,7 @@ func createLogoutSuccess(t *testing.T, ctx context.Context) (*Authentication, *g
 		Return(nil, nil)
 
 
-	return NewAuthenticate(mockUser, mockAuth), ctrl
+	return NewAuthenticate(mockUser, mockAuth, mock.NewSecurityMock(ctrl)), ctrl
 }
 
 func createLogoutFailNoCookie(t *testing.T) (*Authentication, *gomock.Controller) {
@@ -96,7 +97,7 @@ func createLogoutFailNoCookie(t *testing.T) (*Authentication, *gomock.Controller
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
 
-	return NewAuthenticate(mockUser, mockAuth), ctrl
+	return NewAuthenticate(mockUser, mockAuth, mock.NewSecurityMock(ctrl)), ctrl
 }
 
 func createLogoutFailDeleteAuth(t *testing.T, ctx context.Context) (*Authentication, *gomock.Controller) {
@@ -108,5 +109,5 @@ func createLogoutFailDeleteAuth(t *testing.T, ctx context.Context) (*Authenticat
 		Delete(ctx, &session.SessionID{SessionId: value}).
 		Return(nil, errors.New("createLogoutFailDeleteAuth"))
 
-	return NewAuthenticate(mockUser, mockAuth), ctrl
+	return NewAuthenticate(mockUser, mockAuth, mock.NewSecurityMock(ctrl)), ctrl
 }

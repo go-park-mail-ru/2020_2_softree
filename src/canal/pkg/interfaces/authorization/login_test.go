@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	authMock "server/src/authorization/pkg/infrastructure/mock"
 	session "server/src/authorization/pkg/session/gen"
+	"server/src/canal/pkg/infrastructure/mock"
 	profileMock "server/src/profile/pkg/infrastructure/mock"
 	profile "server/src/profile/pkg/profile/gen"
 	"strings"
@@ -101,7 +102,7 @@ func createLoginSuccess(t *testing.T, ctx context.Context) (*Authentication, *go
 		Create(ctx, &session.UserID{Id: id}).
 		Return(&session.Session{Id: id, SessionId: value}, nil)
 
-	return NewAuthenticate(mockUser, mockAuth), ctrl
+	return NewAuthenticate(mockUser, mockAuth, mock.NewSecurityMock(ctrl)), ctrl
 }
 
 func createLoginFailValidation(t *testing.T) (*Authentication, *gomock.Controller) {
@@ -109,7 +110,7 @@ func createLoginFailValidation(t *testing.T) (*Authentication, *gomock.Controlle
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
 
-	return NewAuthenticate(mockUser, mockAuth), ctrl
+	return NewAuthenticate(mockUser, mockAuth, mock.NewSecurityMock(ctrl)), ctrl
 }
 
 func createLoginFailNoUser(t *testing.T, ctx context.Context) (*Authentication, *gomock.Controller) {
@@ -121,7 +122,7 @@ func createLoginFailNoUser(t *testing.T, ctx context.Context) (*Authentication, 
 
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
 
-	return NewAuthenticate(mockUser, mockAuth), ctrl
+	return NewAuthenticate(mockUser, mockAuth, mock.NewSecurityMock(ctrl)), ctrl
 }
 
 func createLoginFailCreateAuth(t *testing.T, ctx context.Context) (*Authentication, *gomock.Controller) {
@@ -140,5 +141,5 @@ func createLoginFailCreateAuth(t *testing.T, ctx context.Context) (*Authenticati
 		Create(ctx, &session.UserID{Id: id}).
 		Return(nil, errors.New("fail to create cookie"))
 
-	return NewAuthenticate(mockUser, mockAuth), ctrl
+	return NewAuthenticate(mockUser, mockAuth, mock.NewSecurityMock(ctrl)), ctrl
 }
