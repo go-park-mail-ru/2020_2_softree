@@ -25,7 +25,7 @@ func TestLogout_Success(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	ctx := req.Context()
-	testAuth, ctrl := createLogoutSuccess(t, &ctx)
+	testAuth, ctrl := createLogoutSuccess(t, ctx)
 	defer ctrl.Finish()
 
 	cookie := CreateCookie()
@@ -66,7 +66,7 @@ func TestLogout_FailDeleteAuth(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	ctx := req.Context()
-	testAuth, ctrl := createLogoutFailDeleteAuth(t, &ctx)
+	testAuth, ctrl := createLogoutFailDeleteAuth(t, ctx)
 	defer ctrl.Finish()
 
 	cookie := CreateCookie()
@@ -78,14 +78,14 @@ func TestLogout_FailDeleteAuth(t *testing.T) {
 	require.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
 }
 
-func createLogoutSuccess(t *testing.T, ctx *context.Context) (*Authentication, *gomock.Controller) {
+func createLogoutSuccess(t *testing.T, ctx context.Context) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockUser := profileMock.NewProfileMock(ctrl)
 
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
 	mockAuth.EXPECT().
 		Delete(ctx, &session.SessionID{SessionId: value}).
-		Return(nil)
+		Return(nil, nil)
 
 
 	return NewAuthenticate(mockUser, mockAuth), ctrl
@@ -99,14 +99,14 @@ func createLogoutFailNoCookie(t *testing.T) (*Authentication, *gomock.Controller
 	return NewAuthenticate(mockUser, mockAuth), ctrl
 }
 
-func createLogoutFailDeleteAuth(t *testing.T, ctx *context.Context) (*Authentication, *gomock.Controller) {
+func createLogoutFailDeleteAuth(t *testing.T, ctx context.Context) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockUser := profileMock.NewProfileMock(ctrl)
 
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
 	mockAuth.EXPECT().
 		Delete(ctx, &session.SessionID{SessionId: value}).
-		Return(errors.New("createLogoutFailDeleteAuth"))
+		Return(nil, errors.New("createLogoutFailDeleteAuth"))
 
 	return NewAuthenticate(mockUser, mockAuth), ctrl
 }
