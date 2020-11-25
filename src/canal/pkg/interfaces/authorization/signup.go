@@ -84,12 +84,12 @@ func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err = a.auth.Create(r.Context(), &session.Session{Id: public.ID, SessionId: cookie.Value}); err != nil {
+	if _, err = a.auth.Create(r.Context(), &session.Session{Id: public.Id, SessionId: cookie.Value}); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "Signup",
 			"action":   "Create auth",
-			"session":  session.Session{Id: user.ID, SessionId: cookie.Value},
+			"session":  session.Session{Id: user.Id, SessionId: cookie.Value},
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return

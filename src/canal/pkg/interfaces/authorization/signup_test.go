@@ -1,12 +1,15 @@
 package authorization
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"server/src/canal/pkg/application"
-	"server/src/canal/pkg/domain/entity"
-	mocks "server/src/canal/pkg/infrastructure/mock"
+	authMock "server/src/authorization/pkg/infrastructure/mock"
+	session "server/src/authorization/pkg/session/gen"
+	profileMock "server/src/profile/pkg/infrastructure/mock"
+	profile "server/src/profile/pkg/profile/gen"
 	"strings"
 	"testing"
 
@@ -16,15 +19,13 @@ import (
 
 func TestSignup_Success(t *testing.T) {
 	url := "http://127.0.0.1:8000/signup"
-	body := strings.NewReader(`{"email": "hound@psina.ru", "password": "str"}`)
+	body := strings.NewReader(fmt.Sprintf("{\"email\": %s, \"password\": %s}", email, password))
 
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
 
-	testAuth, ctrl := createSignupSuccess(t, entity.User{
-		Email:    "hound@psina.ru",
-		Password: "str",
-	})
+	ctx := req.Context()
+	testAuth, ctrl := createSignupSuccess(t, &ctx)
 	defer ctrl.Finish()
 
 	testAuth.Signup(w, req)
@@ -37,12 +38,13 @@ func TestSignup_Success(t *testing.T) {
 
 func TestSignup_FailUserExist(t *testing.T) {
 	url := "http://127.0.0.1:8000/signup"
-	body := strings.NewReader(`{"email": "hound@psina.ru", "password": "str"}`)
+	body := strings.NewReader(fmt.Sprintf("{\"email\": %s, \"password\": %s}", email, password))
 
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
 
-	testAuth, ctrl := createSignupFailUserExist(t)
+	ctx := req.Context()
+	testAuth, ctrl := createSignupFailUserExist(t, &ctx)
 	defer ctrl.Finish()
 
 	testAuth.Signup(w, req)
@@ -54,12 +56,13 @@ func TestSignup_FailUserExist(t *testing.T) {
 
 func TestSignup_FailUserExistFailDB(t *testing.T) {
 	url := "http://127.0.0.1:8000/signup"
-	body := strings.NewReader(`{"email": "hound@psina.ru", "password": "str"}`)
+	body := strings.NewReader(fmt.Sprintf("{\"email\": %s, \"password\": %s}", email, password))
 
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
 
-	testAuth, ctrl := createSignupFailUserExistFailDB(t)
+	ctx := req.Context()
+	testAuth, ctrl := createSignupFailUserExistFailDB(t, &ctx)
 	defer ctrl.Finish()
 
 	testAuth.Signup(w, req)
@@ -71,7 +74,7 @@ func TestSignup_FailUserExistFailDB(t *testing.T) {
 
 func TestSignup_FailEmail(t *testing.T) {
 	url := "http://127.0.0.1:8000/signup"
-	body := strings.NewReader(`{"email": "hound.ru", "password": "str"}`)
+	body := strings.NewReader(fmt.Sprintf("{\"email\": %s, \"password\": %s}", email, password))
 
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
@@ -88,7 +91,7 @@ func TestSignup_FailEmail(t *testing.T) {
 
 func TestSignup_FailEmptyPassword(t *testing.T) {
 	url := "http://127.0.0.1:8000/signup"
-	body := strings.NewReader(`{"email": "hound@psina.ru"}`)
+	body := strings.NewReader(fmt.Sprintf("{\"email\": %s, \"password\": %s}", email, password))
 
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
@@ -105,15 +108,13 @@ func TestSignup_FailEmptyPassword(t *testing.T) {
 
 func TestSignup_FailBcrypt(t *testing.T) {
 	url := "http://127.0.0.1:8000/signup"
-	body := strings.NewReader(`{"email": "hound@psina.ru", "password": "str"}`)
+	body := strings.NewReader(fmt.Sprintf("{\"email\": %s, \"password\": %s}", email, password))
 
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
 
-	testAuth, ctrl := createSignupFailBcrypt(t, entity.User{
-		Email:    "hound@psina.ru",
-		Password: "str",
-	})
+	ctx := req.Context()
+	testAuth, ctrl := createSignupFailBcrypt(t, &ctx)
 	defer ctrl.Finish()
 
 	testAuth.Signup(w, req)
@@ -121,70 +122,70 @@ func TestSignup_FailBcrypt(t *testing.T) {
 	require.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
 }
 
-func createSignupSuccess(t *testing.T, userToSave entity.User) (*Authentication, *gomock.Controller) {
+func createSignupSuccess(t *testing.T, ctx *context.Context) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	expectedUser := createExpectedUser("hound@psina.ru", "str")
-	mockUser := mocks.NewUserRepositoryForMock(ctrl)
-	mockUser.EXPECT().CheckExistence(userToSave.Email).Return(false, nil)
-	mockUser.EXPECT().SaveUser(userToSave).Times(1).Return(expectedUser, nil)
+	mockUser := profileMock.NewProfileMock(ctrl)
+	mockUser.EXPECT().
+		CheckExistence(ctx, &profile.User{Email: email}).
+		Return(&profile.Check{Existence: false}, nil)
+	mockUser.EXPECT().
+		SaveUser(ctx, &profile.User{Email: email, Password: password}).
+		Times(1).
+		Return(createExpectedUser(), nil)
 
-	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
-	mockAuth.EXPECT().CreateAuth(expectedUser.ID).Return(http.Cookie{Name: "session_id"}, nil)
+	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
+	mockAuth.EXPECT().
+		Create(ctx, &session.Session{Id: id, SessionId: value}).
+		Return(&session.UserID{Id: id}, nil)
 
-	servicesDB := application.NewUserApp(mockUser)
-	servicesAuth := application.NewUserAuth(mockAuth)
-
-	return NewAuthenticate(*servicesDB, *servicesAuth), ctrl
+	return NewAuthenticate(mockUser, mockAuth), ctrl
 }
 
 func createSignupFail(t *testing.T) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
-	mockUser := mocks.NewUserRepositoryForMock(ctrl)
-	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
+	mockUser := profileMock.NewProfileMock(ctrl)
+	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
 
-	servicesDB := application.NewUserApp(mockUser)
-	servicesAuth := application.NewUserAuth(mockAuth)
-
-	return NewAuthenticate(*servicesDB, *servicesAuth), ctrl
+	return NewAuthenticate(mockUser, mockAuth), ctrl
 }
 
-func createSignupFailBcrypt(t *testing.T, u entity.User) (*Authentication, *gomock.Controller) {
+func createSignupFailBcrypt(t *testing.T, ctx *context.Context) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
-	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
+	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
 
-	mockUser := mocks.NewUserRepositoryForMock(ctrl)
-	mockUser.EXPECT().CheckExistence("hound@psina.ru").Return(false, nil)
-	mockUser.EXPECT().SaveUser(u).Return(entity.User{}, errors.New("bcrypt: create password hash"))
+	mockUser := profileMock.NewProfileMock(ctrl)
+	mockUser.EXPECT().
+		CheckExistence(ctx, &profile.User{Email: email}).
+		Return(&profile.Check{Existence: false}, nil)
+	mockUser.EXPECT().
+		SaveUser(ctx, &profile.User{Email: email, Password: password}).
+		Times(1).
+		Return(nil, errors.New("createSignupFailBcrypt"))
 
-	servicesDB := application.NewUserApp(mockUser)
-	servicesAuth := application.NewUserAuth(mockAuth)
-
-	return NewAuthenticate(*servicesDB, *servicesAuth), ctrl
+	return NewAuthenticate(mockUser, mockAuth), ctrl
 }
 
-func createSignupFailUserExist(t *testing.T) (*Authentication, *gomock.Controller) {
+func createSignupFailUserExist(t *testing.T, ctx *context.Context) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
-	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
+	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
 
-	mockUser := mocks.NewUserRepositoryForMock(ctrl)
-	mockUser.EXPECT().CheckExistence("hound@psina.ru").Return(true, nil)
+	mockUser := profileMock.NewProfileMock(ctrl)
+	mockUser.EXPECT().
+		CheckExistence(ctx, &profile.User{Email: email}).
+		Return(&profile.Check{Existence: true}, nil)
 
-	servicesDB := application.NewUserApp(mockUser)
-	servicesAuth := application.NewUserAuth(mockAuth)
-
-	return NewAuthenticate(*servicesDB, *servicesAuth), ctrl
+	return NewAuthenticate(mockUser, mockAuth), ctrl
 }
 
-func createSignupFailUserExistFailDB(t *testing.T) (*Authentication, *gomock.Controller) {
+func createSignupFailUserExistFailDB(t *testing.T, ctx *context.Context) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
-	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
+	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
 
-	mockUser := mocks.NewUserRepositoryForMock(ctrl)
-	mockUser.EXPECT().CheckExistence("hound@psina.ru").Return(false, errors.New("error"))
+	mockUser := profileMock.NewProfileMock(ctrl)
+	mockUser.EXPECT().
+		CheckExistence(ctx, &profile.User{Email: email}).
+		Return(&profile.Check{Existence: false}, errors.New("createSignupFailUserExistFailDB"))
 
-	servicesDB := application.NewUserApp(mockUser)
-	servicesAuth := application.NewUserAuth(mockAuth)
-
-	return NewAuthenticate(*servicesDB, *servicesAuth), ctrl
+	return NewAuthenticate(mockUser, mockAuth), ctrl
 }

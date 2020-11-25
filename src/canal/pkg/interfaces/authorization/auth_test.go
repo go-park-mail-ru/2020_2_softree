@@ -3,6 +3,7 @@ package authorization
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	authMock "server/src/authorization/pkg/infrastructure/mock"
@@ -17,29 +18,30 @@ import (
 )
 
 const (
-	id = 1
-	email = "hound@psina.ru"
-	avatar = "base64"
+	id       = 1
+	email    = "hound@psina.ru"
+	password = "str"
+	avatar   = "base64"
 
-	name = "session_id"
+	name  = "session_id"
 	value = "value"
 )
 
 func TestAuth_Success(t *testing.T) {
 	url := "http://127.0.0.1:8000/auth"
-	body := strings.NewReader(`{"email": , "password": "str"}`)
+	body := strings.NewReader(fmt.Sprintf("{\"email\": %s, \"password\": %s}", email, password))
 
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
 
-	ctx := req.Context()
-	testAuth, ctrl := createAuthSuccess(t, &ctx)
+	ctx := context.WithValue(req.Context(), "id", int64(id))
+	req = req.Clone(ctx)
+	testAuth, ctrl := createAuthSuccess(t, req.Context())
 	defer ctrl.Finish()
 
 	req.AddCookie(&http.Cookie{Name: name, Value: value})
 
-	auth := testAuth.Auth(testAuth.Authenticate)
-	auth(w, req)
+	testAuth.Authenticate(w, req)
 
 	require.Equal(t, http.StatusOK, w.Result().StatusCode)
 	require.NotEmpty(t, w.Header().Get("Content-type"))
@@ -48,7 +50,7 @@ func TestAuth_Success(t *testing.T) {
 
 func TestAuth_FailUnauthorized(t *testing.T) {
 	url := "http://127.0.0.1:8000/auth"
-	body := strings.NewReader(`{"email": "yandex@mail.ru", "password": "str"}`)
+	body := strings.NewReader(fmt.Sprintf("{\"email\": %s, \"password\": %s}", email, password))
 
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
@@ -56,25 +58,48 @@ func TestAuth_FailUnauthorized(t *testing.T) {
 	testAuth, ctrl := createAuthFailUnauthorized(t)
 	defer ctrl.Finish()
 
-	auth := testAuth.Auth(testAuth.Authenticate)
-	auth(w, req)
+	emptyFunc := testAuth.Auth(empty)
+	emptyFunc(w, req)
 
 	require.Equal(t, http.StatusUnauthorized, w.Result().StatusCode)
 }
 
-func TestAuth_FailNoSession(t *testing.T) {
+func TestAuthCheck_Success(t *testing.T) {
 	url := "http://127.0.0.1:8000/auth"
-	body := strings.NewReader(`{"email": "yandex@mail.ru", "password": "str"}`)
+	body := strings.NewReader(fmt.Sprintf("{\"email\": %s, \"password\": %s}", email, password))
 
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
 
-	testAuth, ctrl := createAuthFailSession(t)
+	testAuth, ctrl := createAuthCheckSuccess(t, req.Context())
 	defer ctrl.Finish()
 
 	cookie := http.Cookie{
-		Name:  "session_id",
-		Value: "value",
+		Name:  name,
+		Value: value,
+	}
+	req.AddCookie(&cookie)
+
+	emptyFunc := testAuth.Auth(empty)
+	emptyFunc(w, req)
+
+	require.Equal(t, http.StatusOK, w.Result().StatusCode)
+}
+
+func TestAuth_FailNoSession(t *testing.T) {
+	url := "http://127.0.0.1:8000/auth"
+	body := strings.NewReader(fmt.Sprintf("{\"email\": %s, \"password\": %s}", email, password))
+
+	req := httptest.NewRequest("POST", url, body)
+	w := httptest.NewRecorder()
+
+	ctx := req.Context()
+	testAuth, ctrl := createAuthFailSession(t, ctx)
+	defer ctrl.Finish()
+
+	cookie := http.Cookie{
+		Name:  name,
+		Value: value,
 	}
 	req.AddCookie(&cookie)
 
@@ -86,34 +111,36 @@ func TestAuth_FailNoSession(t *testing.T) {
 
 func TestAuth_FailNoUser(t *testing.T) {
 	url := "http://127.0.0.1:8000/auth"
-	body := strings.NewReader(`{"email": "yandex@mail.ru", "password": "str"}`)
+	body := strings.NewReader(fmt.Sprintf("{\"email\": %s, \"password\": %s}", email, password))
 
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
 
-	testAuth, ctrl := createAuthFailUser(t)
+	ctx := context.WithValue(req.Context(), "id", int64(id))
+	req = req.Clone(ctx)
+	testAuth, ctrl := createAuthFailUser(t, ctx)
 	defer ctrl.Finish()
 
 	cookie := http.Cookie{
-		Name:  "session_id",
-		Value: "value",
+		Name:  name,
+		Value: value,
 	}
 	req.AddCookie(&cookie)
 
-	auth := testAuth.Auth(testAuth.Authenticate)
-	auth(w, req)
+	testAuth.Authenticate(w, req)
 
 	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 }
 
-func createAuthSuccess(t *testing.T, ctx *context.Context) (*Authentication, *gomock.Controller) {
+func createAuthSuccess(t *testing.T, ctx context.Context) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
 	mockUser := profileMock.NewProfileMock(ctrl)
-	mockUser.EXPECT().GetUserById(ctx, &profile.UserID{Id: id}).Return(createExpectedUser(), nil)
+	mockUser.EXPECT().
+		GetUserById(ctx, &profile.UserID{Id: id}).
+		Return(createExpectedUser(), nil)
 
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
-	mockAuth.EXPECT().Check(ctx, &session.SessionID{SessionId: value}).Return(&session.UserID{Id: id}, nil)
 
 	return NewAuthenticate(mockUser, mockAuth), ctrl
 }
@@ -126,28 +153,51 @@ func createAuthFailUnauthorized(t *testing.T) (*Authentication, *gomock.Controll
 	return NewAuthenticate(mockUser, mockAuth), ctrl
 }
 
-func createAuthFailSession(t *testing.T, ctx *context.Context) (*Authentication, *gomock.Controller) {
+func createAuthCheckSuccess(t *testing.T, ctx context.Context) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockUser := profileMock.NewProfileMock(ctrl)
-
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
-	mockAuth.EXPECT().Check(ctx, &session.SessionID{SessionId: value}).Return(int64(0), errors.New("no session"))
+	mockAuth.EXPECT().
+		Check(ctx, &session.SessionID{SessionId: value}).
+		Return(&session.UserID{Id: id}, nil)
 
 	return NewAuthenticate(mockUser, mockAuth), ctrl
 }
 
-func createAuthFailUser(t *testing.T, ctx *context.Context) (*Authentication, *gomock.Controller) {
+func createAuthFailSession(t *testing.T, ctx context.Context) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
-
 	mockUser := profileMock.NewProfileMock(ctrl)
-	mockUser.EXPECT().GetUserById(ctx, &profile.UserID{Id: id}).Return(nil, errors.New("no user in database"))
 
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
-	mockAuth.EXPECT().Check(ctx, &session.SessionID{SessionId: value}).Return(&session.UserID{Id: id}, nil)
+	mockAuth.EXPECT().
+		Check(ctx, &session.SessionID{SessionId: value}).
+		Return(nil, errors.New("no session"))
 
 	return NewAuthenticate(mockUser, mockAuth), ctrl
 }
 
-func createExpectedUser() *profile.User {
-	return &profile.User{ID: id, Email: email, Avatar: avatar}
+func createAuthFailUser(t *testing.T, ctx context.Context) (*Authentication, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	mockUser := profileMock.NewProfileMock(ctrl)
+	mockUser.EXPECT().
+		GetUserById(ctx, &profile.UserID{Id: id}).
+		Return(nil, errors.New("no user in database"))
+
+	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
+
+	return NewAuthenticate(mockUser, mockAuth), ctrl
+}
+
+func empty(w http.ResponseWriter, r *http.Request) {
+	id := r.Context().Value("id").(int64)
+
+	if id == id {
+		w.WriteHeader(http.StatusOK)
+	}
+	w.WriteHeader(http.StatusBadRequest)
+}
+
+func createExpectedUser() *profile.PublicUser {
+	return &profile.PublicUser{Id: id, Email: email, Avatar: avatar}
 }
