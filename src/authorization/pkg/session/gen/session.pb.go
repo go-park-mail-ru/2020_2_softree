@@ -231,9 +231,9 @@ var file_session_proto_rawDesc = []byte{
 	0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x49, 0x64, 0x22, 0x07, 0x0a, 0x05, 0x45, 0x6d, 0x70, 0x74,
 	0x79, 0x32, 0xa5, 0x01, 0x0a, 0x14, 0x61, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69, 0x7a, 0x61, 0x74,
 	0x69, 0x6f, 0x6e, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x2d, 0x0a, 0x06, 0x43, 0x72,
-	0x65, 0x61, 0x74, 0x65, 0x12, 0x10, 0x2e, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x2e, 0x53,
-	0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x1a, 0x0f, 0x2e, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e,
-	0x2e, 0x55, 0x73, 0x65, 0x72, 0x49, 0x44, 0x22, 0x00, 0x12, 0x2e, 0x0a, 0x05, 0x43, 0x68, 0x65,
+	0x65, 0x61, 0x74, 0x65, 0x12, 0x0f, 0x2e, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x2e, 0x55,
+	0x73, 0x65, 0x72, 0x49, 0x44, 0x1a, 0x10, 0x2e, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x2e,
+	0x53, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x22, 0x00, 0x12, 0x2e, 0x0a, 0x05, 0x43, 0x68, 0x65,
 	0x63, 0x6b, 0x12, 0x12, 0x2e, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x2e, 0x53, 0x65, 0x73,
 	0x73, 0x69, 0x6f, 0x6e, 0x49, 0x44, 0x1a, 0x0f, 0x2e, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e,
 	0x2e, 0x55, 0x73, 0x65, 0x72, 0x49, 0x44, 0x22, 0x00, 0x12, 0x2e, 0x0a, 0x06, 0x44, 0x65, 0x6c,
@@ -263,12 +263,12 @@ var file_session_proto_goTypes = []interface{}{
 	(*Empty)(nil),     // 3: session.Empty
 }
 var file_session_proto_depIdxs = []int32{
-	2, // 0: session.authorization.Create:input_type -> session.Session
-	1, // 1: session.authorization.Check:input_type -> session.SessionID
-	1, // 2: session.authorization.Delete:input_type -> session.SessionID
-	0, // 3: session.authorization.Create:output_type -> session.UserID
-	0, // 4: session.authorization.Check:output_type -> session.UserID
-	3, // 5: session.authorization.Delete:output_type -> session.Empty
+	0, // 0: session.authorizationService.Create:input_type -> session.UserID
+	1, // 1: session.authorizationService.Check:input_type -> session.SessionID
+	1, // 2: session.authorizationService.Delete:input_type -> session.SessionID
+	2, // 3: session.authorizationService.Create:output_type -> session.Session
+	0, // 4: session.authorizationService.Check:output_type -> session.UserID
+	3, // 5: session.authorizationService.Delete:output_type -> session.Empty
 	3, // [3:6] is the sub-list for method output_type
 	0, // [0:3] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -359,11 +359,11 @@ var _ grpc.ClientConnInterface
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion6
 
-// AuthorizationServiceClient is the client API for AuthorizationService infrastructure.
+// AuthorizationServiceClient is the client API for AuthorizationService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type AuthorizationServiceClient interface {
-	Create(ctx context.Context, in *Session, opts ...grpc.CallOption) (*UserID, error)
+	Create(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*Session, error)
 	Check(ctx context.Context, in *SessionID, opts ...grpc.CallOption) (*UserID, error)
 	Delete(ctx context.Context, in *SessionID, opts ...grpc.CallOption) (*Empty, error)
 }
@@ -376,9 +376,9 @@ func NewAuthorizationServiceClient(cc grpc.ClientConnInterface) AuthorizationSer
 	return &authorizationServiceClient{cc}
 }
 
-func (c *authorizationServiceClient) Create(ctx context.Context, in *Session, opts ...grpc.CallOption) (*UserID, error) {
-	out := new(UserID)
-	err := c.cc.Invoke(ctx, "/session.authorization/Create", in, out, opts...)
+func (c *authorizationServiceClient) Create(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*Session, error) {
+	out := new(Session)
+	err := c.cc.Invoke(ctx, "/session.authorizationService/Create", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -387,7 +387,7 @@ func (c *authorizationServiceClient) Create(ctx context.Context, in *Session, op
 
 func (c *authorizationServiceClient) Check(ctx context.Context, in *SessionID, opts ...grpc.CallOption) (*UserID, error) {
 	out := new(UserID)
-	err := c.cc.Invoke(ctx, "/session.authorization/Check", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/session.authorizationService/Check", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -396,16 +396,16 @@ func (c *authorizationServiceClient) Check(ctx context.Context, in *SessionID, o
 
 func (c *authorizationServiceClient) Delete(ctx context.Context, in *SessionID, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/session.authorization/Delete", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/session.authorizationService/Delete", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// AuthorizationServiceServer is the server API for AuthorizationService infrastructure.
+// AuthorizationServiceServer is the server API for AuthorizationService service.
 type AuthorizationServiceServer interface {
-	Create(context.Context, *Session) (*UserID, error)
+	Create(context.Context, *UserID) (*Session, error)
 	Check(context.Context, *SessionID) (*UserID, error)
 	Delete(context.Context, *SessionID) (*Empty, error)
 }
@@ -414,7 +414,7 @@ type AuthorizationServiceServer interface {
 type UnimplementedAuthorizationServiceServer struct {
 }
 
-func (*UnimplementedAuthorizationServiceServer) Create(context.Context, *Session) (*UserID, error) {
+func (*UnimplementedAuthorizationServiceServer) Create(context.Context, *UserID) (*Session, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
 }
 func (*UnimplementedAuthorizationServiceServer) Check(context.Context, *SessionID) (*UserID, error) {
@@ -429,7 +429,7 @@ func RegisterAuthorizationServiceServer(s *grpc.Server, srv AuthorizationService
 }
 
 func _AuthorizationService_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Session)
+	in := new(UserID)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -438,10 +438,10 @@ func _AuthorizationService_Create_Handler(srv interface{}, ctx context.Context, 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/session.authorization/Create",
+		FullMethod: "/session.authorizationService/Create",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthorizationServiceServer).Create(ctx, req.(*Session))
+		return srv.(AuthorizationServiceServer).Create(ctx, req.(*UserID))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -456,7 +456,7 @@ func _AuthorizationService_Check_Handler(srv interface{}, ctx context.Context, d
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/session.authorization/Check",
+		FullMethod: "/session.authorizationService/Check",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthorizationServiceServer).Check(ctx, req.(*SessionID))
@@ -474,7 +474,7 @@ func _AuthorizationService_Delete_Handler(srv interface{}, ctx context.Context, 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/session.authorization/Delete",
+		FullMethod: "/session.authorizationService/Delete",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthorizationServiceServer).Delete(ctx, req.(*SessionID))
@@ -483,7 +483,7 @@ func _AuthorizationService_Delete_Handler(srv interface{}, ctx context.Context, 
 }
 
 var _AuthorizationService_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "session.authorization",
+	ServiceName: "session.authorizationService",
 	HandlerType: (*AuthorizationServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

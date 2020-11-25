@@ -28,7 +28,7 @@ func TestLogout_Success(t *testing.T) {
 	testAuth, ctrl := createLogoutSuccess(t, &ctx)
 	defer ctrl.Finish()
 
-	cookie, _ := CreateCookie()
+	cookie := CreateCookie()
 	cookie.Value = value
 	req.AddCookie(&cookie)
 
@@ -69,7 +69,7 @@ func TestLogout_FailDeleteAuth(t *testing.T) {
 	testAuth, ctrl := createLogoutFailDeleteAuth(t, &ctx)
 	defer ctrl.Finish()
 
-	cookie, _ := CreateCookie()
+	cookie := CreateCookie()
 	cookie.Value = value
 	req.AddCookie(&cookie)
 

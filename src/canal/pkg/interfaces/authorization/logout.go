@@ -26,17 +26,7 @@ func (a *Authentication) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newCookie, err := CreateCookie()
-	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusInternalServerError,
-			"function": "Logout",
-			"action":   "CreateCookie",
-		}).Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
+	newCookie := CreateCookie()
 	newCookie.Expires = time.Date(1973, 1, 1, 0, 0, 0, 0, time.UTC)
 	newCookie.Value = ""
 	http.SetCookie(w, &newCookie)

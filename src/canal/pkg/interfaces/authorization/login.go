@@ -56,27 +56,19 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var cookie http.Cookie
-	if cookie, err = CreateCookie(); err != nil {
-		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusInternalServerError,
-			"function": "Login",
-			"action":   "CreateCookie",
-		}).Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	if _, err = a.auth.Create(r.Context(), &session.Session{Id: public.Id, SessionId: cookie.Value}); err != nil {
+	cookie := CreateCookie()
+	var sess *session.Session
+	if sess, err = a.auth.Create(r.Context(), &session.UserID{Id: public.Id}); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "Login",
 			"action":   "Create auth",
-			"session":  session.Session{Id: public.Id, SessionId: cookie.Value},
+			"session":  &session.UserID{Id: public.Id},
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	cookie.Value = sess.SessionId
 	http.SetCookie(w, &cookie)
 
 	res, err := json.Marshal(public)

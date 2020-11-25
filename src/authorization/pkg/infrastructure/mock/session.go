@@ -27,10 +27,10 @@ func (sessionMock *SessionMock) EXPECT() *RecorderSession {
 	return sessionMock.recorder
 }
 
-func (sessionMock *SessionMock) Create(ctx context.Context, in *session.Session, opts ...grpc.CallOption) (*session.UserID, error) {
+func (sessionMock *SessionMock) Create(ctx context.Context, in *session.UserID, opts ...grpc.CallOption) (*session.Session, error) {
 	sessionMock.ctrl.T.Helper()
 	ret := sessionMock.ctrl.Call(sessionMock, "Create", ctx, in)
-	out, _ := ret[0].(*session.UserID)
+	out, _ := ret[0].(*session.Session)
 	err, _ := ret[1].(error)
 	return out, err
 }

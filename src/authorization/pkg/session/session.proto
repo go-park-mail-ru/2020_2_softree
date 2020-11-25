@@ -20,7 +20,7 @@ message Session {
 message Empty {}
 
 service authorizationService {
-  rpc Create (Session)   returns (UserID) {}
+  rpc Create (UserID)   returns (Session) {}
   rpc Check  (SessionID) returns (UserID) {}
   rpc Delete (SessionID) returns (Empty) {}
 }

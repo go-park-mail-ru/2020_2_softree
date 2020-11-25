@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/gomodule/redigo/redis"
 	session "server/src/authorization/pkg/session/gen"
+	"server/src/canal/pkg/infrastructure/security"
 	"strconv"
 )
 
@@ -20,8 +21,12 @@ func NewSessionManager(conn redis.Conn) *SessionManager {
 	}
 }
 
-func (sm *SessionManager) Create(ctx context.Context, in *session.Session) (*session.UserID, error) {
-	key := "sessions:" + in.SessionId
+func (sm *SessionManager) Create(ctx context.Context, in *session.UserID) (*session.Session, error) {
+	hash, err := security.MakeShieldedCookie()
+	if err != nil {
+		return nil, err
+	}
+	key := "sessions:" + hash
 	result, err := redis.String(sm.RedisConn.Do("SET", key, in.Id, "EX", day)) // Expires in 24 hours
 	if err != nil {
 		return nil, err
@@ -30,7 +35,7 @@ func (sm *SessionManager) Create(ctx context.Context, in *session.Session) (*ses
 		return nil, errors.New("result not OK")
 	}
 
-	return &session.UserID{Id: in.Id}, nil
+	return &session.Session{SessionId: hash, Id: in.Id}, nil
 }
 
 func (sm *SessionManager) Check(ctx context.Context, in *session.SessionID) (*session.UserID, error) {

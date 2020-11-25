@@ -19,13 +19,13 @@ import (
 
 func TestLogin_Success(t *testing.T) {
 	url := "http://127.0.0.1:8000/sessions"
-	body := strings.NewReader(fmt.Sprintf("{\"email\": %s, \"password\": %s}", email, password))
+	body := strings.NewReader(fmt.Sprintf("{\"email\": \"%s\", \"password\": \"%s\"}", email, password))
 
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
 
 	ctx := req.Context()
-	testAuth, ctrl := createLoginSuccess(t, &ctx)
+	testAuth, ctrl := createLoginSuccess(t, ctx)
 	defer ctrl.Finish()
 
 	testAuth.Login(w, req)
@@ -59,7 +59,7 @@ func TestLogin_FailNoUser(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	ctx := req.Context()
-	testAuth, ctrl := createLoginFailNoUser(t, &ctx)
+	testAuth, ctrl := createLoginFailNoUser(t, ctx)
 	defer ctrl.Finish()
 
 	testAuth.Login(w, req)
@@ -77,7 +77,7 @@ func TestLogin_FailCreateAuth(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	ctx := req.Context()
-	testAuth, ctrl := createLoginFailCreateAuth(t, &ctx)
+	testAuth, ctrl := createLoginFailCreateAuth(t, ctx)
 	defer ctrl.Finish()
 
 	testAuth.Login(w, req)
@@ -85,12 +85,12 @@ func TestLogin_FailCreateAuth(t *testing.T) {
 	require.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
 }
 
-func createLoginSuccess(t *testing.T, ctx *context.Context) (*Authentication, *gomock.Controller) {
+func createLoginSuccess(t *testing.T, ctx context.Context) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockUser.EXPECT().
-		CheckExistence(ctx, &profile.User{Email: email}).
+		CheckExistence(ctx, &profile.User{Email: email, Password: password}).
 		Return(&profile.Check{Existence: true}, nil)
 	mockUser.EXPECT().
 		GetUserByLogin(ctx, &profile.User{Email: email, Password: password}).
@@ -98,8 +98,8 @@ func createLoginSuccess(t *testing.T, ctx *context.Context) (*Authentication, *g
 
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
 	mockAuth.EXPECT().
-		Create(ctx, &session.Session{Id: id, SessionId: value}).
-		Return(&session.UserID{Id: id}, nil)
+		Create(ctx, &session.UserID{Id: id}).
+		Return(&session.Session{Id: id, SessionId: value}, nil)
 
 	return NewAuthenticate(mockUser, mockAuth), ctrl
 }
@@ -112,7 +112,7 @@ func createLoginFailValidation(t *testing.T) (*Authentication, *gomock.Controlle
 	return NewAuthenticate(mockUser, mockAuth), ctrl
 }
 
-func createLoginFailNoUser(t *testing.T, ctx *context.Context) (*Authentication, *gomock.Controller) {
+func createLoginFailNoUser(t *testing.T, ctx context.Context) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockUser.EXPECT().
@@ -124,7 +124,7 @@ func createLoginFailNoUser(t *testing.T, ctx *context.Context) (*Authentication,
 	return NewAuthenticate(mockUser, mockAuth), ctrl
 }
 
-func createLoginFailCreateAuth(t *testing.T, ctx *context.Context) (*Authentication, *gomock.Controller) {
+func createLoginFailCreateAuth(t *testing.T, ctx context.Context) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
 	mockUser := profileMock.NewProfileMock(ctrl)
@@ -137,7 +137,7 @@ func createLoginFailCreateAuth(t *testing.T, ctx *context.Context) (*Authenticat
 
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
 	mockAuth.EXPECT().
-		Create(ctx, &session.Session{Id: id, SessionId: value}).
+		Create(ctx, &session.UserID{Id: id}).
 		Return(nil, errors.New("fail to create cookie"))
 
 	return NewAuthenticate(mockUser, mockAuth), ctrl

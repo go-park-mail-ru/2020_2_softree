@@ -6,7 +6,6 @@ import (
 	"github.com/spf13/viper"
 	"net/http"
 	"server/src/canal/pkg/domain/entity"
-	"server/src/canal/pkg/infrastructure/security"
 	profile "server/src/profile/pkg/profile/gen"
 	"time"
 
@@ -66,18 +65,13 @@ func (a *Authentication) validate(user *profile.User) (errs entity.ErrorJSON) {
 	return
 }
 
-func CreateCookie() (http.Cookie, error) {
-	hash, err := security.MakeShieldedCookie()
-	if err != nil {
-		return http.Cookie{}, err
-	}
+func CreateCookie() http.Cookie {
 	return http.Cookie{
 		Name:     "session_id",
-		Value:    hash,
 		Expires:  time.Now().Add(24 * time.Hour),
 		Domain:   viper.GetString("server.domain"),
 		Secure:   viper.GetBool("server.secure"),
 		HttpOnly: true,
 		Path:     "/",
-	}, nil
+	}
 }
