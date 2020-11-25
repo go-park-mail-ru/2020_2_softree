@@ -28,11 +28,11 @@ func TestGetAllPaymentHistory_Success(t *testing.T) {
 	rows := sqlmock.NewRows([]string{"from_title", "to_title", "value", "amount", "updated_at"})
 	expected := profile.AllHistory{History: []*profile.PaymentHistory{
 		{
-			From:     from,
-			To:       to,
-			Amount:   amount,
-			Datetime: nil,
-			Value:    value,
+			From:      from,
+			To:        to,
+			Amount:    amount,
+			UpdatedAt: nil,
+			Value:     value,
 		},
 	}}
 	rows = rows.AddRow(
@@ -40,7 +40,7 @@ func TestGetAllPaymentHistory_Success(t *testing.T) {
 		expected.History[0].To,
 		expected.History[0].Value,
 		expected.History[0].Amount,
-		expected.History[0].Datetime,
+		expected.History[0].UpdatedAt,
 	)
 
 	mock.ExpectBegin()
@@ -93,10 +93,10 @@ func TestAddToPaymentHistory_Success(t *testing.T) {
 	repo := database.NewUserDBManager(db)
 	ctx := context.Background()
 	_, err = repo.AddToPaymentHistory(ctx, &profile.AddToHistory{Id: userId, Transaction: &profile.PaymentHistory{
-		From:     from,
-		To:       to,
-		Amount:   amount,
-		Value:    value,
+		From:   from,
+		To:     to,
+		Amount: amount,
+		Value:  value,
 	}})
 
 	require.Equal(t, nil, err)

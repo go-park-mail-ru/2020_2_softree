@@ -30,7 +30,7 @@ func (managerDB *UserDBManager) GetUserById(ctx context.Context, in *profile.Use
 	row := tx.QueryRow("SELECT id, email, avatar FROM user_trade WHERE id = $1", in.Id)
 
 	user := profile.PublicUser{}
-	if err = row.Scan(&user.ID, &user.Email, &user.Avatar); err != nil {
+	if err = row.Scan(&user.Id, &user.Email, &user.Avatar); err != nil {
 		return nil, err
 	}
 	if err = tx.Commit(); err != nil {
@@ -74,7 +74,7 @@ func (managerDB *UserDBManager) CheckPassword(ctx context.Context, in *profile.U
 	defer tx.Rollback()
 
 	var userPassword string
-	if err := tx.QueryRow("SELECT password FROM user_trade WHERE id = $1", in.ID).Scan(&userPassword); err != nil {
+	if err := tx.QueryRow("SELECT password FROM user_trade WHERE id = $1", in.Id).Scan(&userPassword); err != nil {
 		return nil, err
 	}
 
@@ -109,7 +109,7 @@ func (managerDB *UserDBManager) SaveUser(ctx context.Context, in *profile.User) 
 		return nil, err
 	}
 
-	return &profile.PublicUser{ID: lastID, Email: in.Email, Avatar: ""}, nil
+	return &profile.PublicUser{Id: lastID, Email: in.Email}, nil
 }
 
 func (managerDB *UserDBManager) UpdateUserAvatar(ctx context.Context, in *profile.UpdateFields) (*profile.Empty, error) {
@@ -189,7 +189,7 @@ func (managerDB *UserDBManager) GetUserByLogin(ctx context.Context, in *profile.
 	var password string
 	row := tx.QueryRow("SELECT id, password, avatar FROM user_trade WHERE email = $1", in.Email)
 
-	if err = row.Scan(&in.ID, &password, &in.Avatar); err != nil {
+	if err = row.Scan(&in.Id, &password, &in.Avatar); err != nil {
 		return nil, err
 	}
 	if err = tx.Commit(); err != nil {
@@ -200,7 +200,7 @@ func (managerDB *UserDBManager) GetUserByLogin(ctx context.Context, in *profile.
 		return nil, errors.New("wrong password")
 	}
 
-	return &profile.PublicUser{ID: in.ID, Email: in.Email, Avatar: in.Avatar}, nil
+	return &profile.PublicUser{Id: in.Id, Email: in.Email, Avatar: in.Avatar}, nil
 }
 
 func (managerDB *UserDBManager) GetUserWatchlist(ctx context.Context, in *profile.UserID) (*profile.Currencies, error) {
@@ -226,7 +226,7 @@ func (managerDB *UserDBManager) GetUserWatchlist(ctx context.Context, in *profil
 			return nil, err
 		}
 
-		currencies.Watchlist = append(currencies.Watchlist, &currency)
+		currencies.Currencies = append(currencies.Currencies, &currency)
 	}
 
 	if err := result.Err(); err != nil {
@@ -236,8 +236,8 @@ func (managerDB *UserDBManager) GetUserWatchlist(ctx context.Context, in *profil
 		return nil, err
 	}
 
-	if len(currencies.Watchlist) == 0 {
-		currencies.Watchlist = append(currencies.Watchlist, &profile.Currency{Base: "USD", Title: "RUB"})
+	if len(currencies.Currencies) == 0 {
+		currencies.Currencies = append(currencies.Currencies, &profile.Currency{Base: "USD", Title: "RUB"})
 	}
 
 	return &currencies, nil

@@ -29,7 +29,7 @@ func (managerDB *UserDBManager) GetAllPaymentHistory(ctx context.Context, in *pr
 	var history profile.AllHistory
 	for result.Next() {
 		var row profile.PaymentHistory
-		if err := result.Scan(&row.From, &row.To, &row.Value, &row.Amount, &row.Datetime); err != nil {
+		if err := result.Scan(&row.From, &row.To, &row.Value, &row.Amount, &row.UpdatedAt); err != nil {
 			return nil, err
 		}
 
@@ -56,7 +56,7 @@ func (managerDB *UserDBManager) AddToPaymentHistory(ctx context.Context, in *pro
 	}
 	defer tx.Rollback()
 
-	in.Transaction.Datetime = ptypes.TimestampNow()
+	in.Transaction.UpdatedAt = ptypes.TimestampNow()
 	_, err = tx.Exec(
 		"INSERT INTO payment_history (user_id, from_title, to_title, value, amount, updated_at) VALUES ($1, $2, $3, $4, $5, $6)",
 		in.Id,
@@ -64,7 +64,7 @@ func (managerDB *UserDBManager) AddToPaymentHistory(ctx context.Context, in *pro
 		in.Transaction.To,
 		in.Transaction.Value,
 		in.Transaction.Amount,
-		in.Transaction.Datetime.AsTime(),
+		in.Transaction.UpdatedAt.AsTime(),
 	)
 	if err != nil {
 		return nil, err

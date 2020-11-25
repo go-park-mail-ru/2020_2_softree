@@ -25,8 +25,8 @@ func TestGetUserById_Success(t *testing.T) {
 	defer db.Close()
 
 	rows := sqlmock.NewRows([]string{"id", "email", "avatar"})
-	expected := profile.PublicUser{ID: userId, Email: email, Avatar: avatar}
-	rows = rows.AddRow(expected.ID, expected.Email, expected.Avatar)
+	expected := profile.PublicUser{Id: userId, Email: email, Avatar: avatar}
+	rows = rows.AddRow(expected.Id, expected.Email, expected.Avatar)
 
 	mock.ExpectBegin()
 	mock.ExpectQuery("SELECT id, email, avatar FROM user_trade WHERE").
@@ -122,7 +122,7 @@ func TestCheckPassword_Success(t *testing.T) {
 
 	repo := database.NewUserDBManager(db)
 	ctx := context.Background()
-	row, err := repo.CheckPassword(ctx, &profile.User{ID: userId, OldPassword: password})
+	row, err := repo.CheckPassword(ctx, &profile.User{Id: userId, OldPassword: password})
 
 	require.Equal(t, nil, err)
 	require.Equal(t, nil, mock.ExpectationsWereMet())
@@ -142,7 +142,7 @@ func TestCheckPassword_Fail(t *testing.T) {
 
 	repo := database.NewUserDBManager(db)
 	ctx := context.Background()
-	_, err = repo.CheckPassword(ctx, &profile.User{ID: userId, OldPassword: password})
+	_, err = repo.CheckPassword(ctx, &profile.User{Id: userId, OldPassword: password})
 
 	require.NotEqual(t, nil, err)
 	require.Equal(t, nil, mock.ExpectationsWereMet())
@@ -154,8 +154,8 @@ func TestSaveUser_Success(t *testing.T) {
 	defer db.Close()
 
 	rows := sqlmock.NewRows([]string{"id"})
-	expected := &profile.PublicUser{ID: userId, Email: email, Avatar: ""}
-	rows = rows.AddRow(expected.ID)
+	expected := &profile.PublicUser{Id: userId, Email: email}
+	rows = rows.AddRow(expected.Id)
 
 	mock.ExpectBegin()
 	mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO user_trade (email, password) VALUES`)).
@@ -313,8 +313,8 @@ func TestGetUserByLogin_Success(t *testing.T) {
 	pass, err := security.MakeShieldedPassword(password)
 
 	rows := sqlmock.NewRows([]string{"id", "password", "avatar"})
-	expected := profile.PublicUser{ID: userId, Email: email, Avatar: avatar}
-	rows = rows.AddRow(expected.ID, pass, expected.Avatar)
+	expected := profile.PublicUser{Id: userId, Email: email, Avatar: avatar}
+	rows = rows.AddRow(expected.Id, pass, expected.Avatar)
 
 	mock.ExpectBegin()
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT id, password, avatar FROM user_trade WHERE`)).
@@ -356,15 +356,15 @@ func TestGetUserWatchlist_Success(t *testing.T) {
 	defer db.Close()
 
 	rows := sqlmock.NewRows([]string{"base_title", "currency_title"})
-	expected := profile.Currencies{Watchlist: []*profile.Currency{
+	expected := profile.Currencies{Currencies: []*profile.Currency{
 		{
 			Base: from,
 			Title: to,
 		},
 	}}
 	rows = rows.AddRow(
-		expected.Watchlist[0].Base,
-		expected.Watchlist[0].Title,
+		expected.Currencies[0].Base,
+		expected.Currencies[0].Title,
 	)
 
 	mock.ExpectBegin()
@@ -379,7 +379,7 @@ func TestGetUserWatchlist_Success(t *testing.T) {
 
 	require.Equal(t, nil, err)
 	require.Equal(t, nil, mock.ExpectationsWereMet())
-	require.Equal(t, true, reflect.DeepEqual(row.Watchlist, expected.Watchlist))
+	require.Equal(t, true, reflect.DeepEqual(row.Currencies, expected.Currencies))
 }
 
 func TestGetUserWatchlistNew_Success(t *testing.T) {
@@ -388,7 +388,7 @@ func TestGetUserWatchlistNew_Success(t *testing.T) {
 	defer db.Close()
 
 	rows := sqlmock.NewRows([]string{"base_title", "currency_title"})
-	expected := profile.Currencies{Watchlist: []*profile.Currency{
+	expected := profile.Currencies{Currencies: []*profile.Currency{
 		{
 			Base: to,
 			Title: from,
@@ -407,7 +407,7 @@ func TestGetUserWatchlistNew_Success(t *testing.T) {
 
 	require.Equal(t, nil, err)
 	require.Equal(t, nil, mock.ExpectationsWereMet())
-	require.Equal(t, true, reflect.DeepEqual(row.Watchlist, expected.Watchlist))
+	require.Equal(t, true, reflect.DeepEqual(row.Currencies, expected.Currencies))
 }
 
 func TestGetUserWatchlist_Fail(t *testing.T) {

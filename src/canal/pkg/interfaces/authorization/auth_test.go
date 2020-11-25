@@ -1,13 +1,14 @@
 package authorization
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
-	"server/src/canal/pkg/application"
-	"server/src/canal/pkg/domain/entity"
-	mocks "server/src/canal/pkg/infrastructure/mock"
-	"server/src/canal/pkg/infrastructure/security"
+	authMock "server/src/authorization/pkg/infrastructure/mock"
+	session "server/src/authorization/pkg/session/gen"
+	profileMock "server/src/profile/pkg/infrastructure/mock"
+	profile "server/src/profile/pkg/profile/gen"
 	"strings"
 	"testing"
 
@@ -15,21 +16,27 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	id = 1
+	email = "hound@psina.ru"
+	avatar = "base64"
+
+	name = "session_id"
+	value = "value"
+)
+
 func TestAuth_Success(t *testing.T) {
 	url := "http://127.0.0.1:8000/auth"
-	body := strings.NewReader(`{"email": "yandex@mail.ru", "password": "str"}`)
+	body := strings.NewReader(`{"email": , "password": "str"}`)
 
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
 
-	testAuth, ctrl := createAuthSuccess(t)
+	ctx := req.Context()
+	testAuth, ctrl := createAuthSuccess(t, &ctx)
 	defer ctrl.Finish()
 
-	cookie := http.Cookie{
-		Name:  "session_id",
-		Value: "value",
-	}
-	req.AddCookie(&cookie)
+	req.AddCookie(&http.Cookie{Name: name, Value: value})
 
 	auth := testAuth.Auth(testAuth.Authenticate)
 	auth(w, req)
@@ -99,74 +106,48 @@ func TestAuth_FailNoUser(t *testing.T) {
 	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 }
 
-func createAuthSuccess(t *testing.T) (*Authentication, *gomock.Controller) {
+func createAuthSuccess(t *testing.T, ctx *context.Context) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	expectedUser := createExpectedUser("yandex@mail.ru", "str")
+	mockUser := profileMock.NewProfileMock(ctrl)
+	mockUser.EXPECT().GetUserById(ctx, &profile.UserID{Id: id}).Return(createExpectedUser(), nil)
 
-	var id uint64 = 1
-	mockUser := mocks.NewUserRepositoryForMock(ctrl)
-	mockUser.EXPECT().GetUserById(id).Return(expectedUser, nil)
+	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
+	mockAuth.EXPECT().Check(ctx, &session.SessionID{SessionId: value}).Return(&session.UserID{Id: id}, nil)
 
-	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
-	mockAuth.EXPECT().CheckAuth("value").Return(id, nil)
-
-	servicesDB := application.NewUserApp(mockUser)
-	servicesAuth := application.NewUserAuth(mockAuth)
-
-	return NewAuthenticate(*servicesDB, *servicesAuth), ctrl
+	return NewAuthenticate(mockUser, mockAuth), ctrl
 }
 
 func createAuthFailUnauthorized(t *testing.T) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
-	mockUser := mocks.NewUserRepositoryForMock(ctrl)
-	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
+	mockUser := profileMock.NewProfileMock(ctrl)
+	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
 
-	servicesDB := application.NewUserApp(mockUser)
-	servicesAuth := application.NewUserAuth(mockAuth)
-
-	return NewAuthenticate(*servicesDB, *servicesAuth), ctrl
+	return NewAuthenticate(mockUser, mockAuth), ctrl
 }
 
-func createAuthFailSession(t *testing.T) (*Authentication, *gomock.Controller) {
+func createAuthFailSession(t *testing.T, ctx *context.Context) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
-	mockUser := mocks.NewUserRepositoryForMock(ctrl)
+	mockUser := profileMock.NewProfileMock(ctrl)
 
-	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
-	mockAuth.EXPECT().CheckAuth("value").Return(uint64(0), errors.New("no session"))
+	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
+	mockAuth.EXPECT().Check(ctx, &session.SessionID{SessionId: value}).Return(int64(0), errors.New("no session"))
 
-	servicesDB := application.NewUserApp(mockUser)
-	servicesAuth := application.NewUserAuth(mockAuth)
-
-	return NewAuthenticate(*servicesDB, *servicesAuth), ctrl
+	return NewAuthenticate(mockUser, mockAuth), ctrl
 }
 
-func createAuthFailUser(t *testing.T) (*Authentication, *gomock.Controller) {
+func createAuthFailUser(t *testing.T, ctx *context.Context) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	mockUser := mocks.NewUserRepositoryForMock(ctrl)
-	mockUser.EXPECT().GetUserById(uint64(1)).Return(entity.User{}, errors.New("no user in database"))
+	mockUser := profileMock.NewProfileMock(ctrl)
+	mockUser.EXPECT().GetUserById(ctx, &profile.UserID{Id: id}).Return(nil, errors.New("no user in database"))
 
-	mockAuth := mocks.NewAuthRepositoryForMock(ctrl)
-	mockAuth.EXPECT().CheckAuth("value").Return(uint64(1), nil)
+	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
+	mockAuth.EXPECT().Check(ctx, &session.SessionID{SessionId: value}).Return(&session.UserID{Id: id}, nil)
 
-	servicesDB := application.NewUserApp(mockUser)
-	servicesAuth := application.NewUserAuth(mockAuth)
-
-	return NewAuthenticate(*servicesDB, *servicesAuth), ctrl
+	return NewAuthenticate(mockUser, mockAuth), ctrl
 }
 
-func createExpectedUser(email, pass string) (expected entity.User) {
-	toSave := entity.User{
-		Email:    email,
-		Password: pass,
-	}
-	password, _ := security.MakeShieldedPassword(toSave.Password)
-	expected = entity.User{
-		ID:       1,
-		Email:    toSave.Email,
-		Password: password,
-	}
-
-	return
+func createExpectedUser() *profile.User {
+	return &profile.User{ID: id, Email: email, Avatar: avatar}
 }

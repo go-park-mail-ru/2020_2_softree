@@ -3,6 +3,7 @@ package mock
 import (
 	"context"
 	"github.com/golang/mock/gomock"
+	"google.golang.org/grpc"
 	"reflect"
 	profile "server/src/profile/pkg/profile/gen"
 )
@@ -26,7 +27,7 @@ func (profileMock *ProfileMock) EXPECT() *RecorderProfile {
 	return profileMock.recorder
 }
 
-func (profileMock *ProfileMock) SaveUser(ctx context.Context, in *profile.User) (*profile.PublicUser, error) {
+func (profileMock *ProfileMock) SaveUser(ctx context.Context, in *profile.User, opts ...grpc.CallOption) (*profile.PublicUser, error) {
 	profileMock.ctrl.T.Helper()
 	ret := profileMock.ctrl.Call(profileMock, "SaveUser", ctx, in)
 	out, _ := ret[0].(*profile.PublicUser)
@@ -45,7 +46,7 @@ func (profileRecorder *RecorderProfile) SaveUser(ctx, in interface{}) *gomock.Ca
 	)
 }
 
-func (profileMock *ProfileMock) UpdateUserAvatar(ctx context.Context, in *profile.UpdateFields) (*profile.Empty, error) {
+func (profileMock *ProfileMock) UpdateUserAvatar(ctx context.Context, in *profile.UpdateFields, opts ...grpc.CallOption) (*profile.Empty, error) {
 	profileMock.ctrl.T.Helper()
 	ret := profileMock.ctrl.Call(profileMock, "UpdateUserAvatar", ctx, in)
 	out, _ := ret[0].(*profile.Empty)
@@ -64,7 +65,7 @@ func (profileRecorder *RecorderProfile) UpdateUserAvatar(ctx, in interface{}) *g
 	)
 }
 
-func (profileMock *ProfileMock) UpdateUserPassword(ctx context.Context, in *profile.UpdateFields) (*profile.Empty, error) {
+func (profileMock *ProfileMock) UpdateUserPassword(ctx context.Context, in *profile.UpdateFields, opts ...grpc.CallOption) (*profile.Empty, error) {
 	profileMock.ctrl.T.Helper()
 	ret := profileMock.ctrl.Call(profileMock, "UpdateUserPassword", ctx, in)
 	out, _ := ret[0].(*profile.Empty)
@@ -83,7 +84,7 @@ func (profileRecorder *RecorderProfile) UpdateUserPassword(ctx, in interface{}) 
 	)
 }
 
-func (profileMock *ProfileMock) DeleteUser(ctx context.Context, in *profile.UserID) (*profile.Empty, error) {
+func (profileMock *ProfileMock) DeleteUser(ctx context.Context, in *profile.UserID, opts ...grpc.CallOption) (*profile.Empty, error) {
 	profileMock.ctrl.T.Helper()
 	ret := profileMock.ctrl.Call(profileMock, "DeleteUser", ctx, in)
 	out, _ := ret[0].(*profile.Empty)
@@ -102,7 +103,7 @@ func (profileRecorder *RecorderProfile) DeleteUser(ctx, in interface{}) *gomock.
 	)
 }
 
-func (profileMock *ProfileMock) GetUserById(ctx context.Context, in *profile.UserID) (*profile.PublicUser, error) {
+func (profileMock *ProfileMock) GetUserById(ctx context.Context, in *profile.UserID, opts ...grpc.CallOption) (*profile.PublicUser, error) {
 	profileMock.ctrl.T.Helper()
 	ret := profileMock.ctrl.Call(profileMock, "GetUserById", ctx, in)
 	out, _ := ret[0].(*profile.PublicUser)
@@ -121,7 +122,7 @@ func (profileRecorder *RecorderProfile) GetUserById(ctx, in interface{}) *gomock
 	)
 }
 
-func (profileMock *ProfileMock) GetUserByLogin(ctx context.Context, in *profile.User) (*profile.PublicUser, error) {
+func (profileMock *ProfileMock) GetUserByLogin(ctx context.Context, in *profile.User, opts ...grpc.CallOption) (*profile.PublicUser, error) {
 	profileMock.ctrl.T.Helper()
 	ret := profileMock.ctrl.Call(profileMock, "GetUserByLogin", ctx, in)
 	out, _ := ret[0].(*profile.PublicUser)
@@ -140,7 +141,7 @@ func (profileRecorder *RecorderProfile) GetUserByLogin(ctx, in interface{}) *gom
 	)
 }
 
-func (profileMock *ProfileMock) CheckExistence(ctx context.Context, in *profile.User) (*profile.Check, error) {
+func (profileMock *ProfileMock) CheckExistence(ctx context.Context, in *profile.User, opts ...grpc.CallOption) (*profile.Check, error) {
 	profileMock.ctrl.T.Helper()
 	ret := profileMock.ctrl.Call(profileMock, "CheckExistence", ctx, in)
 	out, _ := ret[0].(*profile.Check)
@@ -159,7 +160,7 @@ func (profileRecorder *RecorderProfile) CheckExistence(ctx, in interface{}) *gom
 	)
 }
 
-func (profileMock *ProfileMock) CheckPassword(ctx context.Context, in *profile.User) (*profile.Check, error) {
+func (profileMock *ProfileMock) CheckPassword(ctx context.Context, in *profile.User, opts ...grpc.CallOption) (*profile.Check, error) {
 	profileMock.ctrl.T.Helper()
 	ret := profileMock.ctrl.Call(profileMock, "CheckPassword", ctx, in)
 	out, _ := ret[0].(*profile.Check)
@@ -178,7 +179,7 @@ func (profileRecorder *RecorderProfile) CheckPassword(ctx, in interface{}) *gomo
 	)
 }
 
-func (profileMock *ProfileMock) GetUserWatchlist(ctx context.Context, in *profile.UserID) (*profile.Currencies, error) {
+func (profileMock *ProfileMock) GetUserWatchlist(ctx context.Context, in *profile.UserID, opts ...grpc.CallOption) (*profile.Currencies, error) {
 	profileMock.ctrl.T.Helper()
 	ret := profileMock.ctrl.Call(profileMock, "GetUserWatchlist", ctx, in)
 	out, _ := ret[0].(*profile.Currencies)

@@ -35,7 +35,7 @@ func (managerDB *UserDBManager) GetWallets(ctx context.Context, in *profile.User
 		}
 		wallet.Value, _ = money.Float64()
 
-		wallets.AllWallets = append(wallets.AllWallets, &wallet)
+		wallets.Wallets = append(wallets.Wallets, &wallet)
 	}
 
 	if err := result.Err(); err != nil {
@@ -45,13 +45,13 @@ func (managerDB *UserDBManager) GetWallets(ctx context.Context, in *profile.User
 		return nil, err
 	}
 
-	if len(wallets.AllWallets) == 0 {
+	if len(wallets.Wallets) == 0 {
 		if err = managerDB.createInitialWallet(in.Id); err != nil {
 			return nil, err
 		}
 		money, _ := decimal.New(100000, 0).Float64()
-		wallets.AllWallets = append(
-			wallets.AllWallets,
+		wallets.Wallets = append(
+			wallets.Wallets,
 			&profile.Wallet{Title: "RUB", Value: money,
 			})
 	}

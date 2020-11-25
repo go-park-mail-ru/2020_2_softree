@@ -3,11 +3,12 @@ package mock
 import (
 	"context"
 	"github.com/golang/mock/gomock"
+	"google.golang.org/grpc"
 	"reflect"
 	profile "server/src/profile/pkg/profile/gen"
 )
 
-func (profileMock *ProfileMock) GetWallet(ctx context.Context, in *profile.ConcreteWallet) (*profile.Wallet, error) {
+func (profileMock *ProfileMock) GetWallet(ctx context.Context, in *profile.ConcreteWallet, opts ...grpc.CallOption) (*profile.Wallet, error) {
 	profileMock.ctrl.T.Helper()
 	ret := profileMock.ctrl.Call(profileMock, "GetWallet", ctx, in)
 	out, _ := ret[0].(*profile.Wallet)
@@ -26,7 +27,7 @@ func (profileRecorder *RecorderProfile) GetWallet(ctx, in interface{}) *gomock.C
 	)
 }
 
-func (profileMock *ProfileMock) SetWallet(ctx context.Context, in *profile.ToSetWallet) (*profile.Empty, error) {
+func (profileMock *ProfileMock) SetWallet(ctx context.Context, in *profile.ToSetWallet, opts ...grpc.CallOption) (*profile.Empty, error) {
 	profileMock.ctrl.T.Helper()
 	ret := profileMock.ctrl.Call(profileMock, "SetWallet", ctx, in)
 	out, _ := ret[0].(*profile.Empty)
@@ -45,7 +46,7 @@ func (profileRecorder *RecorderProfile) SetWallet(ctx, in interface{}) *gomock.C
 	)
 }
 
-func (profileMock *ProfileMock) GetWallets(ctx context.Context, in *profile.UserID) (*profile.Wallets, error) {
+func (profileMock *ProfileMock) GetWallets(ctx context.Context, in *profile.UserID, opts ...grpc.CallOption) (*profile.Wallets, error) {
 	profileMock.ctrl.T.Helper()
 	ret := profileMock.ctrl.Call(profileMock, "GetWallets", ctx, in)
 	out, _ := ret[0].(*profile.Wallets)
@@ -64,7 +65,7 @@ func (profileRecorder *RecorderProfile) GetWallets(ctx, in interface{}) *gomock.
 	)
 }
 
-func (profileMock *ProfileMock) CreateWallet(ctx context.Context, in *profile.ConcreteWallet) (*profile.Empty, error) {
+func (profileMock *ProfileMock) CreateWallet(ctx context.Context, in *profile.ConcreteWallet, opts ...grpc.CallOption) (*profile.Empty, error) {
 	profileMock.ctrl.T.Helper()
 	ret := profileMock.ctrl.Call(profileMock, "CreateWallet", ctx, in)
 	out, _ := ret[0].(*profile.Empty)
@@ -83,7 +84,7 @@ func (profileRecorder *RecorderProfile) CreateWallet(ctx, in interface{}) *gomoc
 	)
 }
 
-func (profileMock *ProfileMock) CheckWallet(ctx context.Context, in *profile.ConcreteWallet) (*profile.Check, error) {
+func (profileMock *ProfileMock) CheckWallet(ctx context.Context, in *profile.ConcreteWallet, opts ...grpc.CallOption) (*profile.Check, error) {
 	profileMock.ctrl.T.Helper()
 	ret := profileMock.ctrl.Call(profileMock, "CheckWallet", ctx, in)
 	out, _ := ret[0].(*profile.Check)
@@ -102,7 +103,7 @@ func (profileRecorder *RecorderProfile) CheckWallet(ctx, in interface{}) *gomock
 	)
 }
 
-func (profileMock *ProfileMock) UpdateWallet(ctx context.Context, in *profile.ToSetWallet) (*profile.Empty, error) {
+func (profileMock *ProfileMock) UpdateWallet(ctx context.Context, in *profile.ToSetWallet, opts ...grpc.CallOption) (*profile.Empty, error) {
 	profileMock.ctrl.T.Helper()
 	ret := profileMock.ctrl.Call(profileMock, "UpdateWallet", ctx, in)
 	out, _ := ret[0].(*profile.Empty)

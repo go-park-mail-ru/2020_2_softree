@@ -19,8 +19,8 @@ func TestGetWallets_Success(t *testing.T) {
 	defer db.Close()
 
 	rows := sqlmock.NewRows([]string{"title", "value"})
-	expected := profile.Wallets{AllWallets: []*profile.Wallet{{Title: from, Value: value}}}
-	rows = rows.AddRow(expected.AllWallets[0].Title, expected.AllWallets[0].Value)
+	expected := profile.Wallets{Wallets: []*profile.Wallet{{Title: from, Value: value}}}
+	rows = rows.AddRow(expected.Wallets[0].Title, expected.Wallets[0].Value)
 
 	mock.ExpectBegin()
 	mock.ExpectQuery("SELECT title, value FROM accounts WHERE").WithArgs(userId).WillReturnRows(rows)
@@ -32,7 +32,7 @@ func TestGetWallets_Success(t *testing.T) {
 
 	require.Equal(t, nil, err)
 	require.Equal(t, nil, mock.ExpectationsWereMet())
-	require.Equal(t, true, reflect.DeepEqual(row.AllWallets, expected.AllWallets))
+	require.Equal(t, true, reflect.DeepEqual(row.Wallets, expected.Wallets))
 }
 
 func TestGetWallets_Fail(t *testing.T) {

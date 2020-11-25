@@ -3,6 +3,7 @@ package mock
 import (
 	"context"
 	"github.com/golang/mock/gomock"
+	"google.golang.org/grpc"
 	"reflect"
 	session "server/src/authorization/pkg/session/gen"
 )
@@ -26,7 +27,7 @@ func (sessionMock *SessionMock) EXPECT() *RecorderSession {
 	return sessionMock.recorder
 }
 
-func (sessionMock *SessionMock) Create(ctx context.Context, in *session.Session) (*session.UserID, error) {
+func (sessionMock *SessionMock) Create(ctx context.Context, in *session.Session, opts ...grpc.CallOption) (*session.UserID, error) {
 	sessionMock.ctrl.T.Helper()
 	ret := sessionMock.ctrl.Call(sessionMock, "Create", ctx, in)
 	out, _ := ret[0].(*session.UserID)
@@ -45,7 +46,7 @@ func (recorderAuth *RecorderSession) Create(ctx, in interface{}) *gomock.Call {
 	)
 }
 
-func (sessionMock *SessionMock) Check(ctx context.Context, in *session.SessionID) (*session.UserID, error) {
+func (sessionMock *SessionMock) Check(ctx context.Context, in *session.SessionID, opts ...grpc.CallOption) (*session.UserID, error) {
 	sessionMock.ctrl.T.Helper()
 	ret := sessionMock.ctrl.Call(sessionMock, "Check", ctx, in)
 	out, _ := ret[0].(*session.UserID)
@@ -64,7 +65,7 @@ func (recorderAuth *RecorderSession) Check(ctx, in interface{}) *gomock.Call {
 	)
 }
 
-func (sessionMock *SessionMock) Delete(ctx context.Context, in *session.SessionID) (*session.Empty, error) {
+func (sessionMock *SessionMock) Delete(ctx context.Context, in *session.SessionID, opts ...grpc.CallOption) (*session.Empty, error) {
 	sessionMock.ctrl.T.Helper()
 	ret := sessionMock.ctrl.Call(sessionMock, "Delete", ctx, in)
 	out, _ := ret[0].(*session.Empty)
