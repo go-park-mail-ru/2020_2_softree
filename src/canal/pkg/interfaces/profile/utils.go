@@ -51,7 +51,7 @@ func (p *Profile) createServerError(errs *entity.ErrorJSON, w http.ResponseWrite
 func (p *Profile) checkWalletFrom(ctx context.Context, wallet *profile.ConcreteWallet) (bool, int) {
 	var exist *profile.Check
 	var err error
-	if exist, err = p.userApp.CheckWallet(ctx, wallet); err != nil {
+	if exist, err = p.profile.CheckWallet(ctx, wallet); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "checkWalletFrom",
@@ -70,7 +70,7 @@ func (p *Profile) checkWalletFrom(ctx context.Context, wallet *profile.ConcreteW
 func (p *Profile) checkWalletTo(ctx context.Context, wallet *profile.ConcreteWallet) (bool, int) {
 	var exist *profile.Check
 	var err error
-	if exist, err = p.userApp.CheckWallet(ctx, wallet); err != nil {
+	if exist, err = p.profile.CheckWallet(ctx, wallet); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "checkWalletTo",
@@ -80,7 +80,7 @@ func (p *Profile) checkWalletTo(ctx context.Context, wallet *profile.ConcreteWal
 	}
 
 	if !exist.Existence {
-		if _, err = p.userApp.CreateWallet(ctx, wallet); err != nil {
+		if _, err = p.profile.CreateWallet(ctx, wallet); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"status":   http.StatusInternalServerError,
 				"function": "checkWallets",
@@ -94,7 +94,7 @@ func (p *Profile) checkWalletTo(ctx context.Context, wallet *profile.ConcreteWal
 }
 
 func (p *Profile) getCurrencyDiv(
-	w http.ResponseWriter, transaction entity.PaymentHistory) (error, decimal.Decimal) {
+	w http.ResponseWriter, transaction *profile.PaymentHistory) (error, decimal.Decimal) {
 	var currencyFrom entity.Currency
 	var err error
 	if currencyFrom, err = p.rateApp.GetLastRate(transaction.From); err != nil {
@@ -127,7 +127,7 @@ const notEnoughPayment = 1
 func (p *Profile) getPay(ctx context.Context, userWallet *profile.ConcreteWallet, needToPay decimal.Decimal) int {
 	var wallet *profile.Wallet
 	var err error
-	if wallet, err = p.userApp.GetWallet(ctx, userWallet); err != nil {
+	if wallet, err = p.profile.GetWallet(ctx, userWallet); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":          http.StatusInternalServerError,
 			"function":        "getPay",

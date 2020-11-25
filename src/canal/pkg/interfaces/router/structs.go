@@ -3,6 +3,7 @@ package router
 import (
 	"google.golang.org/grpc"
 	sessionService "server/src/authorization/pkg/session/gen"
+	"server/src/canal/pkg/infrastructure/security"
 	"server/src/canal/pkg/interfaces/authorization"
 	"server/src/canal/pkg/interfaces/profile"
 	"server/src/canal/pkg/interfaces/rates"
@@ -13,7 +14,7 @@ func createAuthenticate(profileConn, sessionConn *grpc.ClientConn) *authorizatio
 	sessionManager := sessionService.NewAuthorizationServiceClient(sessionConn)
 	profileManager := profileService.NewProfileServiceClient(profileConn)
 
-	return authorization.NewAuthenticate(profileManager, sessionManager)
+	return authorization.NewAuthenticate(profileManager, sessionManager, security.CreateNewSecurityUtils())
 }
 
 func createProfile(profileConn, sessionConn, currencyConn *grpc.ClientConn) *profile.Profile {

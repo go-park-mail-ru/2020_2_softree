@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 	"reflect"
 	"regexp"
-	"server/src/canal/pkg/infrastructure/security"
 	database "server/src/profile/pkg/infrastructure/persistence"
 	profile "server/src/profile/pkg/profile/gen"
 	"testing"
@@ -310,7 +310,7 @@ func TestGetUserByLogin_Success(t *testing.T) {
 	require.Equal(t, nil, err)
 	defer db.Close()
 
-	pass, err := security.MakeShieldedPassword(password)
+	pass, _ := bcrypt.GenerateFromPassword([]byte(password), 10)
 
 	rows := sqlmock.NewRows([]string{"id", "password", "avatar"})
 	expected := profile.PublicUser{Id: userId, Email: email, Avatar: avatar}

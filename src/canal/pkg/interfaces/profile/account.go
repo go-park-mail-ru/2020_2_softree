@@ -1,8 +1,8 @@
 package profile
 
 import (
-	session "server/src/authorization/pkg/session/gen"
 	"server/src/canal/pkg/application"
+	"server/src/canal/pkg/domain/repository"
 	profile "server/src/profile/pkg/profile/gen"
 
 	"github.com/microcosm-cc/bluemonday"
@@ -11,11 +11,11 @@ import (
 type Profile struct {
 	profile   profile.ProfileServiceClient
 	rateApp   application.RateApp
-	auth      session.AuthorizationServiceClient
+	security  repository.Utils
 	sanitizer bluemonday.Policy
 }
 
 func NewProfile(
-	profile profile.ProfileServiceClient, auth session.AuthorizationServiceClient, rApp application.RateApp) *Profile {
-	return &Profile{profile: profile, auth: auth, sanitizer: *bluemonday.UGCPolicy(), rateApp: rApp}
+	profile profile.ProfileServiceClient, rApp application.RateApp, security repository.Utils) *Profile {
+	return &Profile{profile: profile, sanitizer: *bluemonday.UGCPolicy(), rateApp: rApp, security: security}
 }

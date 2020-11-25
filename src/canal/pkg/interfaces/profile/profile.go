@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/http"
 	"server/src/canal/pkg/domain/entity"
-	"server/src/canal/pkg/infrastructure/security"
 	profile "server/src/profile/pkg/profile/gen"
 
 	"github.com/sirupsen/logrus"
@@ -23,7 +22,7 @@ func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	user.ID = r.Context().Value("id").(int64)
+	user.Id = r.Context().Value("id").(int64)
 	defer r.Body.Close()
 
 	if !p.validate("Avatar", &user) {
@@ -31,7 +30,7 @@ func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err = p.profile.UpdateUserAvatar(r.Context(), &profile.UpdateFields{Id: user.ID, User: &user}); err != nil {
+	if _, err = p.profile.UpdateUserAvatar(r.Context(), &profile.UpdateFields{Id: user.Id, User: &user}); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "UpdateUserAvatar",
@@ -41,7 +40,7 @@ func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	public, err := p.profile.GetUserById(r.Context(), &profile.UserID{Id: user.ID})
+	public, err := p.profile.GetUserById(r.Context(), &profile.UserID{Id: user.Id})
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
@@ -85,7 +84,7 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	user.ID = r.Context().Value("id").(int64)
+	user.Id = r.Context().Value("id").(int64)
 
 	if !p.validate("Passwords", &user) {
 		w.WriteHeader(http.StatusBadRequest)
@@ -116,7 +115,7 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user.NewPassword, err = security.MakeShieldedPassword(user.NewPassword); err != nil {
+	if user.NewPassword, err = p.security.MakeShieldedPassword(user.NewPassword); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "UpdateUserPassword",
@@ -125,7 +124,7 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	if _, err = p.profile.UpdateUserPassword(r.Context(), &profile.UpdateFields{Id: user.ID, User: &user}); err != nil {
+	if _, err = p.profile.UpdateUserPassword(r.Context(), &profile.UpdateFields{Id: user.Id, User: &user}); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "UpdateUserPassword",
@@ -136,7 +135,7 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var public *profile.PublicUser
-	if public, err = p.profile.GetUserById(r.Context(), &profile.UserID{Id: user.ID}); err != nil {
+	if public, err = p.profile.GetUserById(r.Context(), &profile.UserID{Id: user.Id}); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "UpdateUserPassword",
