@@ -7,7 +7,7 @@ import (
 	"github.com/shopspring/decimal"
 	"server/src/canal/pkg/domain/entity"
 	"server/src/canal/pkg/domain/repository"
-	"server/src/canal/pkg/infrastructure/persistence"
+	persistence2 "server/src/currency/pkg/infrastructure/persistence"
 )
 
 type CurrencyManager struct {
@@ -21,7 +21,7 @@ func NewCurrencyManager(conn redis.Conn) *CurrencyManager {
 }
 
 func (sm *CurrencyManager) SaveCurrency(financial repository.FinancialRepository) error {
-	for _, name := range persistence.ListOfCurrencies {
+	for _, name := range persistence2.ListOfCurrencies {
 		quote := financial.GetQuote()[name]
 		mkey := name
 		result, err := redis.String(sm.RedisConn.Do("SET", mkey, quote, "EX", 60*60*24)) // Expires in 24 hours
@@ -39,7 +39,7 @@ func (sm *CurrencyManager) SaveCurrency(financial repository.FinancialRepository
 
 func (sm *CurrencyManager) GetInitialCurrency() ([]entity.Currency, error) {
 	result := make([]entity.Currency, 0)
-	for _, name := range persistence.ListOfCurrencies {
+	for _, name := range persistence2.ListOfCurrencies {
 		var currency entity.Currency
 		currency.Title = name
 		data, err := redis.Bytes(sm.RedisConn.Do("GET", name))

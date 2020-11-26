@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"server/src/canal/pkg/domain/entity"
 	"server/src/canal/pkg/domain/repository"
+	"server/src/canal/pkg/infrastructure/mock"
 )
 
 type DayCurrencyRepositoryForMock struct {
@@ -33,7 +34,7 @@ func (d *DayCurrencyRepositoryForMock) SaveCurrency(financial repository.Financi
 	return err
 }
 
-func (r *RecorderFinanceMockRepository) SaveCurrency(currencies interface{}) *gomock.Call {
+func (r *mock.RecorderFinanceMockRepository) SaveCurrency(currencies interface{}) *gomock.Call {
 	r.mock.ctrl.T.Helper()
 	return r.mock.ctrl.RecordCallWithMethodType(
 		r.mock,
@@ -51,7 +52,7 @@ func (d *DayCurrencyRepositoryForMock) GetInitialCurrency() ([]entity.Currency, 
 	return currencies, err
 }
 
-func (r *RecorderFinanceMockRepository) GetInitialCurrency() *gomock.Call {
+func (r *mock.RecorderFinanceMockRepository) GetInitialCurrency() *gomock.Call {
 	r.mock.ctrl.T.Helper()
 	return r.mock.ctrl.RecordCallWithMethodType(
 		r.mock,

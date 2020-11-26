@@ -3,7 +3,7 @@ package persistence
 import (
 	"errors"
 	"server/src/canal/pkg/domain/entity"
-	finMock "server/src/canal/pkg/infrastructure/mock"
+	mock2 "server/src/currency/pkg/infrastructure/mock"
 	"testing"
 	"time"
 
@@ -77,7 +77,7 @@ func TestRateDBManager_SaveRatesFail(t *testing.T) {
 	mock.ExpectRollback()
 
 	ctrl := gomock.NewController(t)
-	mockFinance := finMock.NewFinanceRepositoryForMock(ctrl)
+	mockFinance := mock2.NewFinanceRepositoryForMock(ctrl)
 	mockFinance.EXPECT().GetQuote().Return(testData).Times(len(testData))
 
 	repo := &RateDBManager{DB: db}

@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package currency;
+import "google/protobuf/timestamp.proto";
+
+option go_package = "gen;gen";
+
+message Currency {
+  string title = 1;
+  float value = 2;
+  google.protobuf.Timestamp updated_at = 3;
+  string base = 4;
+}
+
+message Currencies {
+  repeated Currency rates = 1;
+}
+
+message CurrencyTitle {
+  string title = 1;
+}
+
+message InitialDayCurrency {
+  string title = 1;
+  float value = 2;
+}
+
+message Empty {}
+
+service currencyService {
+  rpc GetRates(Empty) returns (Currencies) {}
+  rpc GetRate(CurrencyTitle) returns (Currencies) {}
+  rpc GetLastRate(CurrencyTitle) returns (Currency) {}
+}

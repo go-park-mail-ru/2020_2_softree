@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"server/src/canal/pkg/infrastructure/financial"
-	"server/src/canal/pkg/infrastructure/persistence"
+	"server/src/currency/pkg/infrastructure/financial"
+	persistence2 "server/src/currency/pkg/infrastructure/persistence"
 	"time"
 
 	"github.com/Finnhub-Stock-API/finnhub-go"
@@ -125,7 +125,7 @@ func validate(title string) bool {
 		return false
 	}
 
-	for _, rate := range persistence.ListOfCurrencies {
+	for _, rate := range persistence2.ListOfCurrencies {
 		if rate == title {
 			return true
 		}
