@@ -24,6 +24,5 @@ func (f *ForexAPI) GetCurrencies() domain.FinancialRepository {
 	forexRates, _, _ := api.ForexRates(auth, &finnhub.ForexRatesOpts{Base: optional.NewString("USD")})
 	finance := NewForexRepository(forexRates)
 
-	return *finance
+	return finance
 }
-
