@@ -1,6 +1,9 @@
 package repository
 
-import "server/src/canal/pkg/domain/entity"
+import (
+	"server/src/canal/pkg/domain/entity"
+	"server/src/currency/pkg/domain"
+)
 
 type DayCurrencyRepository interface {
 	dayCurrencySaver
@@ -8,7 +11,7 @@ type DayCurrencyRepository interface {
 }
 
 type dayCurrencySaver interface {
-	SaveCurrency(financial FinancialRepository) error
+	SaveCurrency(financial domain.FinancialRepository) error
 }
 
 type dayCurrencyReceiver interface {

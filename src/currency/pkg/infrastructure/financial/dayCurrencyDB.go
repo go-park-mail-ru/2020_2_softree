@@ -6,7 +6,7 @@ import (
 	"github.com/gomodule/redigo/redis"
 	"github.com/shopspring/decimal"
 	"server/src/canal/pkg/domain/entity"
-	"server/src/canal/pkg/domain/repository"
+	"server/src/currency/pkg/domain"
 	persistence2 "server/src/currency/pkg/infrastructure/persistence"
 )
 
@@ -20,7 +20,7 @@ func NewCurrencyManager(conn redis.Conn) *CurrencyManager {
 	}
 }
 
-func (sm *CurrencyManager) SaveCurrency(financial repository.FinancialRepository) error {
+func (sm *CurrencyManager) SaveCurrency(financial domain.FinancialRepository) error {
 	for _, name := range persistence2.ListOfCurrencies {
 		quote := financial.GetQuote()[name]
 		mkey := name

@@ -1,6 +1,9 @@
 package repository
 
-import "server/src/canal/pkg/domain/entity"
+import (
+	"server/src/canal/pkg/domain/entity"
+	"server/src/currency/pkg/domain"
+)
 
 type RateRepository interface {
 	ratesSaver
@@ -12,7 +15,7 @@ type RateRepository interface {
 }
 
 type ratesSaver interface {
-	SaveRates(financial FinancialRepository) error
+	SaveRates(financial domain.FinancialRepository) error
 }
 
 type rateUpdater interface {

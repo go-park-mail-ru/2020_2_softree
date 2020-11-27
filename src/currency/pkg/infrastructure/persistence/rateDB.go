@@ -3,8 +3,9 @@ package persistence
 import (
 	"context"
 	"database/sql"
-	"server/src/canal/pkg/domain/entity"
-	"server/src/canal/pkg/domain/repository"
+	"github.com/Finnhub-Stock-API/finnhub-go"
+	currency "server/src/currency/pkg/currency/gen"
+	"server/src/currency/pkg/domain"
 	"time"
 
 	"github.com/spf13/viper"
@@ -36,24 +37,14 @@ var ListOfCurrencies = [...]string{
 
 type RateDBManager struct {
 	DB *sql.DB
+	API *domain.FinancialAPI
 }
 
-func NewRateDBManager() (*RateDBManager, error) {
-	db, err := sql.Open("postgres", viper.GetString("postgres.URL"))
-	if err != nil {
-		return nil, err
-	}
-	db.SetMaxOpenConns(10)
-
-	err = db.Ping()
-	if err != nil {
-		return nil, err
-	}
-
-	return &RateDBManager{DB: db}, nil
+func NewRateDBManager(DB *sql.DB, api *domain.FinancialAPI) (*RateDBManager) {
+	return &RateDBManager{DB: DB, API: api}
 }
 
-func (rm *RateDBManager) SaveRates(financial repository.FinancialRepository) error {
+func (rm *RateDBManager) SaveRates(financial domain.FinancialRepository) error {
 	currentTime := time.Now()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -87,7 +78,7 @@ func (rm *RateDBManager) SaveRates(financial repository.FinancialRepository) err
 	return nil
 }
 
-func (rm *RateDBManager) GetRates() ([]entity.Currency, error) {
+func (rm *RateDBManager) GetRates(ctx context.Context, in *currency.Empty) (*currency.Currencies, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -106,14 +97,15 @@ func (rm *RateDBManager) GetRates() ([]entity.Currency, error) {
 	}
 	defer result.Close()
 
-	currencies := make([]entity.Currency, 0)
+	var currencies currency.Currencies
+	currencies.Rates = make([]*currency.Currency, 0, len(ListOfCurrencies))
 	for result.Next() {
-		var currency entity.Currency
-		if err := result.Scan(&currency.Title, &currency.Value, &currency.UpdatedAt); err != nil {
+		var row currency.Currency
+		if err := result.Scan(&row.Title, &row.Value, &row.UpdatedAt); err != nil {
 			return nil, err
 		}
 
-		currencies = append(currencies, currency)
+		currencies.Rates = append(currencies.Rates, &row)
 	}
 
 	if err := result.Err(); err != nil {
@@ -123,10 +115,10 @@ func (rm *RateDBManager) GetRates() ([]entity.Currency, error) {
 		return nil, err
 	}
 
-	return currencies, nil
+	return &currencies, nil
 }
 
-func (rm *RateDBManager) GetRate(title string) ([]entity.Currency, error) {
+func (rm *RateDBManager) GetRate(ctx context.Context, in *currency.CurrencyTitle) (*currency.Currencies, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -136,21 +128,22 @@ func (rm *RateDBManager) GetRate(title string) ([]entity.Currency, error) {
 	}
 	defer tx.Rollback()
 
-	result, err := tx.Query("SELECT value, updated_at FROM history_currency_by_minutes WHERE title = $1 ", title)
+	result, err := tx.Query("SELECT value, updated_at FROM history_currency_by_minutes WHERE title = $1 ", in.Title)
 	if err != nil {
 		return nil, err
 	}
 	defer result.Close()
 
-	currencies := make([]entity.Currency, 0)
+	var currencies currency.Currencies
+	currencies.Rates = make([]*currency.Currency, 0, len(ListOfCurrencies))
 	for result.Next() {
-		var currency entity.Currency
-		currency.Title = title
-		if err := result.Scan(&currency.Value, &currency.UpdatedAt); err != nil {
+		var row currency.Currency
+		row.Title = in.Title
+		if err := result.Scan(&row.Value, &row.UpdatedAt); err != nil {
 			return nil, err
 		}
 
-		currencies = append(currencies, currency)
+		currencies.Rates = append(currencies.Rates, &row)
 	}
 	if err = result.Err(); err != nil {
 		return nil, err
@@ -159,32 +152,33 @@ func (rm *RateDBManager) GetRate(title string) ([]entity.Currency, error) {
 		return nil, err
 	}
 
-	return currencies, nil
+	return &currencies, nil
 }
 
-func (rm *RateDBManager) GetLastRate(title string) (entity.Currency, error) {
-	currency := entity.Currency{Title: title}
+func (rm *RateDBManager) GetLastRate(ctx context.Context, in *currency.CurrencyTitle) (*currency.Currency, error) {
+	result := currency.Currency{Title: in.Title}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	tx, err := rm.DB.BeginTx(ctx, nil)
 	if err != nil {
-		return entity.Currency{}, err
+		return nil, err
 	}
 	defer tx.Rollback()
 	row := tx.QueryRow("SELECT value, updated_at FROM history_currency_by_minutes WHERE title = $1 ORDER BY updated_at DESC LIMIT 1", title)
 
-	if err = row.Scan(&currency.Value, &currency.UpdatedAt); err != nil {
-		return entity.Currency{}, err
+	if err = row.Scan(&result.Value, &result.UpdatedAt); err != nil {
+		return nil, err
 	}
 	if err = tx.Commit(); err != nil {
-		return entity.Currency{}, err
+		return nil, err
 	}
 
-	return currency, nil
+	return &result, nil
 }
 
-func (rm *RateDBManager) GetInitialCurrency() () {
+func (rm *RateDBManager) GetInitialDayCurrency(context.Context, *currency.Empty) (*currency.InitialDayCurrencies, error) {
 
 }
+

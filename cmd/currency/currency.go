@@ -10,7 +10,8 @@ import (
 	"net"
 	"os"
 	"server/src/canal/pkg/infrastructure/config"
-	"server/src/profile/pkg/infrastructure/persistence"
+	"server/src/currency/pkg/infrastructure/financial"
+	"server/src/currency/pkg/infrastructure/persistence"
 	currency "server/src/currency/pkg/currency/gen"
 )
 
@@ -64,8 +65,7 @@ func main() {
 		log.Fatalln("cant listen port", err)
 	}
 	db.SetMaxOpenConns(10)
-
-	currency.RegisterCurrencyServiceServer(server, persistence.NewRateDBManager(db))
+	currency.RegisterCurrencyServiceServer(server, persistence.NewRateDBManager(db, financial.NewForexAPI()))
 
 	fmt.Println("starting server at :8083")
 	server.Serve(lis)
