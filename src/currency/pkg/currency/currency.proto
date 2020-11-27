@@ -7,7 +7,7 @@ option go_package = "gen;gen";
 
 message Currency {
   string title = 1;
-  float value = 2;
+  double value = 2;
   google.protobuf.Timestamp updated_at = 3;
   string base = 4;
 }
@@ -22,7 +22,11 @@ message CurrencyTitle {
 
 message InitialDayCurrency {
   string title = 1;
-  float value = 2;
+  double value = 2;
+}
+
+message InitialDayCurrencies {
+  repeated InitialDayCurrency currencies = 1;
 }
 
 message Empty {}
@@ -31,4 +35,5 @@ service currencyService {
   rpc GetRates(Empty) returns (Currencies) {}
   rpc GetRate(CurrencyTitle) returns (Currencies) {}
   rpc GetLastRate(CurrencyTitle) returns (Currency) {}
+  rpc GetInitialDayCurrency(Empty) returns (InitialDayCurrencies) {}
 }

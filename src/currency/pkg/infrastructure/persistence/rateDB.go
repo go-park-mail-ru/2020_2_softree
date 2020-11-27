@@ -184,3 +184,7 @@ func (rm *RateDBManager) GetLastRate(title string) (entity.Currency, error) {
 
 	return currency, nil
 }
+
+func (rm *RateDBManager) GetInitialCurrency() () {
+
+}
