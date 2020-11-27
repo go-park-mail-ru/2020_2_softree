@@ -6,6 +6,7 @@ import (
 	"github.com/asaskevich/govalidator"
 	"net/http"
 	"server/src/canal/pkg/domain/entity"
+	currency "server/src/currency/pkg/currency/gen"
 	profile "server/src/profile/pkg/profile/gen"
 
 	"github.com/shopspring/decimal"
@@ -94,32 +95,30 @@ func (p *Profile) checkWalletTo(ctx context.Context, wallet *profile.ConcreteWal
 }
 
 func (p *Profile) getCurrencyDiv(
-	w http.ResponseWriter, transaction *profile.PaymentHistory) (error, decimal.Decimal) {
-	var currencyFrom entity.Currency
+	ctx context.Context, transaction *profile.PaymentHistory) (error, int, decimal.Decimal) {
+	var currencyFrom *currency.Currency
 	var err error
-	if currencyFrom, err = p.rateApp.GetLastRate(transaction.From); err != nil {
+	if currencyFrom, err = p.rates.GetLastRate(ctx, &currency.CurrencyTitle{Title: transaction.From}); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":          http.StatusInternalServerError,
 			"function":        "checkWalletPayment",
 			"transactionFrom": transaction.From,
 		}).Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return err, decimal.Decimal{}
+		return err, http.StatusInternalServerError, decimal.Decimal{}
 	}
 
-	var currencyTo entity.Currency
-	if currencyTo, err = p.rateApp.GetLastRate(transaction.To); err != nil {
+	var currencyTo *currency.Currency
+	if currencyTo, err = p.rates.GetLastRate(ctx, &currency.CurrencyTitle{Title: transaction.To}); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":          http.StatusInternalServerError,
 			"function":        "checkWalletPayment",
 			"transactionFrom": transaction.To,
 		}).Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return err, decimal.Decimal{}
+		return err, http.StatusInternalServerError, decimal.Decimal{}
 	}
 
-	div := currencyFrom.Value.Div(currencyTo.Value)
-	return nil, div
+	div := decimal.NewFromFloat(currencyFrom.Value).Div(decimal.NewFromFloat(currencyTo.Value))
+	return nil, 0, div
 }
 
 const notEnoughPayment = 1

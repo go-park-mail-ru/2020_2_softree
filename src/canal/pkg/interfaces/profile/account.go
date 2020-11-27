@@ -10,12 +10,12 @@ import (
 
 type Profile struct {
 	profile   profile.ProfileServiceClient
-	currency  currency.CurrencyServiceClient
+	rates  currency.CurrencyServiceClient
 	security  repository.Utils
 	sanitizer bluemonday.Policy
 }
 
 func NewProfile(
 	profile profile.ProfileServiceClient, security repository.Utils, currency currency.CurrencyServiceClient) *Profile {
-	return &Profile{profile: profile, sanitizer: *bluemonday.UGCPolicy(), currency: currency, security: security}
+	return &Profile{profile: profile, sanitizer: *bluemonday.UGCPolicy(), rates: currency, security: security}
 }

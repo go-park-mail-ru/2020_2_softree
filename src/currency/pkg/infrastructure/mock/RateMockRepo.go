@@ -1,87 +1,104 @@
 package mock
 
 import (
+	"context"
 	"github.com/golang/mock/gomock"
+	"google.golang.org/grpc"
 	"reflect"
-	"server/src/canal/pkg/domain/entity"
-	"server/src/currency/pkg/domain"
+	currency "server/src/currency/pkg/currency/gen"
 )
 
-type RateRepositoryForMock struct {
+type RateMock struct {
 	ctrl     *gomock.Controller
-	recorder *RecorderRateMockRepository
+	recorder *RecorderRate
 }
 
-type RecorderRateMockRepository struct {
-	mock *RateRepositoryForMock
+type RecorderRate struct {
+	mock *RateMock
 }
 
-func NewRateRepositoryForMock(ctrl *gomock.Controller) *RateRepositoryForMock {
-	mock := &RateRepositoryForMock{ctrl: ctrl}
-	mock.recorder = &RecorderRateMockRepository{mock: mock}
+func NewRateRepositoryForMock(ctrl *gomock.Controller) *RateMock {
+	mock := &RateMock{ctrl: ctrl}
+	mock.recorder = &RecorderRate{mock: mock}
 	return mock
 }
 
-func (a *RateRepositoryForMock) EXPECT() *RecorderRateMockRepository {
-	return a.recorder
+func (rateMock *RateMock) EXPECT() *RecorderRate {
+	return rateMock.recorder
 }
 
-func (a *RateRepositoryForMock) SaveRates(financial domain.FinancialRepository) error {
-	a.ctrl.T.Helper()
-	ret := a.ctrl.Call(a, "SaveRates", financial)
-	err, _ := ret[0].(error)
-	return err
-}
-
-func (r *RecorderRateMockRepository) SaveRates(financial interface{}) *gomock.Call {
-	r.mock.ctrl.T.Helper()
-	return r.mock.ctrl.RecordCallWithMethodType(
-		r.mock,
-		"SaveRates",
-		reflect.TypeOf((*RateRepositoryForMock)(nil).SaveRates),
-		financial,
-	)
-}
-
-func (a *RateRepositoryForMock) UpdateRate(u int64, rate entity.Currency) (entity.Currency, error) {
-	panic("implement me")
-}
-
-func (a *RateRepositoryForMock) DeleteRate(u int64) error {
-	panic("implement me")
-}
-
-func (a *RateRepositoryForMock) GetRates() ([]entity.Currency, error) {
-	a.ctrl.T.Helper()
-	ret := a.ctrl.Call(a, "GetRates")
-	rates, _ := ret[0].([]entity.Currency)
+func (rateMock *RateMock) GetRates(ctx context.Context, in *currency.Empty, opts ...grpc.CallOption) (*currency.Currencies, error) {
+	rateMock.ctrl.T.Helper()
+	ret := rateMock.ctrl.Call(rateMock, "GetRates", ctx, in)
+	out, _ := ret[0].(*currency.Currencies)
 	err, _ := ret[1].(error)
-	return rates, err
+	return out, err
 }
 
-func (r *RecorderRateMockRepository) GetRates() *gomock.Call {
-	r.mock.ctrl.T.Helper()
-	return r.mock.ctrl.RecordCallWithMethodType(
-		r.mock,
+func (recorder *RecorderRate) GetRates(ctx, in interface{}) *gomock.Call {
+	recorder.mock.ctrl.T.Helper()
+	return recorder.mock.ctrl.RecordCallWithMethodType(
+		recorder.mock,
 		"GetRates",
-		reflect.TypeOf((*RateRepositoryForMock)(nil).GetRates),
+		reflect.TypeOf((*RateMock)(nil).GetRates),
+		ctx,
+		in,
 	)
 }
 
-func (a *RateRepositoryForMock) GetRate(title string) ([]entity.Currency, error) {
-	a.ctrl.T.Helper()
-	ret := a.ctrl.Call(a, "GetRate", title)
-	rates, _ := ret[0].([]entity.Currency)
+func (rateMock *RateMock) GetRate(ctx context.Context, in *currency.CurrencyTitle, opts ...grpc.CallOption) (*currency.Currencies, error) {
+	rateMock.ctrl.T.Helper()
+	ret := rateMock.ctrl.Call(rateMock, "GetRate", ctx, in)
+	out, _ := ret[0].(*currency.Currencies)
 	err, _ := ret[1].(error)
-	return rates, err
+	return out, err
 }
 
-func (r *RecorderRateMockRepository) GetRate(title interface{}) *gomock.Call {
-	r.mock.ctrl.T.Helper()
-	return r.mock.ctrl.RecordCallWithMethodType(
-		r.mock,
+func (recorder *RecorderRate) GetRate(ctx, in interface{}) *gomock.Call {
+	recorder.mock.ctrl.T.Helper()
+	return recorder.mock.ctrl.RecordCallWithMethodType(
+		recorder.mock,
 		"GetRate",
-		reflect.TypeOf((*RateRepositoryForMock)(nil).GetRate),
-		title,
+		reflect.TypeOf((*RateMock)(nil).GetRate),
+		ctx,
+		in,
+	)
+}
+
+func (rateMock *RateMock) GetInitialDayCurrency(ctx context.Context, in *currency.Empty, opts ...grpc.CallOption) (*currency.InitialDayCurrencies, error) {
+	rateMock.ctrl.T.Helper()
+	ret := rateMock.ctrl.Call(rateMock, "GetInitialDayCurrency")
+	out, _ := ret[0].(*currency.InitialDayCurrencies)
+	err, _ := ret[1].(error)
+	return out, err
+}
+
+func (recorder *RecorderRate) GetInitialCurrency(ctx, in interface{}) *gomock.Call {
+	recorder.mock.ctrl.T.Helper()
+	return recorder.mock.ctrl.RecordCallWithMethodType(
+		recorder.mock,
+		"GetInitialDayCurrency",
+		reflect.TypeOf((*RateMock)(nil).GetInitialDayCurrency),
+		ctx,
+		in,
+	)
+}
+
+func (rateMock *RateMock) GetLastRate(ctx context.Context, in *currency.CurrencyTitle, opts ...grpc.CallOption) (*currency.Currency, error) {
+	rateMock.ctrl.T.Helper()
+	ret := rateMock.ctrl.Call(rateMock, "GetLastRate")
+	out, _ := ret[0].(*currency.Currency)
+	err, _ := ret[1].(error)
+	return out, err
+}
+
+func (recorder *RecorderRate) GetLastRate(ctx, in interface{}) *gomock.Call {
+	recorder.mock.ctrl.T.Helper()
+	return recorder.mock.ctrl.RecordCallWithMethodType(
+		recorder.mock,
+		"GetLastRate",
+		reflect.TypeOf((*RateMock)(nil).GetLastRate),
+		ctx,
+		in,
 	)
 }

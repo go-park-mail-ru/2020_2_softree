@@ -1,10 +1,10 @@
 package financial
 
 import (
+	"context"
 	"github.com/Finnhub-Stock-API/finnhub-go"
 	"github.com/antihax/optional"
 	"github.com/spf13/viper"
-	"context"
 	"server/src/currency/pkg/domain"
 )
 

@@ -70,8 +70,9 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var div decimal.Decimal
-	// #TODO
-	if err, div = p.getCurrencyDiv(); err != nil {
+	var code int
+	if err, code, div = p.getCurrencyDiv(r.Context(), &transaction); err != nil {
+		w.WriteHeader(code)
 		return
 	}
 

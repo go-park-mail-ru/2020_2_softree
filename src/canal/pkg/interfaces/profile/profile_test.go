@@ -6,10 +6,11 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"server/src/canal/pkg/domain/entity"
 	"server/src/canal/pkg/infrastructure/mock"
+	profileHTTP "server/src/canal/pkg/interfaces/profile"
+	currencyMock "server/src/currency/pkg/infrastructure/mock"
 	profileMock "server/src/profile/pkg/infrastructure/mock"
-	profile "server/src/profile/pkg/profile/gen"
+	profileService "server/src/profile/pkg/profile/gen"
 	"strings"
 	"testing"
 
@@ -22,7 +23,6 @@ const (
 	email       = "hound@psina.ru"
 	oldPassword = "old"
 	newPassword = "new"
-	password    = "str"
 	avatar      = "base64"
 
 	from = "RUB"
@@ -46,20 +46,22 @@ func TestUpdateUserAvatar_Success(t *testing.T) {
 	require.NotEmpty(t, w.Body)
 }
 
-func createUpdateAvatarSuccess(t *testing.T, ctx context.Context) (*Profile, *gomock.Controller) {
+func createUpdateAvatarSuccess(t *testing.T, ctx context.Context) (*profileHTTP.Profile, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockUser.EXPECT().
-		UpdateUserAvatar(ctx, &profile.UpdateFields{Id: id, User: &profile.User{Avatar: avatar}}).
+		UpdateUserAvatar(ctx, &profileService.UpdateFields{Id: id, User: &profileService.User{Id: id, Avatar: avatar}}).
 		Return(nil, nil)
 	mockUser.EXPECT().
-		GetUserById(ctx, &profile.UserID{Id: id}).
+		GetUserById(ctx, &profileService.UserID{Id: id}).
 		Return(createExpectedUser(), nil)
 
 	mockSecurity := mock.NewSecurityMock(ctrl)
 
-	return NewProfile(mockUser, mockSecurity), ctrl
+	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
+
+	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
 }
 
 func TestUpdateUserAvatar_Fail(t *testing.T) {
@@ -79,17 +81,19 @@ func TestUpdateUserAvatar_Fail(t *testing.T) {
 	require.Empty(t, w.Body)
 }
 
-func createUpdateAvatarFail(t *testing.T, ctx context.Context) (*Profile, *gomock.Controller) {
+func createUpdateAvatarFail(t *testing.T, ctx context.Context) (*profileHTTP.Profile, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockUser.EXPECT().
-		UpdateUserAvatar(ctx, &profile.UpdateFields{Id: id, User: &profile.User{Avatar: avatar}}).
+		UpdateUserAvatar(ctx, &profileService.UpdateFields{Id: id, User: &profileService.User{Id: id, Avatar: avatar}}).
 		Return(nil, errors.New("createUpdateAvatarFail"))
 
 	mockSecurity := mock.NewSecurityMock(ctrl)
 
-	return NewProfile(mockUser, mockSecurity), ctrl
+	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
+
+	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
 }
 
 func TestUpdateUserPassword_Success(t *testing.T) {
@@ -109,36 +113,39 @@ func TestUpdateUserPassword_Success(t *testing.T) {
 	require.NotEmpty(t, w.Body)
 }
 
-func createUpdatePasswordSuccess(t *testing.T, ctx context.Context) (*Profile, *gomock.Controller) {
+func createUpdatePasswordSuccess(t *testing.T, ctx context.Context) (*profileHTTP.Profile, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockUser.EXPECT().
-		CheckPassword(ctx, &profile.User{OldPassword: oldPassword, NewPassword: newPassword}).
-		Return(&profile.Check{Existence: true}, nil)
+		CheckPassword(ctx, &profileService.User{Id: id, OldPassword: oldPassword, NewPassword: newPassword}).
+		Return(&profileService.Check{Existence: true}, nil)
 	mockUser.EXPECT().
-		UpdateUserPassword(id, &profile.UpdateFields{
-			Id: id,
-			User: &profile.User{OldPassword: oldPassword, NewPassword: newPassword,
-			}}).
-		Return(nil)
+		UpdateUserPassword(
+			ctx,
+			&profileService.UpdateFields{Id: id, User: &profileService.User{Id: id, OldPassword: oldPassword, NewPassword: newPassword}},
+			).
+		Return(nil, nil)
 	mockUser.EXPECT().
-		GetUserById(ctx, &profile.UserID{Id: id}).
+		GetUserById(ctx, &profileService.UserID{Id: id}).
 		Return(createExpectedUser(), nil)
 
 	mockSecurity := mock.NewSecurityMock(ctrl)
+	mockSecurity.EXPECT().MakeShieldedPassword(newPassword).Return(newPassword, nil)
 
-	return NewProfile(mockUser, mockSecurity), ctrl
+	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
+
+	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
 }
 
 func TestUpdateUserPassword_Fail(t *testing.T) {
 	url := "http://127.0.0.1:8000/api/users/change-password"
-	body := strings.NewReader(`{"old_password": "fake_password", "new_password": "str"}`)
+	body := strings.NewReader(fmt.Sprintf(`{"old_password": "%s", "new_password": "%s"}`, oldPassword, newPassword))
 
 	req := httptest.NewRequest(http.MethodPut, url, body)
 	w := httptest.NewRecorder()
 
-	testAuth, ctrl := createUpdatePasswordFail(t, entity.User{OldPassword: "fake_password", NewPassword: "str"})
+	testAuth, ctrl := createUpdatePasswordFail(t, createContext(&req))
 	defer ctrl.Finish()
 
 	createContext(&req)
@@ -147,17 +154,19 @@ func TestUpdateUserPassword_Fail(t *testing.T) {
 	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 }
 
-func createUpdatePasswordFail(t *testing.T, ctx context.Context) (*Profile, *gomock.Controller) {
+func createUpdatePasswordFail(t *testing.T, ctx context.Context) (*profileHTTP.Profile, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockUser.EXPECT().
-		CheckPassword(ctx, &profile.User{OldPassword: oldPassword, NewPassword: newPassword}).
-		Return(&profile.Check{Existence: false}, errors.New("createUpdatePasswordFail"))
+		CheckPassword(ctx, &profileService.User{OldPassword: oldPassword, NewPassword: newPassword}).
+		Return(&profileService.Check{Existence: false}, errors.New("createUpdatePasswordFail"))
 
 	mockSecurity := mock.NewSecurityMock(ctrl)
 
-	return NewProfile(mockUser, mockSecurity), ctrl
+	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
+
+	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
 }
 
 func TestGetUser_Success(t *testing.T) {
@@ -177,16 +186,18 @@ func TestGetUser_Success(t *testing.T) {
 	require.NotEmpty(t, w.Body)
 }
 
-func createGetUserSuccess(t *testing.T, ctx context.Context) (*Profile, *gomock.Controller) {
+func createGetUserSuccess(t *testing.T, ctx context.Context) (*profileHTTP.Profile, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockUser.EXPECT().
-		GetUserById(ctx, &profile.UserID{Id: id}).
+		GetUserById(ctx, &profileService.UserID{Id: id}).
 		Return(createExpectedUser(), nil)
 
 	mockSecurity := mock.NewSecurityMock(ctrl)
 
-	return NewProfile(mockUser, mockSecurity), ctrl
+	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
+
+	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
 }
 
 func TestGetUser_Fail(t *testing.T) {
@@ -207,16 +218,18 @@ func TestGetUser_Fail(t *testing.T) {
 	require.Empty(t, w.Body)
 }
 
-func createGetUserFail(t *testing.T, ctx context.Context) (*Profile, *gomock.Controller) {
+func createGetUserFail(t *testing.T, ctx context.Context) (*profileHTTP.Profile, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockUser.EXPECT().
-		GetUserById(ctx, &profile.UserID{Id: id}).
+		GetUserById(ctx, &profileService.UserID{Id: id}).
 		Return(nil, errors.New("createGetUserFail"))
 
 	mockSecurity := mock.NewSecurityMock(ctrl)
 
-	return NewProfile(mockUser, mockSecurity), ctrl
+	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
+
+	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
 }
 
 func TestGetUserWatchlist_Success(t *testing.T) {
@@ -235,16 +248,18 @@ func TestGetUserWatchlist_Success(t *testing.T) {
 	require.NotEmpty(t, w.Body)
 }
 
-func createGetUserWatchlistSuccess(t *testing.T, ctx context.Context) (*Profile, *gomock.Controller) {
+func createGetUserWatchlistSuccess(t *testing.T, ctx context.Context) (*profileHTTP.Profile, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockUser.EXPECT().
-		GetUserWatchlist(ctx, &profile.UserID{Id: id}).
+		GetUserWatchlist(ctx, &profileService.UserID{Id: id}).
 		Return(createExpectedCurrencies(), nil)
 
 	mockSecurity := mock.NewSecurityMock(ctrl)
 
-	return NewProfile(mockUser, mockSecurity), ctrl
+	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
+
+	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
 }
 
 func TestGetUserWatchlist_Fail(t *testing.T) {
@@ -264,20 +279,22 @@ func TestGetUserWatchlist_Fail(t *testing.T) {
 	require.Empty(t, w.Body)
 }
 
-func createGetUserWatchlistFail(t *testing.T, ctx context.Context) (*Profile, *gomock.Controller) {
+func createGetUserWatchlistFail(t *testing.T, ctx context.Context) (*profileHTTP.Profile, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockUser.EXPECT().
-		GetUserWatchlist(ctx, &profile.UserID{Id: id}).
+		GetUserWatchlist(ctx, &profileService.UserID{Id: id}).
 		Return(nil, errors.New("createGetUserWatchlistFail"))
 
 	mockSecurity := mock.NewSecurityMock(ctrl)
 
-	return NewProfile(mockUser, mockSecurity), ctrl
+	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
+
+	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
 }
 
-func createExpectedUser() *profile.PublicUser {
-	return &profile.PublicUser{Id: id, Email: email, Avatar: avatar}
+func createExpectedUser() *profileService.PublicUser {
+	return &profileService.PublicUser{Id: id, Email: email, Avatar: avatar}
 }
 
 func createContext(req **http.Request) context.Context {
@@ -286,6 +303,6 @@ func createContext(req **http.Request) context.Context {
 	return ctx
 }
 
-func createExpectedCurrencies() *profile.Currencies {
-	return &profile.Currencies{Currencies: []*profile.Currency{{Base: to, Title: from}}}
+func createExpectedCurrencies() *profileService.Currencies {
+	return &profileService.Currencies{Currencies: []*profileService.Currency{{Base: to, Title: from}}}
 }
