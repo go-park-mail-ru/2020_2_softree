@@ -5,7 +5,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/gomodule/redigo/redis"
 	"github.com/stretchr/testify/require"
-	"server/src/canal/pkg/infrastructure/mock"
+	mock2 "server/src/currency/pkg/infrastructure/mock"
 	"strconv"
 	"testing"
 )
@@ -43,7 +43,7 @@ func TestCurrencyManager_SaveCurrency(t *testing.T) {
 	currencyManager := NewCurrencyManager(c)
 
 	ctrl := gomock.NewController(t)
-	mockFinance := mock.NewFinanceRepositoryForMock(ctrl)
+	mockFinance := mock2.NewFinanceRepositoryForMock(ctrl)
 	mockFinance.EXPECT().GetQuote().Return(testData).Times(len(testData))
 
 	currencyManager.SaveCurrency(mockFinance)

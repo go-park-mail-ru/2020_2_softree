@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"server/src/canal/pkg/application"
 	"server/src/canal/pkg/domain/entity"
-	mocks "server/src/canal/pkg/infrastructure/mock"
+	"server/src/currency/pkg/infrastructure/mock"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -74,10 +74,10 @@ func TestRates_GetMarketsSuccess(t *testing.T) {
 func createForexRateSuccess(t *testing.T) (*Rates, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	rateMock := mocks.NewRateRepositoryForMock(ctrl)
+	rateMock := mock.NewRateRepositoryForMock(ctrl)
 	rateMock.EXPECT().GetRates().Return(createRates(), nil)
 
-	dayCurrMock := mocks.NewDayCurrencyRepositoryForMock(ctrl)
+	dayCurrMock := mock.NewDayCurrencyRepositoryForMock(ctrl)
 
 	servicesDB := application.NewRateApp(rateMock, dayCurrMock)
 
@@ -87,10 +87,10 @@ func createForexRateSuccess(t *testing.T) (*Rates, *gomock.Controller) {
 func createForexRateFail(t *testing.T) (*Rates, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	rateMock := mocks.NewRateRepositoryForMock(ctrl)
+	rateMock := mock.NewRateRepositoryForMock(ctrl)
 	rateMock.EXPECT().GetRates().Return(createRates(), errors.New("get rates"))
 
-	dayCurrMock := mocks.NewDayCurrencyRepositoryForMock(ctrl)
+	dayCurrMock := mock.NewDayCurrencyRepositoryForMock(ctrl)
 
 	servicesDB := application.NewRateApp(rateMock, dayCurrMock)
 
@@ -100,9 +100,9 @@ func createForexRateFail(t *testing.T) (*Rates, *gomock.Controller) {
 func createGetURLRateFail(t *testing.T) (*Rates, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	rateMock := mocks.NewRateRepositoryForMock(ctrl)
+	rateMock := mock.NewRateRepositoryForMock(ctrl)
 
-	dayCurrMock := mocks.NewDayCurrencyRepositoryForMock(ctrl)
+	dayCurrMock := mock.NewDayCurrencyRepositoryForMock(ctrl)
 
 	servicesDB := application.NewRateApp(rateMock, dayCurrMock)
 
@@ -112,9 +112,9 @@ func createGetURLRateFail(t *testing.T) (*Rates, *gomock.Controller) {
 func createGetMarketsSuccess(t *testing.T) (*Rates, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	rateMock := mocks.NewRateRepositoryForMock(ctrl)
+	rateMock := mock.NewRateRepositoryForMock(ctrl)
 
-	dayCurrMock := mocks.NewDayCurrencyRepositoryForMock(ctrl)
+	dayCurrMock := mock.NewDayCurrencyRepositoryForMock(ctrl)
 
 	servicesDB := application.NewRateApp(rateMock, dayCurrMock)
 

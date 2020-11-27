@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"server/src/canal/pkg/domain/entity"
+	currency "server/src/currency/pkg/currency/gen"
 	profile "server/src/profile/pkg/profile/gen"
 
 	"github.com/sirupsen/logrus"
