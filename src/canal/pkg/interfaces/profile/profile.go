@@ -94,7 +94,7 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 	p.sanitizer.Sanitize(user.OldPassword)
 	p.sanitizer.Sanitize(user.NewPassword)
 
-	if errs := p.ValidateUpdate(&user); errs.NotEmpty {
+	if errs := p.validateUpdate(&user); errs.NotEmpty {
 		p.createServerError(&errs, w)
 		return
 	}

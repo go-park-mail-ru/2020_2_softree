@@ -25,8 +25,12 @@ const (
 	newPassword = "new"
 	avatar      = "base64"
 
-	from = "RUB"
-	to   = "USD"
+	needToPay  = 79000.0
+	walletSize = 100000.0
+	value      = 79.7
+	amount     = 1000.0
+	from       = "RUB"
+	to         = "USD"
 )
 
 func TestUpdateUserAvatar_Success(t *testing.T) {
@@ -124,7 +128,7 @@ func createUpdatePasswordSuccess(t *testing.T, ctx context.Context) (*profileHTT
 		UpdateUserPassword(
 			ctx,
 			&profileService.UpdateFields{Id: id, User: &profileService.User{Id: id, OldPassword: oldPassword, NewPassword: newPassword}},
-			).
+		).
 		Return(nil, nil)
 	mockUser.EXPECT().
 		GetUserById(ctx, &profileService.UserID{Id: id}).
@@ -148,10 +152,9 @@ func TestUpdateUserPassword_Fail(t *testing.T) {
 	testAuth, ctrl := createUpdatePasswordFail(t, createContext(&req))
 	defer ctrl.Finish()
 
-	createContext(&req)
 	testAuth.UpdateUserPassword(w, req)
 
-	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+	require.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
 }
 
 func createUpdatePasswordFail(t *testing.T, ctx context.Context) (*profileHTTP.Profile, *gomock.Controller) {
@@ -159,7 +162,7 @@ func createUpdatePasswordFail(t *testing.T, ctx context.Context) (*profileHTTP.P
 
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockUser.EXPECT().
-		CheckPassword(ctx, &profileService.User{OldPassword: oldPassword, NewPassword: newPassword}).
+		CheckPassword(ctx, &profileService.User{Id: id, OldPassword: oldPassword, NewPassword: newPassword}).
 		Return(&profileService.Check{Existence: false}, errors.New("createUpdatePasswordFail"))
 
 	mockSecurity := mock.NewSecurityMock(ctrl)
@@ -178,7 +181,6 @@ func TestGetUser_Success(t *testing.T) {
 	testAuth, ctrl := createGetUserSuccess(t, createContext(&req))
 	defer ctrl.Finish()
 
-	createContext(&req)
 	testAuth.GetUser(w, req)
 
 	require.Equal(t, http.StatusOK, w.Result().StatusCode)
@@ -210,10 +212,9 @@ func TestGetUser_Fail(t *testing.T) {
 	testAuth, ctrl := createGetUserFail(t, createContext(&req))
 	defer ctrl.Finish()
 
-	createContext(&req)
 	testAuth.GetUser(w, req)
 
-	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+	require.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
 	require.Empty(t, w.Header().Get("Content-Type"))
 	require.Empty(t, w.Body)
 }

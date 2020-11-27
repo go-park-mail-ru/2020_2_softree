@@ -86,7 +86,7 @@ func (recorder *RecorderRate) GetInitialCurrency(ctx, in interface{}) *gomock.Ca
 
 func (rateMock *RateMock) GetLastRate(ctx context.Context, in *currency.CurrencyTitle, opts ...grpc.CallOption) (*currency.Currency, error) {
 	rateMock.ctrl.T.Helper()
-	ret := rateMock.ctrl.Call(rateMock, "GetLastRate")
+	ret := rateMock.ctrl.Call(rateMock, "GetLastRate", ctx, in)
 	out, _ := ret[0].(*currency.Currency)
 	err, _ := ret[1].(error)
 	return out, err

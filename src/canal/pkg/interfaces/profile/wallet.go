@@ -36,6 +36,7 @@ func (p *Profile) GetWallets(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if _, err = w.Write(res); err != nil {
 		logrus.WithFields(logrus.Fields{

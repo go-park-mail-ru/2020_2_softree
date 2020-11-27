@@ -36,6 +36,7 @@ func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if _, err = w.Write(res); err != nil {
 		logrus.WithFields(logrus.Fields{
@@ -82,6 +83,7 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 			p.createErrorJSON(errors.New("not enough payment"))
 			return
 		}
+		w.WriteHeader(code)
 		return
 	}
 

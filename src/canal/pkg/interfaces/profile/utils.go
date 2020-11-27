@@ -169,7 +169,7 @@ func (p *Profile) validate(action string, user *profile.User) bool {
 	return true
 }
 
-func (p *Profile) ValidateUpdate(u *profile.User) (errors entity.ErrorJSON) {
+func (p *Profile) validateUpdate(u *profile.User) (errors entity.ErrorJSON) {
 	if govalidator.HasWhitespace(u.NewPassword) {
 		errors.Password = append(errors.Email, "Некорректный новый пароль")
 		errors.NotEmpty = true
