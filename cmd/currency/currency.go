@@ -65,7 +65,11 @@ func main() {
 		log.Fatalln("cant listen port", err)
 	}
 	db.SetMaxOpenConns(10)
-	currency.RegisterCurrencyServiceServer(server, persistence.NewRateDBManager(db, financial.NewForexAPI()))
+
+	manager := persistence.NewRateDBManager(db, financial.NewForexAPI())
+	currency.RegisterCurrencyServiceServer(server, manager)
+
+	go manager.GetRatesFromApi()
 
 	fmt.Println("starting server at :8083")
 	server.Serve(lis)

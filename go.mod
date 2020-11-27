@@ -7,11 +7,13 @@ require (
 	github.com/alicebob/miniredis/v2 v2.14.1
 	github.com/antihax/optional v1.0.0
 	github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef
+	github.com/go-co-op/gocron v0.3.3 // indirect
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.4.3
 	github.com/gomodule/redigo v1.8.2
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
+	github.com/jasonlvhit/gocron v0.0.1 // indirect
 	github.com/lib/pq v1.8.0
 	github.com/microcosm-cc/bluemonday v1.0.4
 	github.com/shopspring/decimal v1.2.0

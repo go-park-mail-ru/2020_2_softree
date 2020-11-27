@@ -51,7 +51,7 @@ truncate payment_history;
 
 DROP TABLE IF EXISTS history_currency_by_minutes;
 DROP TABLE IF EXISTS history_currency_by_hours;
-DROP TABLE IF EXISTS history_currency_by_week;
+DROP TABLE IF EXISTS history_currency_by_day;
 
 CREATE TABLE history_currency_by_minutes
 (
@@ -69,7 +69,7 @@ CREATE TABLE history_currency_by_hours
     updated_at timestamp
 );
 
-CREATE TABLE history_currency_by_week
+CREATE TABLE history_currency_by_day
 (
     title      text,
     value      decimal,

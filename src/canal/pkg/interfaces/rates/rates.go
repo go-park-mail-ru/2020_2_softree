@@ -1,13 +1,13 @@
 package rates
 
 import (
-	"server/src/canal/pkg/application"
+	currency "server/src/currency/pkg/currency/gen"
 )
 
 type Rates struct {
-	rateApp application.RateApp
+	currencyService currency.CurrencyServiceClient
 }
 
-func NewRates(rApp application.RateApp) *Rates {
-	return &Rates{rateApp: rApp}
+func NewRates(currencyService currency.CurrencyServiceClient) *Rates {
+	return &Rates{currencyService}
 }
