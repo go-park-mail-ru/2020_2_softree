@@ -34,7 +34,7 @@ func (rm *RateDBManager) truncate(table string) {
 }
 
 func (rm *RateDBManager) GetRatesFromApi() {
-	finance := rm.API.GetCurrencies()
+	finance := rm.api.GetCurrencies()
 	task := gocron.NewScheduler(time.UTC)
 	defer task.Stop()
 

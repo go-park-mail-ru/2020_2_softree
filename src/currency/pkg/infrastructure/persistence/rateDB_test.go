@@ -1,16 +1,18 @@
-package persistence
+package persistence_test
 
 import (
+	"context"
 	"errors"
-	"server/src/canal/pkg/domain/entity"
-	mock2 "server/src/currency/pkg/infrastructure/mock"
-	"testing"
-	"time"
-
 	"github.com/golang/mock/gomock"
-	"github.com/shopspring/decimal"
+	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
+	"regexp"
+	"server/src/currency/pkg/currency/gen"
+	mocks "server/src/currency/pkg/infrastructure/mock"
+	"server/src/currency/pkg/infrastructure/persistence"
+	"testing"
+	"time"
 )
 
 var testData = map[string]interface{}{
@@ -37,62 +39,13 @@ var testData = map[string]interface{}{
 	"ILS": 21.0,
 }
 
-//func TestRateDBManager_SaveRatesSuccess(t *testing.T) {
-//	db, mock, err := sqlmock.New()
-//	require.Equal(t, nil, err)
-//	defer db.Close()
-//
-//	rows := sqlmock.NewRows([]string{"title", "value", "updated_at"})
-//	date := time.Now()
-//	for name, data := range testData {
-//		rows = rows.AddRow(name, data, date)
-//	}
-//
-//	mock.ExpectBegin()
-//	for _, name := range ListOfCurrencies {
-//		mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO history_currency_by_minutes (title, value, updated_at) VALUES ($1, $2, $3)`)).
-//			WithArgs(name, testData[name], date).WillReturnResult(sqlmock.NewResult(1, 1))
-//	}
-//	mock.ExpectCommit()
-//
-//	ctrl := gomock.NewController(t)
-//	mockFinance := finMock.NewFinanceRepositoryForMock(ctrl)
-//	mockFinance.EXPECT().GetQuote().Return(testData).Times(len(testData))
-//
-//	repo := &RateDBManager{DB: db}
-//	err = repo.SaveRates(mockFinance)
-//	require.NoError(t, err)
-//
-//	require.Equal(t, nil, mock.ExpectationsWereMet())
-//}
-
-func TestRateDBManager_SaveRatesFail(t *testing.T) {
-	db, mock, err := sqlmock.New()
-	require.Equal(t, nil, err)
-	defer db.Close()
-
-	mock.ExpectBegin()
-	mock.ExpectExec("INSERT INTO history_currency_by_minutes (title, value, updated_at) VALUES").
-		WillReturnError(errors.New("error"))
-	mock.ExpectRollback()
-
-	ctrl := gomock.NewController(t)
-	mockFinance := mock2.NewFinanceRepositoryForMock(ctrl)
-	mockFinance.EXPECT().GetQuote().Return(testData).Times(len(testData))
-
-	repo := &RateDBManager{DB: db}
-	err = repo.SaveRates(mockFinance)
-
-	require.NotEmpty(t, err)
-}
-
 func TestRateDBManager_GetRatesSuccess(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.Equal(t, nil, err)
 	defer db.Close()
 
 	rows := sqlmock.NewRows([]string{"title", "value", "updated_at"})
-	date := time.Now()
+	date := ptypes.TimestampNow()
 	for name, data := range testData {
 		rows = rows.AddRow(name, data, date)
 	}
@@ -104,11 +57,15 @@ func TestRateDBManager_GetRatesSuccess(t *testing.T) {
 		WillReturnRows(rows)
 	mock.ExpectCommit()
 
-	repo := &RateDBManager{DB: db}
-	currencies, err := repo.GetRates()
+	ctrl := gomock.NewController(t)
+	finMock := mocks.NewApiMock(ctrl)
+
+	repo := persistence.NewRateDBManager(db, finMock)
+	ctx := context.Background()
+	currencies, err := repo.GetRates(ctx, nil)
 	require.NoError(t, err)
 
-	for _, curr := range currencies {
+	for _, curr := range currencies.Rates {
 		require.EqualValues(t, testData[curr.Title], curr.Value)
 		require.EqualValues(t, date, curr.UpdatedAt)
 	}
@@ -131,8 +88,12 @@ func TestRateDBManager_GetRatesFail(t *testing.T) {
 		WillReturnError(errors.New("error"))
 	mock.ExpectRollback()
 
-	repo := &RateDBManager{DB: db}
-	_, err = repo.GetRates()
+	ctrl := gomock.NewController(t)
+	finMock := mocks.NewApiMock(ctrl)
+
+	repo := persistence.NewRateDBManager(db, finMock)
+	ctx := context.Background()
+	_, err = repo.GetRates(ctx, nil)
 	require.NotEmpty(t, err)
 }
 
@@ -141,40 +102,44 @@ func TestRateDBManager_GetRateSuccess(t *testing.T) {
 	require.Equal(t, nil, err)
 	defer db.Close()
 
-	date := time.Now()
-	expected := entity.Currency{Title: "USD", Value: decimal.NewFromFloat(1.0), UpdatedAt: date}
+	date := ptypes.TimestampNow()
+	expected := gen.Currency{Title: "USD", Value: 1.0, UpdatedAt: date}
 	rows := sqlmock.NewRows([]string{"value", "updated_at"})
 	rows = rows.AddRow(expected.Value, date)
 
 	mock.ExpectBegin()
 	mock.
-		ExpectQuery("SELECT value, updated_at FROM history_currency_by_minutes WHERE").
+		ExpectQuery(regexp.QuoteMeta(`SELECT value, updated_at FROM history_currency_by_minutes WHERE`)).
 		WithArgs(expected.Title).
 		WillReturnRows(rows)
 	mock.ExpectCommit()
 
-	repo := &RateDBManager{DB: db}
-	currencies, err := repo.GetRate("USD")
+	ctrl := gomock.NewController(t)
+	finMock := mocks.NewApiMock(ctrl)
+
+	repo := persistence.NewRateDBManager(db, finMock)
+	ctx := context.Background()
+	currencies, err := repo.GetRates(ctx, nil)
 	require.NoError(t, err)
 
-	for _, curr := range currencies {
+	for _, curr := range currencies.Rates {
 		require.EqualValues(t, expected.Value, curr.Value)
 		require.EqualValues(t, date, curr.UpdatedAt)
 	}
 }
-
-func TestRateDBManager_GetRateFail(t *testing.T) {
-	db, mock, err := sqlmock.New()
-	require.Equal(t, nil, err)
-	defer db.Close()
-
-	mock.ExpectBegin()
-	mock.
-		ExpectQuery("SELECT value, updated_at FROM history_currency_by_minutes WHERE").
-		WillReturnError(errors.New("error"))
-	mock.ExpectRollback()
-
-	repo := &RateDBManager{DB: db}
-	_, err = repo.GetRate("USD")
-	require.NotEmpty(t, err)
-}
+//
+//func TestRateDBManager_GetRateFail(t *testing.T) {
+//	db, mock, err := sqlmock.New()
+//	require.Equal(t, nil, err)
+//	defer db.Close()
+//
+//	mock.ExpectBegin()
+//	mock.
+//		ExpectQuery("SELECT value, updated_at FROM history_currency_by_minutes WHERE").
+//		WillReturnError(errors.New("error"))
+//	mock.ExpectRollback()
+//
+//	repo := &RateDBManager{DB: db}
+//	_, err = repo.GetRate("USD")
+//	require.NotEmpty(t, err)
+//}

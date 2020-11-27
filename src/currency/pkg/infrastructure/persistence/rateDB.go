@@ -35,12 +35,12 @@ var ListOfCurrencies = [...]string{
 var LenListOfCurrencies = len(ListOfCurrencies)
 
 type RateDBManager struct {
-	DB  *sql.DB
-	API domain.FinancialAPI
+	db  *sql.DB
+	api domain.FinancialAPI
 }
 
-func NewRateDBManager(DB *sql.DB, api domain.FinancialAPI) *RateDBManager {
-	return &RateDBManager{DB: DB, API: api}
+func NewRateDBManager(db *sql.DB, api domain.FinancialAPI) *RateDBManager {
+	return &RateDBManager{db, api}
 }
 
 func (rm *RateDBManager) saveRates(table string, financial domain.FinancialRepository) error {
@@ -49,7 +49,7 @@ func (rm *RateDBManager) saveRates(table string, financial domain.FinancialRepos
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	tx, err := rm.DB.BeginTx(ctx, nil)
+	tx, err := rm.db.BeginTx(ctx, nil)
 
 	if err != nil {
 		return err
@@ -82,7 +82,7 @@ func (rm *RateDBManager) GetRates(ctx context.Context, in *currency.Empty) (*cur
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	tx, err := rm.DB.BeginTx(ctx, nil)
+	tx, err := rm.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func (rm *RateDBManager) GetRate(ctx context.Context, in *currency.CurrencyTitle
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	tx, err := rm.DB.BeginTx(ctx, nil)
+	tx, err := rm.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +161,7 @@ func (rm *RateDBManager) GetLastRate(ctx context.Context, in *currency.CurrencyT
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	tx, err := rm.DB.BeginTx(ctx, nil)
+	tx, err := rm.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +182,7 @@ func (rm *RateDBManager) GetInitialDayCurrency(ctx context.Context, in *currency
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	tx, err := rm.DB.BeginTx(ctx, nil)
+	tx, err := rm.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -222,7 +222,7 @@ func (rm *RateDBManager) truncateTable(table string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	tx, err := rm.DB.BeginTx(ctx, nil)
+	tx, err := rm.db.BeginTx(ctx, nil)
 
 	if err != nil {
 		return err
