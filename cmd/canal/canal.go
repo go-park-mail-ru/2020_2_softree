@@ -30,7 +30,7 @@ func init() {
 	}
 
 	if viper.GetString("viper") == "" {
-		fmt.Fprintln(os.Stderr, "There is must explicitly specify the viper file")
+		_, _ = fmt.Fprintln(os.Stderr, "There is must explicitly specify the viper file")
 		pflag.Usage()
 		os.Exit(1)
 	}
@@ -104,15 +104,15 @@ func init() {
 func main() {
 	sessionConn, err := grpc.Dial("127.0.0.1:8081", grpc.WithInsecure())
 	if err != nil {
-		log.Fatalf("cant connect to grpc")
+		log.Fatalf("cant connect to session grpc")
 	}
 	profileConn, err := grpc.Dial("127.0.0.1:8082", grpc.WithInsecure())
 	if err != nil {
-		log.Fatalf("cant connect to grpc")
+		log.Fatalf("cant connect to profile grpc")
 	}
 	currencyConn, err := grpc.Dial("127.0.0.1:8083", grpc.WithInsecure())
 	if err != nil {
-		log.Fatalf("cant connect to grpc")
+		log.Fatalf("cant connect to currency grpc")
 	}
 
 	defer sessionConn.Close()

@@ -60,7 +60,7 @@ func main() {
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"infrastructure": "session",
-			"action":  "connect to redis",
+			"action":         "connect to redis",
 		}).Error(err)
 	}
 	session.RegisterAuthorizationServiceServer(server, persistence.NewSessionManager(connect))
