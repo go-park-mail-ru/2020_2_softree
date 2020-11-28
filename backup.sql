@@ -48,30 +48,3 @@ truncate user_trade cascade;
 truncate watchlist;
 truncate accounts;
 truncate payment_history;
-
-DROP TABLE IF EXISTS history_currency_by_minutes;
-DROP TABLE IF EXISTS history_currency_by_hours;
-DROP TABLE IF EXISTS history_currency_by_day;
-
-CREATE TABLE history_currency_by_minutes
-(
-    title      text,
-    value      decimal,
-    updated_at timestamp
-);
-
-create index idx_history_currency_by_minutes on history_currency_by_minutes(updated_at);
-
-CREATE TABLE history_currency_by_hours
-(
-    title      text,
-    value      decimal,
-    updated_at timestamp
-);
-
-CREATE TABLE history_currency_by_day
-(
-    title      text,
-    value      decimal,
-    updated_at timestamp
-);
