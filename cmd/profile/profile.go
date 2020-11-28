@@ -26,12 +26,6 @@ func init() {
 		os.Exit(0)
 	}
 
-	if viper.GetString("viper") == "" {
-		_, _ = fmt.Fprintln(os.Stderr, "There is must explicitly specify the viper file")
-		pflag.Usage()
-		os.Exit(1)
-	}
-
 	if err := config.ParseConfig(
 		viper.GetString("viper"),
 		map[string]interface{}{

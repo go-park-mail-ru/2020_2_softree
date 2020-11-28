@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"golang.org/x/crypto/bcrypt"
-	"log"
 	profile "server/profile/pkg/profile/gen"
 	"time"
 )
@@ -26,11 +25,7 @@ func (managerDB *UserDBManager) GetUserById(c context.Context, in *profile.UserI
 	if err != nil {
 		return nil, err
 	}
-	defer func () {
-		if err := tx.Rollback(); err != nil {
-			log.Fatal(err)
-		}
-	}()
+	defer tx.Rollback()
 
 	row := tx.QueryRow("SELECT id, email, avatar FROM user_trade WHERE id = $1", in.Id)
 
