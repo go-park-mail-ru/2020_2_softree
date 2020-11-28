@@ -7,6 +7,7 @@ import (
 	"server/src/canal/pkg/interfaces/authorization"
 	"server/src/canal/pkg/interfaces/profile"
 	"server/src/canal/pkg/interfaces/rates"
+	currencyService "server/src/currency/pkg/currency/gen"
 	profileService "server/src/profile/pkg/profile/gen"
 )
 
@@ -17,16 +18,16 @@ func createAuthenticate(profileConn, sessionConn *grpc.ClientConn) *authorizatio
 	return authorization.NewAuthenticate(profileManager, sessionManager, security.CreateNewSecurityUtils())
 }
 
-func createProfile(profileConn, sessionConn, currencyConn *grpc.ClientConn) *profile.Profile {
-	sessionManager := sessionService.NewAuthorizationServiceClient(sessionConn)
+func createProfile(profileConn, currencyConn *grpc.ClientConn) *profile.Profile {
 	profileManager := profileService.NewProfileServiceClient(profileConn)
-	currencyManager := //
+	currencyManager := currencyService.NewCurrencyServiceClient(currencyConn)
+	securityManager := security.CreateNewSecurityUtils()
 
-	return profile.NewProfile(profileManager, sessionManager, currencyManager)
+	return profile.NewProfile(profileManager, securityManager, currencyManager)
 }
 
 func createRates(currencyConn *grpc.ClientConn) *rates.Rates {
-	currencyManager := //
+	currencyManager := currencyService.NewCurrencyServiceClient(currencyConn)
 
 	return rates.NewRates(currencyManager)
 }
@@ -35,7 +36,7 @@ func CreateAppStructs(
 	profileConn, sessionConn, currencyConn *grpc.ClientConn) (
 	*authorization.Authentication, *profile.Profile, *rates.Rates) {
 	userAuthenticate := createAuthenticate(profileConn, sessionConn)
-	userProfile := createProfile(profileConn, sessionConn, currencyConn)
+	userProfile := createProfile(profileConn, currencyConn)
 	rateRates := createRates(currencyConn)
 
 	return userAuthenticate, userProfile, rateRates

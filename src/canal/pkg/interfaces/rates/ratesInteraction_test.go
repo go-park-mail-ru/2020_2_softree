@@ -1,11 +1,12 @@
 package rates
 
 import (
+	"context"
 	"errors"
+	"github.com/gorilla/mux"
 	"net/http"
 	"net/http/httptest"
-	"server/src/canal/pkg/application"
-	"server/src/canal/pkg/domain/entity"
+	currencyService "server/src/currency/pkg/currency/gen"
 	"server/src/currency/pkg/infrastructure/mock"
 	"testing"
 
@@ -13,12 +14,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const title = "USD"
+
 func TestGetRates_Success(t *testing.T) {
 	url := "http://127.0.0.1:8000/rates"
 
 	req := httptest.NewRequest(http.MethodGet, url, nil)
 	w := httptest.NewRecorder()
-	testRate, ctrl := createForexRateSuccess(t)
+	testRate, ctrl := createForexRateSuccess(t, req.Context())
 	defer ctrl.Finish()
 
 	testRate.GetRates(w, req)
@@ -28,12 +31,23 @@ func TestGetRates_Success(t *testing.T) {
 	require.NotEmpty(t, w.Body)
 }
 
+func createForexRateSuccess(t *testing.T, ctx context.Context) (*Rates, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	rateMock := mock.NewRateRepositoryForMock(ctrl)
+	rateMock.EXPECT().
+		GetRates(ctx, nil).
+		Return(createRates(), nil)
+
+	return NewRates(rateMock), ctrl
+}
+
 func TestGetRates_Fail(t *testing.T) {
 	url := "http://127.0.0.1:8000/rates"
 
 	req := httptest.NewRequest(http.MethodGet, url, nil)
 	w := httptest.NewRecorder()
-	testRate, ctrl := createForexRateFail(t)
+	testRate, ctrl := createForexRateFail(t, req.Context())
 	defer ctrl.Finish()
 
 	testRate.GetRates(w, req)
@@ -41,8 +55,75 @@ func TestGetRates_Fail(t *testing.T) {
 	require.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
 }
 
+func createForexRateFail(t *testing.T, ctx context.Context) (*Rates, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	rateMock := mock.NewRateRepositoryForMock(ctrl)
+	rateMock.EXPECT().
+		GetRates(ctx, nil).
+		Return(nil, errors.New("createForexRateFail"))
+
+	return NewRates(rateMock), ctrl
+}
+
+func TestGetURLRate_Success(t *testing.T) {
+	url := "http://127.0.0.1:8000/api/rates/USD"
+
+	req := httptest.NewRequest(http.MethodGet, url, nil)
+	w := httptest.NewRecorder()
+
+	req = mux.SetURLVars(req, map[string]string{"title": title})
+	testRate, ctrl := createGetURLRateSuccess(t, req.Context())
+	defer ctrl.Finish()
+
+	testRate.GetURLRate(w, req)
+
+	require.Equal(t, http.StatusOK, w.Result().StatusCode)
+	require.NotEmpty(t, w.Header().Get("Content-Type"))
+	require.NotEmpty(t, w.Body)
+}
+
+func createGetURLRateSuccess(t *testing.T, ctx context.Context) (*Rates, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	rateMock := mock.NewRateRepositoryForMock(ctrl)
+	rateMock.EXPECT().
+		GetRate(ctx, &currencyService.CurrencyTitle{Title: title}).
+		Return(createRates(), nil)
+
+	return NewRates(rateMock), ctrl
+}
+
+func TestGetURLRate_FailGetRate(t *testing.T) {
+	url := "http://127.0.0.1:8000/api/rates/USD"
+
+	req := httptest.NewRequest(http.MethodGet, url, nil)
+	w := httptest.NewRecorder()
+
+	req = mux.SetURLVars(req, map[string]string{"title": title})
+	testRate, ctrl := createGetURLRateFailGetRate(t, req.Context())
+	defer ctrl.Finish()
+
+	testRate.GetURLRate(w, req)
+
+	require.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
+	require.Empty(t, w.Header().Get("Content-Type"))
+	require.Empty(t, w.Body)
+}
+
+func createGetURLRateFailGetRate(t *testing.T, ctx context.Context) (*Rates, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	rateMock := mock.NewRateRepositoryForMock(ctrl)
+	rateMock.EXPECT().
+		GetRate(ctx, &currencyService.CurrencyTitle{Title: title}).
+		Return(nil, errors.New("createGetURLRateFailGetRate"))
+
+	return NewRates(rateMock), ctrl
+}
+
 func TestRates_GetURLRateFail(t *testing.T) {
-	url := "http://127.0.0.1:8000/api/rates/USD/"
+	url := "http://127.0.0.1:8000/api/rates/USD"
 
 	req := httptest.NewRequest(http.MethodGet, url, nil)
 	w := httptest.NewRecorder()
@@ -54,6 +135,14 @@ func TestRates_GetURLRateFail(t *testing.T) {
 	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 	require.Empty(t, w.Header().Get("Content-Type"))
 	require.Empty(t, w.Body)
+}
+
+func createGetURLRateFail(t *testing.T) (*Rates, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	rateMock := mock.NewRateRepositoryForMock(ctrl)
+
+	return NewRates(rateMock), ctrl
 }
 
 func TestRates_GetMarketsSuccess(t *testing.T) {
@@ -71,64 +160,22 @@ func TestRates_GetMarketsSuccess(t *testing.T) {
 	require.NotEmpty(t, w.Body)
 }
 
-func createForexRateSuccess(t *testing.T) (*Rates, *gomock.Controller) {
-	ctrl := gomock.NewController(t)
-
-	rateMock := mock.NewRateRepositoryForMock(ctrl)
-	rateMock.EXPECT().GetRates().Return(createRates(), nil)
-
-	dayCurrMock := mock.NewDayCurrencyRepositoryForMock(ctrl)
-
-	servicesDB := application.NewRateApp(rateMock, dayCurrMock)
-
-	return NewRates(*servicesDB, servicesLog), ctrl
-}
-
-func createForexRateFail(t *testing.T) (*Rates, *gomock.Controller) {
-	ctrl := gomock.NewController(t)
-
-	rateMock := mock.NewRateRepositoryForMock(ctrl)
-	rateMock.EXPECT().GetRates().Return(createRates(), errors.New("get rates"))
-
-	dayCurrMock := mock.NewDayCurrencyRepositoryForMock(ctrl)
-
-	servicesDB := application.NewRateApp(rateMock, dayCurrMock)
-
-	return NewRates(*servicesDB, servicesLog), ctrl
-}
-
-func createGetURLRateFail(t *testing.T) (*Rates, *gomock.Controller) {
-	ctrl := gomock.NewController(t)
-
-	rateMock := mock.NewRateRepositoryForMock(ctrl)
-
-	dayCurrMock := mock.NewDayCurrencyRepositoryForMock(ctrl)
-
-	servicesDB := application.NewRateApp(rateMock, dayCurrMock)
-
-	return NewRates(*servicesDB, servicesLog), ctrl
-}
-
 func createGetMarketsSuccess(t *testing.T) (*Rates, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
 	rateMock := mock.NewRateRepositoryForMock(ctrl)
 
-	dayCurrMock := mock.NewDayCurrencyRepositoryForMock(ctrl)
-
-	servicesDB := application.NewRateApp(rateMock, dayCurrMock)
-
-	return NewRates(*servicesDB, servicesLog), ctrl
+	return NewRates(rateMock), ctrl
 }
 
-func createRates() []entity.Currency {
+func createRates() *currencyService.Currencies {
 	base := "USD"
 	currency := [...]string{"EUR", "RUB"}
 	values := [...]float64{1.10, 0.23}
 
-	rates := make([]entity.Currency, 0)
-	rates = append(rates, entity.Currency{Base: base, Title: currency[0], Value: values[0]})
-	rates = append(rates, entity.Currency{Base: base, Title: currency[1], Value: values[1]})
+	var rates currencyService.Currencies
+	rates.Rates = append(rates.Rates, &currencyService.Currency{Base: base, Title: currency[0], Value: values[0]})
+	rates.Rates = append(rates.Rates, &currencyService.Currency{Base: base, Title: currency[1], Value: values[1]})
 
-	return rates
+	return &rates
 }

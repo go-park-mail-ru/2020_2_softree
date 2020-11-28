@@ -36,11 +36,11 @@ func TestCreate_Success(t *testing.T) {
 	sessionManager := database.NewSessionManager(c)
 
 	ctx := context.Background()
-	id, err := sessionManager.Create(ctx, &session.Session{Id: userId, SessionId: sessionId})
+	sess, err := sessionManager.Create(ctx, &session.UserID{Id: userId})
 	require.NoError(t, err)
-	require.NotEmpty(t, id)
+	require.NotEmpty(t, sess)
 
-	if got, err := s.Get("sessions:" + sessionId); err != nil || got != strconv.Itoa(userId) {
+	if got, err := s.Get("sessions:" + sess.SessionId); err != nil || got != strconv.Itoa(userId) {
 		t.Error("'foo' has the wrong value")
 	}
 }
