@@ -230,7 +230,6 @@ func (rm *RateDBManager) truncateTable(table string) error {
 	defer tx.Rollback()
 
 	_, err = tx.Exec("TRUNCATE TABLE $1", table)
-
 	if err != nil {
 		return err
 	}

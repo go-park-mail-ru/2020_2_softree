@@ -43,4 +43,6 @@ func (rm *RateDBManager) GetRatesFromApi() {
 	task.Every(1).Day().At("00:00").Do(rm.writeCurrencyDB, history_currency_by_day, finance)
 	task.Every(1).Day().At("00:00").Do(rm.truncate, history_currency_by_minutes)
 	task.Every(1).Month(1).Do(rm.truncate, history_currency_by_hours)
+
+	<-task.StartAsync()
 }

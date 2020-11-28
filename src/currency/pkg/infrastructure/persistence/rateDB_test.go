@@ -1,4 +1,4 @@
-package persistence_test
+package persistence
 
 import (
 	"context"
@@ -7,10 +7,8 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
-	"regexp"
-	"server/src/currency/pkg/currency/gen"
+	currency "server/src/currency/pkg/currency/gen"
 	mocks "server/src/currency/pkg/infrastructure/mock"
-	"server/src/currency/pkg/infrastructure/persistence"
 	"testing"
 	"time"
 )
@@ -39,7 +37,7 @@ var testData = map[string]interface{}{
 	"ILS": 21.0,
 }
 
-func TestRateDBManager_GetRatesSuccess(t *testing.T) {
+func TestRateDBManager_GetRates_Success(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.Equal(t, nil, err)
 	defer db.Close()
@@ -60,7 +58,7 @@ func TestRateDBManager_GetRatesSuccess(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	finMock := mocks.NewApiMock(ctrl)
 
-	repo := persistence.NewRateDBManager(db, finMock)
+	repo := NewRateDBManager(db, finMock)
 	ctx := context.Background()
 	currencies, err := repo.GetRates(ctx, nil)
 	require.NoError(t, err)
@@ -71,7 +69,7 @@ func TestRateDBManager_GetRatesSuccess(t *testing.T) {
 	}
 }
 
-func TestRateDBManager_GetRatesFail(t *testing.T) {
+func TestRateDBManager_GetRates_Fail(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.Equal(t, nil, err)
 	defer db.Close()
@@ -91,25 +89,25 @@ func TestRateDBManager_GetRatesFail(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	finMock := mocks.NewApiMock(ctrl)
 
-	repo := persistence.NewRateDBManager(db, finMock)
+	repo := NewRateDBManager(db, finMock)
 	ctx := context.Background()
 	_, err = repo.GetRates(ctx, nil)
 	require.NotEmpty(t, err)
 }
 
-func TestRateDBManager_GetRateSuccess(t *testing.T) {
+func TestRateDBManager_GetRate_Success(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.Equal(t, nil, err)
 	defer db.Close()
 
 	date := ptypes.TimestampNow()
-	expected := gen.Currency{Title: "USD", Value: 1.0, UpdatedAt: date}
+	expected := currency.Currency{Title: "USD", Value: 1.0, UpdatedAt: date}
 	rows := sqlmock.NewRows([]string{"value", "updated_at"})
 	rows = rows.AddRow(expected.Value, date)
 
 	mock.ExpectBegin()
 	mock.
-		ExpectQuery(regexp.QuoteMeta(`SELECT value, updated_at FROM history_currency_by_minutes WHERE`)).
+		ExpectQuery(`SELECT value, updated_at FROM history_currency_by_minutes WHERE`).
 		WithArgs(expected.Title).
 		WillReturnRows(rows)
 	mock.ExpectCommit()
@@ -117,9 +115,11 @@ func TestRateDBManager_GetRateSuccess(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	finMock := mocks.NewApiMock(ctrl)
 
-	repo := persistence.NewRateDBManager(db, finMock)
+	repo := NewRateDBManager(db, finMock)
 	ctx := context.Background()
-	currencies, err := repo.GetRates(ctx, nil)
+
+	title := currency.CurrencyTitle{Title: expected.Title}
+	currencies, err := repo.GetRate(ctx, &title)
 	require.NoError(t, err)
 
 	for _, curr := range currencies.Rates {
@@ -127,19 +127,188 @@ func TestRateDBManager_GetRateSuccess(t *testing.T) {
 		require.EqualValues(t, date, curr.UpdatedAt)
 	}
 }
-//
-//func TestRateDBManager_GetRateFail(t *testing.T) {
-//	db, mock, err := sqlmock.New()
-//	require.Equal(t, nil, err)
-//	defer db.Close()
-//
-//	mock.ExpectBegin()
-//	mock.
-//		ExpectQuery("SELECT value, updated_at FROM history_currency_by_minutes WHERE").
-//		WillReturnError(errors.New("error"))
-//	mock.ExpectRollback()
-//
-//	repo := &RateDBManager{DB: db}
-//	_, err = repo.GetRate("USD")
-//	require.NotEmpty(t, err)
-//}
+
+func TestRateDBManager_GetRate_Fail(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	require.Equal(t, nil, err)
+	defer db.Close()
+
+	date := ptypes.TimestampNow()
+	expected := currency.Currency{Title: "USD", Value: 1.0, UpdatedAt: date}
+	rows := sqlmock.NewRows([]string{"value", "updated_at"})
+	rows = rows.AddRow(expected.Value, date)
+
+	mock.ExpectBegin()
+	mock.
+		ExpectQuery(`SELECT value, updated_at FROM history_currency_by_minutes WHERE`).
+		WillReturnError(errors.New("error"))
+	mock.ExpectRollback()
+
+	ctrl := gomock.NewController(t)
+	finMock := mocks.NewApiMock(ctrl)
+
+	repo := NewRateDBManager(db, finMock)
+	ctx := context.Background()
+
+	title := currency.CurrencyTitle{Title: expected.Title}
+	_, err = repo.GetRate(ctx, &title)
+	require.NotEmpty(t ,err)
+}
+
+func TestRateDBManager_GetLastRate_Success(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	require.Equal(t, nil, err)
+	defer db.Close()
+
+	date := ptypes.TimestampNow()
+	expected := currency.Currency{Title: "USD", Value: 1.0, UpdatedAt: date}
+	rows := sqlmock.NewRows([]string{"value", "updated_at"})
+	rows = rows.AddRow(expected.Value, date)
+
+	mock.ExpectBegin()
+	mock.
+		ExpectQuery(`SELECT value, updated_at FROM history_currency_by_minutes WHERE title = \$1 ORDER BY updated_at DESC LIMIT 1`).
+		WithArgs(expected.Title).
+		WillReturnRows(rows)
+	mock.ExpectCommit()
+
+	ctrl := gomock.NewController(t)
+	finMock := mocks.NewApiMock(ctrl)
+
+	repo := NewRateDBManager(db, finMock)
+	ctx := context.Background()
+
+	title := currency.CurrencyTitle{Title: expected.Title}
+	res, err := repo.GetLastRate(ctx, &title)
+	require.NoError(t, err)
+
+	require.EqualValues(t, res.Title, expected.Title)
+	require.EqualValues(t, res.Value, expected.Value)
+	require.EqualValues(t, res.UpdatedAt, expected.UpdatedAt)
+}
+
+func TestRateDBManager_GetLastRate_Fail(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	require.Equal(t, nil, err)
+	defer db.Close()
+
+	date := ptypes.TimestampNow()
+	expected := currency.Currency{Title: "USD", Value: 1.0, UpdatedAt: date}
+	rows := sqlmock.NewRows([]string{"value", "updated_at"})
+	rows = rows.AddRow(expected.Value, date)
+
+	mock.ExpectBegin()
+	mock.
+		ExpectQuery(`SELECT value, updated_at FROM history_currency_by_minutes WHERE title = \$1 ORDER BY updated_at DESC LIMIT 1`).
+		WillReturnError(errors.New("error"))
+	mock.ExpectRollback()
+
+	ctrl := gomock.NewController(t)
+	finMock := mocks.NewApiMock(ctrl)
+
+	repo := NewRateDBManager(db, finMock)
+	ctx := context.Background()
+
+	title := currency.CurrencyTitle{Title: expected.Title}
+	_, err = repo.GetLastRate(ctx, &title)
+	require.NotEmpty(t, err)
+}
+
+func TestRateDBManager_GetInitialDayCurrency_Success(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	require.Equal(t, nil, err)
+	defer db.Close()
+
+	rows := sqlmock.NewRows([]string{"title", "value"})
+	for name, data := range testData {
+		rows = rows.AddRow(name, data)
+	}
+
+	mock.ExpectBegin()
+	mock.
+		ExpectQuery("SELECT title, value FROM history_currency_by_minutes ORDER BY updated_at LIMIT").
+		WithArgs(uint64(len(testData))).
+		WillReturnRows(rows)
+	mock.ExpectCommit()
+
+	ctrl := gomock.NewController(t)
+	finMock := mocks.NewApiMock(ctrl)
+
+	repo := NewRateDBManager(db, finMock)
+	ctx := context.Background()
+	currencies, err := repo.GetInitialDayCurrency(ctx, nil)
+	require.NoError(t, err)
+
+	for _, curr := range currencies.Currencies {
+		require.EqualValues(t, testData[curr.Title], curr.Value)
+	}
+}
+
+func TestRateDBManager_GetInitialDayCurrency_Fail(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	require.Equal(t, nil, err)
+	defer db.Close()
+
+	rows := sqlmock.NewRows([]string{"title", "value"})
+	for name, data := range testData {
+		rows = rows.AddRow(name, data)
+	}
+
+	mock.ExpectBegin()
+	mock.
+		ExpectQuery("SELECT title, value FROM history_currency_by_minutes ORDER BY updated_at LIMIT").
+		WillReturnError(errors.New("error"))
+	mock.ExpectRollback()
+
+	ctrl := gomock.NewController(t)
+	finMock := mocks.NewApiMock(ctrl)
+
+	repo := NewRateDBManager(db, finMock)
+	ctx := context.Background()
+	_, err = repo.GetInitialDayCurrency(ctx, nil)
+	require.NotEmpty(t, err)
+}
+
+/*func TestNewRateDBManager_TruncateTable_Success(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	require.Equal(t, nil, err)
+	defer db.Close()
+
+	tableName := "table"
+
+	mock.ExpectBegin()
+	mock.
+		ExpectQuery(`TRUNCATE TABLE`).
+		WithArgs(tableName)
+	mock.ExpectCommit()
+
+	ctrl := gomock.NewController(t)
+	finMock := mocks.NewApiMock(ctrl)
+
+	repo := NewRateDBManager(db, finMock)
+
+	err = repo.truncateTable(tableName)
+	require.EqualValues(t, nil, err)
+}*/
+
+func TestNewRateDBManager_TruncateTable_Fail(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	require.Equal(t, nil, err)
+	defer db.Close()
+
+	tableName := "table"
+
+	mock.ExpectBegin()
+	mock.
+		ExpectQuery(`TRUNCATE TABLE`).
+		WillReturnError(errors.New("error"))
+	mock.ExpectRollback()
+
+	ctrl := gomock.NewController(t)
+	finMock := mocks.NewApiMock(ctrl)
+
+	repo := NewRateDBManager(db, finMock)
+
+	err = repo.truncateTable(tableName)
+	require.NotEmpty(t, err)
+}
