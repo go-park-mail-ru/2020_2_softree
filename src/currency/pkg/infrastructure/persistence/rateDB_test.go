@@ -7,6 +7,7 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
+	"regexp"
 	currency "server/src/currency/pkg/currency/gen"
 	mocks "server/src/currency/pkg/infrastructure/mock"
 	"testing"
@@ -269,7 +270,7 @@ func TestRateDBManager_GetInitialDayCurrency_Fail(t *testing.T) {
 	require.NotEmpty(t, err)
 }
 
-/*func TestNewRateDBManager_TruncateTable_Success(t *testing.T) {
+func TestNewRateDBManager_TruncateTable_Success(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.Equal(t, nil, err)
 	defer db.Close()
@@ -278,8 +279,9 @@ func TestRateDBManager_GetInitialDayCurrency_Fail(t *testing.T) {
 
 	mock.ExpectBegin()
 	mock.
-		ExpectQuery(`TRUNCATE TABLE`).
-		WithArgs(tableName)
+		ExpectExec(regexp.QuoteMeta(`TRUNCATE TABLE`)).
+		WithArgs(tableName).
+		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
 	ctrl := gomock.NewController(t)
@@ -289,7 +291,7 @@ func TestRateDBManager_GetInitialDayCurrency_Fail(t *testing.T) {
 
 	err = repo.truncateTable(tableName)
 	require.EqualValues(t, nil, err)
-}*/
+}
 
 func TestNewRateDBManager_TruncateTable_Fail(t *testing.T) {
 	db, mock, err := sqlmock.New()
