@@ -50,22 +50,6 @@ func init() {
 				"timeout":  10,
 			},
 
-			"postgres": map[string]interface{}{
-				"host":     "127.0.0.1",
-				"port":     5432,
-				"db":       "db",
-				"user":     "user",
-				"password": "",
-			},
-
-			"redis": map[string]interface{}{
-				"host":         "127.0.0.1",
-				"port":         6379,
-				"sessionPath":  "/1",
-				"currencyPath": "/2",
-				"user":         "user",
-			},
-
 			"CORS": map[string]interface{}{
 				"allowedOrigins": []string{
 					"http://localhost",
@@ -90,10 +74,6 @@ func init() {
 					"Content-Length",
 					"Content-Range",
 				},
-			},
-
-			"finnhub-api": map[string]interface{}{
-				"token": "",
 			},
 		}); err != nil {
 		log.Fatalln("Error during parse defaults", err)

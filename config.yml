@@ -8,20 +8,6 @@ server:
   logLevel: 'Info'
   timeout: 10
 
-postgres:
-  host: 'postgres'
-  port: 5432
-  db: 'moneycat'
-  user: 'user'
-  password: 'NeverGonnaGiveYouUp'
-
-redis:
-  host: '@redis'
-  port: 6379
-  sessionPath: '/1'
-  currencyPath: '/2'
-  user: 'user'
-
 CORS:
   allowedOrigins: [
     "http://localhost",
@@ -46,6 +32,3 @@ CORS:
     "Content-Length",
     "Content-Range"
   ]
-
-finnhub-api:
-  token: 'bttn28748v6ojt2hev60'

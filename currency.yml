@@ -1,0 +1,9 @@
+postgres:
+  host: 'postgres'
+  port: 5432
+  db: 'moneycat'
+  user: 'currency'
+  password: '123'
+
+finnhub-api:
+  token: 'bttn28748v6ojt2hev60'
