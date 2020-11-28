@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	_ "github.com/lib/pq"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
@@ -52,11 +53,11 @@ func main() {
 
 	db, err := sql.Open("postgres", viper.GetString("postgres.URL"))
 	if err != nil {
-		log.Fatalln("cant listen port", err)
+		log.Fatalln("cant connect to postgres", err)
 	}
 	err = db.Ping()
 	if err != nil {
-		log.Fatalln("cant listen port", err)
+		log.Fatalln("cant ping", err)
 	}
 	db.SetMaxOpenConns(10)
 

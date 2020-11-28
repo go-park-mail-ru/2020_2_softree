@@ -14,13 +14,13 @@ func ParseConfig(filename string, defaults map[string]interface{}) error {
 		viper.SetDefault(key, value)
 	}
 
-	fullpath, err := filepath.Abs(filename)
+	fullPath, err := filepath.Abs(filename)
 	if err != nil {
 		return err
 	}
 
 	viper.SetConfigType("yaml")
-	viper.SetConfigFile(fullpath)
+	viper.SetConfigFile(fullPath)
 	viper.AutomaticEnv()
 	if err := viper.ReadInConfig(); err != nil {
 		return err
@@ -38,20 +38,13 @@ func ParseConfig(filename string, defaults map[string]interface{}) error {
 }
 
 func createURLS() {
-	viper.Set("redis.sessionURL", fmt.Sprintf("redis://%s:%s:%d%s",
+	viper.Set("redis.URL", fmt.Sprintf("redis://%s:%s:%d",
 		viper.GetString("redis.user"),
 		viper.GetString("redis.host"),
-		viper.GetInt("redis.port"),
-		viper.GetString("redis.sessionPath")))
-
-	viper.Set("redis.currencyURL", fmt.Sprintf("redis://%s:%s:%d%s",
-		viper.GetString("redis.user"),
-		viper.GetString("redis.host"),
-		viper.GetInt("redis.port"),
-		viper.GetString("redis.currencyPath")))
+		viper.GetInt("redis.port")))
 
 	viper.Set("postgres.URL", fmt.Sprintf(
-		"host=%s port=%d user=%s "+"password=%s dbname=%s sslmode=disable",
+		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		viper.GetString("postgres.host"),
 		viper.GetInt("postgres.port"),
 		viper.GetString("postgres.user"),

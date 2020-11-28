@@ -31,11 +31,9 @@ func init() {
 		viper.GetString("viper"),
 		map[string]interface{}{
 			"redis": map[string]interface{}{
-				"host":         "127.0.0.1",
-				"port":         6379,
-				"sessionPath":  "/1",
-				"currencyPath": "/2",
-				"user":         "user",
+				"host": "127.0.0.1",
+				"port": 6379,
+				"user": "user",
 			},
 		}); err != nil {
 		log.Fatalln("Error during parse defaults", err)
@@ -50,7 +48,8 @@ func main() {
 
 	server := grpc.NewServer()
 
-	connect, err := redis.DialURL(viper.GetString("redis.sessionURL"))
+	fmt.Println(viper.GetString("redis.URL"))
+	connect, err := redis.DialURL(viper.GetString("redis.URL"))
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"infrastructure": "session",
