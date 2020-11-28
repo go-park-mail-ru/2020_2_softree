@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"golang.org/x/crypto/bcrypt"
+	"log"
 	profile "server/profile/pkg/profile/gen"
 	"time"
 )
@@ -17,7 +18,7 @@ func NewUserDBManager(DB *sql.DB) *UserDBManager {
 	return &UserDBManager{DB}
 }
 
-func (managerDB *UserDBManager) GetUserById(ctx context.Context, in *profile.UserID) (*profile.PublicUser, error) {
+func (managerDB *UserDBManager) GetUserById(c context.Context, in *profile.UserID) (*profile.PublicUser, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -25,7 +26,11 @@ func (managerDB *UserDBManager) GetUserById(ctx context.Context, in *profile.Use
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func () {
+		if err := tx.Rollback(); err != nil {
+			log.Fatal(err)
+		}
+	}()
 
 	row := tx.QueryRow("SELECT id, email, avatar FROM user_trade WHERE id = $1", in.Id)
 

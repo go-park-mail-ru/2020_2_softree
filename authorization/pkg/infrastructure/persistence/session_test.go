@@ -55,7 +55,7 @@ func TestCheck_Success(t *testing.T) {
 	sessionManager := database.NewSessionManager(c)
 
 	ctx := context.Background()
-	require.NoError(t, s.Set("sessions:" +sessionId, strconv.Itoa(userId)))
+	require.NoError(t, s.Set("sessions:" + sessionId, strconv.Itoa(userId)))
 
 	id, err := sessionManager.Check(ctx, &session.SessionID{SessionId: sessionId})
 	require.NoError(t, err)
@@ -70,6 +70,7 @@ func TestCheck_Fail(t *testing.T) {
 	defer s.Close()
 
 	c, err := redis.Dial("tcp", s.Addr())
+	require.NoError(t, err)
 	sessionManager := database.NewSessionManager(c)
 
 	ctx := context.Background()
@@ -87,7 +88,7 @@ func TestDelete_Success(t *testing.T) {
 	sessionManager := database.NewSessionManager(c)
 
 	ctx := context.Background()
-	require.NoError(t, s.Set("sessions:" +sessionId, strconv.Itoa(userId)))
+	require.NoError(t, s.Set("sessions:" + sessionId, strconv.Itoa(userId)))
 	_, err = sessionManager.Delete(ctx, &session.SessionID{SessionId: sessionId})
 	require.NoError(t, err)
 

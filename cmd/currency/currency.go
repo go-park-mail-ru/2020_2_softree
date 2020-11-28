@@ -72,5 +72,7 @@ func main() {
 	go manager.GetRatesFromApi()
 
 	fmt.Println("starting server at :8083")
-	server.Serve(lis)
+	if err := server.Serve(lis); err != nil {
+		log.Fatalln("cant listen port", err)
+	}
 }

@@ -66,5 +66,10 @@ func main() {
 	session.RegisterAuthorizationServiceServer(server, persistence.NewSessionManager(connect))
 
 	fmt.Println("starting server at :8081")
-	server.Serve(lis)
+	if err := server.Serve(lis); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"infrastructure": "session",
+			"action":         "Serve",
+		}).Error(err)
+	}
 }

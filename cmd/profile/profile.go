@@ -68,5 +68,7 @@ func main() {
 	profile.RegisterProfileServiceServer(server, persistence.NewUserDBManager(db))
 
 	fmt.Println("starting server at :8082")
-	server.Serve(lis)
+	if err := server.Serve(lis); err != nil {
+		log.Fatalln("cant listen port", err)
+	}
 }

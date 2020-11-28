@@ -22,7 +22,9 @@ func init() {
 	pflag.BoolP("help", "h", false, "usage info")
 
 	pflag.Parse()
-	viper.BindPFlags(pflag.CommandLine)
+	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
+		log.Fatal(err)
+	}
 
 	if viper.GetBool("help") {
 		pflag.Usage()
@@ -97,7 +99,9 @@ func init() {
 		log.Fatalln("Error during parse defaults", err)
 	}
 
-	logger.ConfigureLogger()
+	if err := logger.ConfigureLogger(); err != nil {
+		log.Fatal(err)
+	}
 	rand.Seed(time.Now().UnixNano())
 }
 

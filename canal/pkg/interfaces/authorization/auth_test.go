@@ -191,9 +191,9 @@ func createAuthFailUser(t *testing.T, ctx context.Context) (*Authentication, *go
 }
 
 func empty(w http.ResponseWriter, r *http.Request) {
-	id := r.Context().Value("id").(int64)
+	UserId := r.Context().Value("id").(int64)
 
-	if id == id {
+	if UserId == id {
 		w.WriteHeader(http.StatusOK)
 	}
 	w.WriteHeader(http.StatusBadRequest)

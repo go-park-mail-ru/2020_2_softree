@@ -3,11 +3,12 @@ package persistence
 import (
 	"context"
 	"github.com/golang/protobuf/ptypes"
+	"log"
 	profile "server/profile/pkg/profile/gen"
 	"time"
 )
 
-func (managerDB *UserDBManager) GetAllPaymentHistory(ctx context.Context, in *profile.UserID) (*profile.AllHistory, error) {
+func (managerDB *UserDBManager) GetAllPaymentHistory(c context.Context, in *profile.UserID) (*profile.AllHistory, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -15,7 +16,11 @@ func (managerDB *UserDBManager) GetAllPaymentHistory(ctx context.Context, in *pr
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func () {
+		if err := tx.Rollback(); err != nil {
+			log.Fatal(err)
+		}
+	}()
 
 	result, err := tx.Query(
 		"SELECT from_title, to_title, value, amount, updated_at FROM payment_history WHERE user_id = $1",
@@ -46,7 +51,7 @@ func (managerDB *UserDBManager) GetAllPaymentHistory(ctx context.Context, in *pr
 	return &history, nil
 }
 
-func (managerDB *UserDBManager) AddToPaymentHistory(ctx context.Context, in *profile.AddToHistory) (*profile.Empty, error) {
+func (managerDB *UserDBManager) AddToPaymentHistory(c context.Context, in *profile.AddToHistory) (*profile.Empty, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -54,7 +59,11 @@ func (managerDB *UserDBManager) AddToPaymentHistory(ctx context.Context, in *pro
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func () {
+		if err := tx.Rollback(); err != nil {
+			log.Fatal(err)
+		}
+	}()
 
 	in.Transaction.UpdatedAt = ptypes.TimestampNow()
 	_, err = tx.Exec(

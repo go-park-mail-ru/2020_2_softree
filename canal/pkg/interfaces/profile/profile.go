@@ -2,7 +2,6 @@ package profile
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 	"server/canal/pkg/domain/entity"
 	profile "server/profile/pkg/profile/gen"
@@ -110,8 +109,7 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !check.Existence {
-		errs := p.createErrorJSON(errors.New("wrong old password"))
-		p.createServerError(&errs, w)
+		p.createOldPassError(w)
 		return
 	}
 
@@ -261,5 +259,4 @@ func (p *Profile) createOldPassError(w http.ResponseWriter) {
 			"action":   "Write",
 		}).Error(err)
 	}
-	return
 }
