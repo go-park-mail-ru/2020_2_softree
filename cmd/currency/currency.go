@@ -9,10 +9,10 @@ import (
 	"log"
 	"net"
 	"os"
-	"server/src/canal/pkg/infrastructure/config"
-	"server/src/currency/pkg/infrastructure/financial"
-	"server/src/currency/pkg/infrastructure/persistence"
-	currency "server/src/currency/pkg/currency/gen"
+	"server/canal/pkg/infrastructure/config"
+	currency "server/currency/pkg/currency/gen"
+	"server/currency/pkg/infrastructure/financial"
+	"server/currency/pkg/infrastructure/persistence"
 )
 
 func init() {

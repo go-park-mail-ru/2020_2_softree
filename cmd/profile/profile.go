@@ -9,9 +9,9 @@ import (
 	"log"
 	"net"
 	"os"
-	"server/src/canal/pkg/infrastructure/config"
-	"server/src/profile/pkg/infrastructure/persistence"
-	profile "server/src/profile/pkg/profile/gen"
+	"server/canal/pkg/infrastructure/config"
+	"server/profile/pkg/infrastructure/persistence"
+	profile "server/profile/pkg/profile/gen"
 )
 
 func init() {

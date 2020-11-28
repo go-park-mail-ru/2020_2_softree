@@ -10,9 +10,9 @@ import (
 	"log"
 	"net"
 	"os"
-	"server/src/authorization/pkg/infrastructure/persistence"
-	session "server/src/authorization/pkg/session/gen"
-	"server/src/canal/pkg/infrastructure/config"
+	"server/authorization/pkg/infrastructure/persistence"
+	session "server/authorization/pkg/session/gen"
+	"server/canal/pkg/infrastructure/config"
 )
 
 func init() {

@@ -7,9 +7,9 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
-	"server/src/canal/pkg/infrastructure/config"
-	"server/src/canal/pkg/infrastructure/logger"
-	"server/src/canal/pkg/interfaces/router"
+	"server/canal/pkg/infrastructure/config"
+	"server/canal/pkg/infrastructure/logger"
+	"server/canal/pkg/interfaces/router"
 	"time"
 
 	"github.com/sirupsen/logrus"
