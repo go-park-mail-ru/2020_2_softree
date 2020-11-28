@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/fsnotify/fsnotify"
 	"path/filepath"
 
 	"github.com/spf13/viper"
@@ -24,6 +25,14 @@ func ParseConfig(filename string, defaults map[string]interface{}) error {
 	if err := viper.ReadInConfig(); err != nil {
 		return err
 	}
+
+	viper.WatchConfig()
+	viper.OnConfigChange(
+		func(event fsnotify.Event) {
+			fmt.Println("changed with event: ", event.Name)
+		},
+	)
+
 	createURLS()
 	return nil
 }
