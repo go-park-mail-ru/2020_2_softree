@@ -174,7 +174,7 @@ func (managerDB *UserDBManager) UpdateUserAvatar(ctx context.Context, in *profil
 	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
-	return nil, nil
+	return &profile.Empty{}, nil
 }
 
 func (managerDB *UserDBManager) UpdateUserPassword(ctx context.Context, in *profile.UpdateFields) (*profile.Empty, error) {
