@@ -62,7 +62,7 @@ func (managerDB *UserDBManager) AddToPaymentHistory(c context.Context, in *profi
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return &profile.Empty{}, err
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
@@ -85,12 +85,12 @@ func (managerDB *UserDBManager) AddToPaymentHistory(c context.Context, in *profi
 		in.Transaction.UpdatedAt.AsTime(),
 	)
 	if err != nil {
-		return nil, err
+		return &profile.Empty{}, err
 	}
 
 	if err = tx.Commit(); err != nil {
-		return nil, err
+		return &profile.Empty{}, err
 	}
 
-	return nil, nil
+	return &profile.Empty{}, nil
 }

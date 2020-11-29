@@ -154,7 +154,7 @@ func (managerDB *UserDBManager) UpdateUserAvatar(ctx context.Context, in *profil
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return &profile.Empty{}, err
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
@@ -168,11 +168,11 @@ func (managerDB *UserDBManager) UpdateUserAvatar(ctx context.Context, in *profil
 
 	_, err = tx.Exec("UPDATE user_trade SET avatar = $1 WHERE id = $2", in.User.Avatar, in.Id)
 	if err != nil {
-		return nil, err
+		return &profile.Empty{}, err
 	}
 
 	if err = tx.Commit(); err != nil {
-		return nil, err
+		return &profile.Empty{}, err
 	}
 	return &profile.Empty{}, nil
 }
@@ -183,7 +183,7 @@ func (managerDB *UserDBManager) UpdateUserPassword(ctx context.Context, in *prof
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return &profile.Empty{}, err
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
@@ -197,13 +197,13 @@ func (managerDB *UserDBManager) UpdateUserPassword(ctx context.Context, in *prof
 
 	_, err = tx.Exec("UPDATE user_trade SET password = $1 WHERE id = $2", in.User.NewPassword, in.Id)
 	if err != nil {
-		return nil, err
+		return &profile.Empty{}, err
 	}
 
 	if err = tx.Commit(); err != nil {
-		return nil, err
+		return &profile.Empty{}, err
 	}
-	return nil, nil
+	return &profile.Empty{}, nil
 }
 
 func (managerDB *UserDBManager) DeleteUser(ctx context.Context, in *profile.UserID) (*profile.Empty, error) {
@@ -212,7 +212,7 @@ func (managerDB *UserDBManager) DeleteUser(ctx context.Context, in *profile.User
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return &profile.Empty{}, err
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
@@ -226,14 +226,14 @@ func (managerDB *UserDBManager) DeleteUser(ctx context.Context, in *profile.User
 
 	_, err = tx.Exec("DELETE FROM user_trade WHERE id = $1", in.Id)
 	if err != nil {
-		return nil, err
+		return &profile.Empty{}, err
 	}
 
 	if err = tx.Commit(); err != nil {
-		return nil, err
+		return &profile.Empty{}, err
 	}
 
-	return nil, nil
+	return &profile.Empty{}, nil
 }
 
 func (managerDB *UserDBManager) GetUserByLogin(ctx context.Context, in *profile.User) (*profile.PublicUser, error) {

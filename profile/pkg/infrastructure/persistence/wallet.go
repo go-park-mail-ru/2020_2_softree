@@ -109,7 +109,7 @@ func (managerDB *UserDBManager) CreateWallet(ctx context.Context, in *profile.Co
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return &profile.Empty{}, err
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
@@ -129,13 +129,13 @@ func (managerDB *UserDBManager) CreateWallet(ctx context.Context, in *profile.Co
 	)
 
 	if err != nil {
-		return nil, err
+		return &profile.Empty{}, err
 	}
 	if err = tx.Commit(); err != nil {
-		return nil, err
+		return &profile.Empty{}, err
 	}
 
-	return nil, nil
+	return &profile.Empty{}, nil
 }
 
 func (managerDB *UserDBManager) CheckWallet(ctx context.Context, in *profile.ConcreteWallet) (*profile.Check, error) {
@@ -178,7 +178,7 @@ func (managerDB *UserDBManager) SetWallet(ctx context.Context, in *profile.ToSet
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return &profile.Empty{}, err
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
@@ -197,14 +197,14 @@ func (managerDB *UserDBManager) SetWallet(ctx context.Context, in *profile.ToSet
 		in.NewWallet.Value,
 	)
 	if err != nil {
-		return nil, err
+		return &profile.Empty{}, err
 	}
 
 	if err = tx.Commit(); err != nil {
-		return nil, err
+		return &profile.Empty{}, err
 	}
 
-	return nil, nil
+	return &profile.Empty{}, nil
 }
 
 func (managerDB *UserDBManager) GetWallet(ctx context.Context, in *profile.ConcreteWallet) (*profile.Wallet, error) {
@@ -251,7 +251,7 @@ func (managerDB *UserDBManager) UpdateWallet(ctx context.Context, in *profile.To
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return &profile.Empty{}, err
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
@@ -271,11 +271,11 @@ func (managerDB *UserDBManager) UpdateWallet(ctx context.Context, in *profile.To
 	)
 
 	if err != nil {
-		return nil, err
+		return &profile.Empty{}, err
 	}
 	if err = tx.Commit(); err != nil {
-		return nil, err
+		return &profile.Empty{}, err
 	}
 
-	return nil, nil
+	return &profile.Empty{}, nil
 }
