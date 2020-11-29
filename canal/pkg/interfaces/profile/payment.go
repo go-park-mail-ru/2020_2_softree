@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"server/canal/pkg/domain/entity"
 	profile "server/profile/pkg/profile/gen"
 
 	"github.com/shopspring/decimal"
@@ -11,7 +12,7 @@ import (
 )
 
 func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
-	id := r.Context().Value("id").(int64)
+	id := r.Context().Value(entity.UserIdKey).(int64)
 
 	history, err := p.profile.GetAllPaymentHistory(r.Context(), &profile.UserID{Id: id})
 	if err != nil {
@@ -50,7 +51,7 @@ func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
-	id := r.Context().Value("id").(int64)
+	id := r.Context().Value(entity.UserIdKey).(int64)
 
 	var transaction profile.PaymentHistory
 	err := json.NewDecoder(r.Body).Decode(&transaction)

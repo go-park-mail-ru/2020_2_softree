@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	session "server/authorization/pkg/session/gen"
+	"server/canal/pkg/domain/entity"
 	profile "server/profile/pkg/profile/gen"
 
 	"github.com/sirupsen/logrus"
@@ -29,7 +30,7 @@ func (a *Authentication) Auth(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "id", id.Id)
+		ctx := context.WithValue(r.Context(), entity.UserIdKey, id.Id)
 		r = r.Clone(ctx)
 
 		next.ServeHTTP(w, r)
@@ -37,7 +38,7 @@ func (a *Authentication) Auth(next http.HandlerFunc) http.HandlerFunc {
 }
 
 func (a *Authentication) Authenticate(w http.ResponseWriter, r *http.Request) {
-	id := r.Context().Value("id").(int64)
+	id := r.Context().Value(entity.UserIdKey).(int64)
 
 	var user *profile.PublicUser
 	var err error

@@ -3,13 +3,14 @@ package profile
 import (
 	"encoding/json"
 	"net/http"
+	"server/canal/pkg/domain/entity"
 	profile "server/profile/pkg/profile/gen"
 
 	"github.com/sirupsen/logrus"
 )
 
 func (p *Profile) GetWallets(w http.ResponseWriter, r *http.Request) {
-	id := r.Context().Value("id").(int64)
+	id := r.Context().Value(entity.UserIdKey).(int64)
 
 	wallets, err := p.profile.GetWallets(r.Context(), &profile.UserID{Id: id})
 	if err != nil {
@@ -64,7 +65,7 @@ func (p *Profile) SetWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
-	wallet.Id = r.Context().Value("id").(int64)
+	wallet.Id = r.Context().Value(entity.UserIdKey).(int64)
 
 	if _, err = p.profile.CreateWallet(r.Context(), &wallet); err != nil {
 		logrus.WithFields(logrus.Fields{

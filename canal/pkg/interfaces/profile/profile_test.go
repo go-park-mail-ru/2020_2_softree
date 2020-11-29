@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"server/canal/pkg/domain/entity"
 	"server/canal/pkg/infrastructure/mock"
 	profileHTTP "server/canal/pkg/interfaces/profile"
 	currencyMock "server/currency/pkg/infrastructure/mock"
@@ -298,7 +299,7 @@ func createExpectedUser() *profileService.PublicUser {
 }
 
 func createContext(req **http.Request) context.Context {
-	ctx := context.WithValue((*req).Context(), "id", int64(id))
+	ctx := context.WithValue((*req).Context(), entity.UserIdKey, int64(id))
 	*req = (*req).Clone(ctx)
 	return ctx
 }

@@ -21,7 +21,7 @@ func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	user.Id = r.Context().Value("id").(int64)
+	user.Id = r.Context().Value(entity.UserIdKey).(int64)
 	defer r.Body.Close()
 
 	if !p.validate("Avatar", &user) {
@@ -83,7 +83,7 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	user.Id = r.Context().Value("id").(int64)
+	user.Id = r.Context().Value(entity.UserIdKey).(int64)
 
 	if !p.validate("Passwords", &user) {
 		w.WriteHeader(http.StatusBadRequest)
@@ -165,7 +165,7 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Profile) GetUser(w http.ResponseWriter, r *http.Request) {
-	id := r.Context().Value("id").(int64)
+	id := r.Context().Value(entity.UserIdKey).(int64)
 
 	var err error
 	var public *profile.PublicUser
@@ -201,7 +201,7 @@ func (p *Profile) GetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Profile) GetUserWatchlist(w http.ResponseWriter, r *http.Request) {
-	id := r.Context().Value("id").(int64)
+	id := r.Context().Value(entity.UserIdKey).(int64)
 
 	currencies, err := p.profile.GetUserWatchlist(r.Context(), &profile.UserID{Id: id})
 	if err != nil {

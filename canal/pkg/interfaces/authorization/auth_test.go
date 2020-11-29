@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	authMock "server/authorization/pkg/infrastructure/mock"
 	session "server/authorization/pkg/session/gen"
+	"server/canal/pkg/domain/entity"
 	"server/canal/pkg/infrastructure/mock"
 	profileMock "server/profile/pkg/infrastructure/mock"
 	profile "server/profile/pkg/profile/gen"
@@ -35,7 +36,7 @@ func TestAuth_Success(t *testing.T) {
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
 
-	ctx := context.WithValue(req.Context(), "id", int64(id))
+	ctx := context.WithValue(req.Context(), entity.UserIdKey, int64(id))
 	req = req.Clone(ctx)
 	testAuth, ctrl := createAuthSuccess(t, req.Context())
 	defer ctrl.Finish()
@@ -117,13 +118,7 @@ func TestAuth_FailNoUser(t *testing.T) {
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
 
-	// линтер ругается если используем базовые типы в Value контекста
-	// типа так безопаснее разграничивать
-	type key string
-
-	const idKey key = "id"
-
-	ctx := context.WithValue(req.Context(), idKey, int64(id))
+	ctx := context.WithValue(req.Context(), entity.UserIdKey, int64(id))
 	req = req.Clone(ctx)
 	testAuth, ctrl := createAuthFailUser(t, ctx)
 	defer ctrl.Finish()
@@ -197,7 +192,7 @@ func createAuthFailUser(t *testing.T, ctx context.Context) (*Authentication, *go
 }
 
 func empty(w http.ResponseWriter, r *http.Request) {
-	UserId := r.Context().Value("id").(int64)
+	UserId := r.Context().Value(entity.UserIdKey).(int64)
 
 	if UserId == id {
 		w.WriteHeader(http.StatusOK)
