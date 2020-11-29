@@ -137,7 +137,7 @@ func TestRateDBManager_GetRate_Fail(t *testing.T) {
 	date := ptypes.TimestampNow()
 	expected := currency.Currency{Title: "USD", Value: 1.0, UpdatedAt: date}
 	rows := sqlmock.NewRows([]string{"value", "updated_at"})
-	rows = rows.AddRow(expected.Value, date)
+	rows.AddRow(expected.Value, date)
 
 	mock.ExpectBegin()
 	mock.
@@ -196,7 +196,7 @@ func TestRateDBManager_GetLastRate_Fail(t *testing.T) {
 	date := ptypes.TimestampNow()
 	expected := currency.Currency{Title: "USD", Value: 1.0, UpdatedAt: date}
 	rows := sqlmock.NewRows([]string{"value", "updated_at"})
-	rows = rows.AddRow(expected.Value, date)
+	rows.AddRow(expected.Value, date)
 
 	mock.ExpectBegin()
 	mock.

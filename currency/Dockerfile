@@ -6,13 +6,15 @@ ADD . .
 
 ENV CGO_ENABLED=0
 
-RUN make build
+RUN make TARGET="currency" build
 
 # Enviroment
 FROM alpine:latest
 
 WORKDIR /app
 RUN mkdir /etc/moneycat
-COPY --from=build /app/bin/mc .
+COPY --from=build /app/bin/currency .
 
-ENTRYPOINT ["/app/mc"]
+ENTRYPOINT ["/app/currency"]
+
+EXPOSE 8000

@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"google.golang.org/grpc"
 	"log"
 	"math/rand"
 	"net/http"
@@ -12,18 +11,20 @@ import (
 	"server/canal/pkg/interfaces/router"
 	"time"
 
+	"google.golang.org/grpc"
+
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
 func init() {
-	pflag.StringP("viper", "c", "", "path to viper file")
+	pflag.StringP("config", "c", "", "path to config file")
 	pflag.BoolP("help", "h", false, "usage info")
 
 	pflag.Parse()
 	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
-		log.Fatal(err)
+		log.Fatalln(err)
 	}
 
 	if viper.GetBool("help") {
@@ -32,7 +33,7 @@ func init() {
 	}
 
 	if err := config.ParseConfig(
-		viper.GetString("viper"),
+		viper.GetString("config"),
 		map[string]interface{}{
 			"server": map[string]interface{}{
 				"ip":       "127.0.0.1",
@@ -42,6 +43,21 @@ func init() {
 				"logLevel": "Info",
 				"logFile":  "",
 				"timeout":  10,
+			},
+
+			"session": map[string]interface{}{
+				"ip":   "127.0.0.1",
+				"port": 8001,
+			},
+
+			"profile": map[string]interface{}{
+				"ip":   "127.0.0.1",
+				"port": 8002,
+			},
+
+			"currency": map[string]interface{}{
+				"ip":   "127.0.0.1",
+				"port": 8003,
 			},
 
 			"CORS": map[string]interface{}{
@@ -74,27 +90,43 @@ func init() {
 	}
 
 	if err := logger.ConfigureLogger(); err != nil {
-		log.Fatal(err)
+		log.Fatalln(err)
 	}
 	rand.Seed(time.Now().UnixNano())
 }
 
 func main() {
-	sessionConn, err := grpc.Dial("127.0.0.1:8081", grpc.WithInsecure())
+	sessionConn, err := grpc.Dial(
+		fmt.Sprintf("%s:%d", viper.GetString("session.ip"), viper.GetInt("session.port")),
+		grpc.WithInsecure(),
+	)
 	if err != nil {
-		log.Fatalf("cant connect to session grpc")
+		logrus.WithFields(logrus.Fields{
+			"function": "main",
+		}).Fatalln("Can't connect to session grpc", err)
 	}
-	profileConn, err := grpc.Dial("127.0.0.1:8082", grpc.WithInsecure())
-	if err != nil {
-		log.Fatalf("cant connect to profile grpc")
-	}
-	currencyConn, err := grpc.Dial("127.0.0.1:8083", grpc.WithInsecure())
-	if err != nil {
-		log.Fatalf("cant connect to currency grpc")
-	}
-
 	defer sessionConn.Close()
+
+	profileConn, err := grpc.Dial(
+		fmt.Sprintf("%s:%d", viper.GetString("profile.ip"), viper.GetInt("profile.port")),
+		grpc.WithInsecure(),
+	)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"function": "main",
+		}).Fatalln("Can't connect to profile grpc", err)
+	}
 	defer profileConn.Close()
+
+	currencyConn, err := grpc.Dial(
+		fmt.Sprintf("%s:%d", viper.GetString("currency.ip"), viper.GetInt("currency.port")),
+		grpc.WithInsecure(),
+	)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"function": "main",
+		}).Fatalln("Can't connect to currency grpc", err)
+	}
 	defer currencyConn.Close()
 
 	userAuthenticate, userProfile, rateRates := router.CreateAppStructs(profileConn, sessionConn, currencyConn)
@@ -108,7 +140,7 @@ func main() {
 
 	if err := server.ListenAndServe(); err != nil {
 		logrus.WithFields(logrus.Fields{
-			"function": "canal",
+			"function": "main",
 		}).Fatal("Server cannot start", err)
 	}
 }

@@ -2,9 +2,12 @@ package persistence
 
 import (
 	"context"
-	"github.com/golang/protobuf/ptypes"
+	"fmt"
+	"log"
 	profile "server/profile/pkg/profile/gen"
 	"time"
+
+	"github.com/golang/protobuf/ptypes"
 )
 
 func (managerDB *UserDBManager) GetAllPaymentHistory(c context.Context, in *profile.UserID) (*profile.AllHistory, error) {
@@ -15,7 +18,11 @@ func (managerDB *UserDBManager) GetAllPaymentHistory(c context.Context, in *prof
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Println(fmt.Errorf("GetAllPaymentHistory: %v", err))
+		}
+	}()
 
 	result, err := tx.Query(
 		"SELECT from_title, to_title, value, amount, updated_at FROM payment_history WHERE user_id = $1",
@@ -54,7 +61,11 @@ func (managerDB *UserDBManager) AddToPaymentHistory(c context.Context, in *profi
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Println(fmt.Errorf("AddToPaymentHistory: %v", err))
+		}
+	}()
 
 	in.Transaction.UpdatedAt = ptypes.TimestampNow()
 	_, err = tx.Exec(

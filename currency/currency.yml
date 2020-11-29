@@ -1,7 +1,12 @@
+---
+server:
+  ip: '0.0.0.0'
+  port: 8000
+
 postgres:
   host: 'postgres'
   port: 5432
-  db: 'moneycat'
+  db: 'currency'
   user: 'currency'
   password: '123'
 

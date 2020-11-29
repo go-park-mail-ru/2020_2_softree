@@ -2,25 +2,29 @@ package main
 
 import (
 	"fmt"
-	"github.com/gomodule/redigo/redis"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
-	"google.golang.org/grpc"
 	"log"
 	"net"
 	"os"
 	"server/authorization/pkg/infrastructure/persistence"
 	session "server/authorization/pkg/session/gen"
 	"server/canal/pkg/infrastructure/config"
+	"server/canal/pkg/infrastructure/logger"
+
+	"github.com/gomodule/redigo/redis"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
+	"google.golang.org/grpc"
 )
 
 func init() {
-	pflag.StringP("viper", "c", "", "path to viper file")
+	pflag.StringP("config", "c", "", "path to viper file")
 	pflag.BoolP("help", "h", false, "usage info")
 
 	pflag.Parse()
-	_ = viper.BindPFlags(pflag.CommandLine)
+	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
+		log.Fatalln(err)
+	}
 
 	if viper.GetBool("help") {
 		pflag.Usage()
@@ -28,8 +32,14 @@ func init() {
 	}
 
 	if err := config.ParseConfig(
-		viper.GetString("viper"),
+		viper.GetString("config"),
 		map[string]interface{}{
+			"server": map[string]interface{}{
+				"ip":   "127.0.0.1",
+				"port": 8001,
+				"logLevel": "Info",
+			},
+
 			"redis": map[string]interface{}{
 				"host": "127.0.0.1",
 				"port": 6379,
@@ -38,31 +48,43 @@ func init() {
 		}); err != nil {
 		log.Fatalln("Error during parse defaults", err)
 	}
+
+	if err := logger.ConfigureLogger(); err != nil {
+		log.Fatalln(err)
+	}
 }
 
 func main() {
-	lis, err := net.Listen("tcp", ":8081")
+	connect, err := redis.DialURL(fmt.Sprintf("redis://%s:%s:%d",
+		viper.GetString("redis.user"),
+		viper.GetString("redis.host"),
+		viper.GetInt("redis.port"),
+	))
 	if err != nil {
-		log.Fatalln("cant listen port", err)
+		logrus.WithFields(logrus.Fields{
+			"function": "main",
+			"action":   "connect to redis",
+		}).Fatalln(err)
 	}
 
 	server := grpc.NewServer()
 
-	fmt.Println(viper.GetString("redis.URL"))
-	connect, err := redis.DialURL(viper.GetString("redis.URL"))
-	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"infrastructure": "session",
-			"action":         "connect to redis",
-		}).Error(err)
-	}
 	session.RegisterAuthorizationServiceServer(server, persistence.NewSessionManager(connect))
 
-	fmt.Println("starting server at :8081")
+	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d",
+		viper.GetString("server.ip"),
+		viper.GetInt("server.port"),
+	))
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"function": "main",
+			"action":   "starting listening tcp port",
+		}).Fatalln(err)
+	}
+
 	if err := server.Serve(lis); err != nil {
 		logrus.WithFields(logrus.Fields{
-			"infrastructure": "session",
-			"action":         "Serve",
-		}).Error(err)
+			"action": "Starting server",
+		}).Fatalln(err)
 	}
 }

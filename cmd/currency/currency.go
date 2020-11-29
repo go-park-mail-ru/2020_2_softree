@@ -3,25 +3,30 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	_ "github.com/lib/pq"
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
-	"google.golang.org/grpc"
 	"log"
 	"net"
 	"os"
 	"server/canal/pkg/infrastructure/config"
+	"server/canal/pkg/infrastructure/logger"
 	currency "server/currency/pkg/currency/gen"
 	"server/currency/pkg/infrastructure/financial"
 	"server/currency/pkg/infrastructure/persistence"
+
+	_ "github.com/lib/pq"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
+	"google.golang.org/grpc"
 )
 
 func init() {
-	pflag.StringP("viper", "c", "", "path to viper file")
+	pflag.StringP("config", "c", "", "path to viper file")
 	pflag.BoolP("help", "h", false, "usage info")
 
 	pflag.Parse()
-	_ = viper.BindPFlags(pflag.CommandLine)
+	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
+		log.Fatalln(err)
+	}
 
 	if viper.GetBool("help") {
 		pflag.Usage()
@@ -29,8 +34,14 @@ func init() {
 	}
 
 	if err := config.ParseConfig(
-		viper.GetString("viper"),
+		viper.GetString("config"),
 		map[string]interface{}{
+			"server": map[string]interface{}{
+				"ip":   "127.0.0.1",
+				"port": 8003,
+				"logLevel": "Info",
+			},
+
 			"postgres": map[string]interface{}{
 				"host":     "127.0.0.1",
 				"port":     5432,
@@ -41,33 +52,51 @@ func init() {
 		}); err != nil {
 		log.Fatalln("Error during parse defaults", err)
 	}
+
+	if err := logger.ConfigureLogger(); err != nil {
+		log.Fatalln(err)
+	}
 }
 
 func main() {
-	lis, err := net.Listen("tcp", ":8083")
+	db, err := sql.Open("postgres", fmt.Sprintf(
+		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		viper.GetString("postgres.host"),
+		viper.GetInt("postgres.port"),
+		viper.GetString("postgres.user"),
+		viper.GetString("postgres.password"),
+		viper.GetString("postgres.db"),
+	))
 	if err != nil {
-		log.Fatalln("cant listen port", err)
-	}
-
-	server := grpc.NewServer()
-
-	db, err := sql.Open("postgres", viper.GetString("postgres.URL"))
-	if err != nil {
-		log.Fatalln("cant connect to postgres", err)
+		logrus.WithFields(logrus.Fields{
+			"function": "main",
+		}).Fatalln("Can't connect to postgres", err)
 	}
 	err = db.Ping()
 	if err != nil {
-		log.Fatalln("cant ping", err)
+		logrus.WithFields(logrus.Fields{
+			"function": "main",
+		}).Fatalln("Can't ping postgres", err)
 	}
 	db.SetMaxOpenConns(10)
 
 	manager := persistence.NewRateDBManager(db, financial.NewForexAPI())
+
+	server := grpc.NewServer()
 	currency.RegisterCurrencyServiceServer(server, manager)
 
 	go manager.GetRatesFromApi()
 
-	fmt.Println("starting server at :8083")
+	lis, err := net.Listen("tcp", ":8083")
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"function": "main",
+		}).Fatalln("Can't listening port", err)
+	}
+
 	if err := server.Serve(lis); err != nil {
-		log.Fatalln("cant listen port", err)
+		logrus.WithFields(logrus.Fields{
+			"function": "main",
+		}).Fatalln("Can't start server", err)
 	}
 }

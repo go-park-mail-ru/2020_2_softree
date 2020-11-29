@@ -14,7 +14,6 @@ require (
 	github.com/gomodule/redigo v1.8.2
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
-	github.com/jasonlvhit/gocron v0.0.1 // indirect
 	github.com/lib/pq v1.8.0
 	github.com/microcosm-cc/bluemonday v1.0.4
 	github.com/shopspring/decimal v1.2.0
@@ -30,7 +29,6 @@ require (
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20201119123407-9b1e624d6bc4 // indirect
 	google.golang.org/grpc v1.33.2
-	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.0.1 // indirect
 	google.golang.org/protobuf v1.25.0
 	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0
 	gopkg.in/yaml.v2 v2.3.0 // indirect

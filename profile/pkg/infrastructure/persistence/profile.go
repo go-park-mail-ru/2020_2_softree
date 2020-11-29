@@ -4,9 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"golang.org/x/crypto/bcrypt"
+	"fmt"
+	"log"
 	profile "server/profile/pkg/profile/gen"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserDBManager struct {
@@ -25,7 +28,11 @@ func (managerDB *UserDBManager) GetUserById(c context.Context, in *profile.UserI
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Println(fmt.Errorf("GetUserById: %v", err))
+		}
+	}()
 
 	row := tx.QueryRow("SELECT id, email, avatar FROM user_trade WHERE id = $1", in.Id)
 
@@ -41,14 +48,18 @@ func (managerDB *UserDBManager) GetUserById(c context.Context, in *profile.UserI
 }
 
 func (managerDB *UserDBManager) CheckExistence(ctx context.Context, in *profile.User) (*profile.Check, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Println(fmt.Errorf("CheckExistence: %v", err))
+		}
+	}()
 
 	row := tx.QueryRow("SELECT COUNT(id) FROM user_trade WHERE email = $1", in.Email)
 
@@ -64,14 +75,18 @@ func (managerDB *UserDBManager) CheckExistence(ctx context.Context, in *profile.
 }
 
 func (managerDB *UserDBManager) CheckPassword(ctx context.Context, in *profile.User) (*profile.Check, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Println(fmt.Errorf("CheckPassword: %v", err))
+		}
+	}()
 
 	var userPassword string
 	if err := tx.QueryRow("SELECT password FROM user_trade WHERE id = $1", in.Id).Scan(&userPassword); err != nil {
@@ -89,14 +104,18 @@ func (managerDB *UserDBManager) CheckPassword(ctx context.Context, in *profile.U
 }
 
 func (managerDB *UserDBManager) SaveUser(ctx context.Context, in *profile.User) (*profile.PublicUser, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Println(fmt.Errorf("SaveUser: %v", err))
+		}
+	}()
 
 	var lastID int64
 	err = tx.
@@ -113,14 +132,18 @@ func (managerDB *UserDBManager) SaveUser(ctx context.Context, in *profile.User) 
 }
 
 func (managerDB *UserDBManager) UpdateUserAvatar(ctx context.Context, in *profile.UpdateFields) (*profile.Empty, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Println(fmt.Errorf("UpdateUserAvatar: %v", err))
+		}
+	}()
 
 	_, err = tx.Exec("UPDATE user_trade SET avatar = $1 WHERE id = $2", in.User.Avatar, in.Id)
 	if err != nil {
@@ -134,14 +157,18 @@ func (managerDB *UserDBManager) UpdateUserAvatar(ctx context.Context, in *profil
 }
 
 func (managerDB *UserDBManager) UpdateUserPassword(ctx context.Context, in *profile.UpdateFields) (*profile.Empty, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Println(fmt.Errorf("UpdateUserPassword: %v", err))
+		}
+	}()
 
 	_, err = tx.Exec("UPDATE user_trade SET password = $1 WHERE id = $2", in.User.NewPassword, in.Id)
 	if err != nil {
@@ -155,14 +182,18 @@ func (managerDB *UserDBManager) UpdateUserPassword(ctx context.Context, in *prof
 }
 
 func (managerDB *UserDBManager) DeleteUser(ctx context.Context, in *profile.UserID) (*profile.Empty, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Println(fmt.Errorf("DeleteUser: %v", err))
+		}
+	}()
 
 	_, err = tx.Exec("DELETE FROM user_trade WHERE id = $1", in.Id)
 	if err != nil {
@@ -177,14 +208,18 @@ func (managerDB *UserDBManager) DeleteUser(ctx context.Context, in *profile.User
 }
 
 func (managerDB *UserDBManager) GetUserByLogin(ctx context.Context, in *profile.User) (*profile.PublicUser, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Println(fmt.Errorf("GetUserByLogin: %v", err))
+		}
+	}()
 
 	var password string
 	row := tx.QueryRow("SELECT id, password, avatar FROM user_trade WHERE email = $1", in.Email)
@@ -204,14 +239,18 @@ func (managerDB *UserDBManager) GetUserByLogin(ctx context.Context, in *profile.
 }
 
 func (managerDB *UserDBManager) GetUserWatchlist(ctx context.Context, in *profile.UserID) (*profile.Currencies, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Println(fmt.Errorf("GetUserWatchlist: %v", err))
+		}
+	}()
 
 	result, err := tx.Query("SELECT base_title, currency_title FROM watchlist WHERE user_id = $1", in.Id)
 	if err != nil {

@@ -2,13 +2,15 @@ package persistence_test
 
 import (
 	"context"
-	"github.com/alicebob/miniredis/v2"
-	"github.com/gomodule/redigo/redis"
-	"github.com/stretchr/testify/require"
 	database "server/authorization/pkg/infrastructure/persistence"
 	session "server/authorization/pkg/session/gen"
 	"strconv"
 	"testing"
+
+	"github.com/alicebob/miniredis/v2"
+	"github.com/gomodule/redigo/redis"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewSessionManager_Success(t *testing.T) {
@@ -17,6 +19,7 @@ func TestNewSessionManager_Success(t *testing.T) {
 	defer s.Close()
 
 	c, err := redis.Dial("tcp", s.Addr())
+	assert.NoError(t, err)
 	sessionManager := database.NewSessionManager(c)
 
 	require.EqualValues(t, c, sessionManager.RedisConn)
@@ -33,6 +36,7 @@ func TestCreate_Success(t *testing.T) {
 	defer s.Close()
 
 	c, err := redis.Dial("tcp", s.Addr())
+	require.NoError(t, err)
 	sessionManager := database.NewSessionManager(c)
 
 	ctx := context.Background()
@@ -55,7 +59,7 @@ func TestCheck_Success(t *testing.T) {
 	sessionManager := database.NewSessionManager(c)
 
 	ctx := context.Background()
-	require.NoError(t, s.Set("sessions:" + sessionId, strconv.Itoa(userId)))
+	require.NoError(t, s.Set("sessions:"+sessionId, strconv.Itoa(userId)))
 
 	id, err := sessionManager.Check(ctx, &session.SessionID{SessionId: sessionId})
 	require.NoError(t, err)
@@ -85,10 +89,11 @@ func TestDelete_Success(t *testing.T) {
 	defer s.Close()
 
 	c, err := redis.Dial("tcp", s.Addr())
+	require.NoError(t, err)
 	sessionManager := database.NewSessionManager(c)
 
 	ctx := context.Background()
-	require.NoError(t, s.Set("sessions:" + sessionId, strconv.Itoa(userId)))
+	require.NoError(t, s.Set("sessions:"+sessionId, strconv.Itoa(userId)))
 	_, err = sessionManager.Delete(ctx, &session.SessionID{SessionId: sessionId})
 	require.NoError(t, err)
 

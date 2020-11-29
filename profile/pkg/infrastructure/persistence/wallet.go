@@ -2,20 +2,27 @@ package persistence
 
 import (
 	"context"
-	"github.com/shopspring/decimal"
+	"fmt"
+	"log"
 	profile "server/profile/pkg/profile/gen"
 	"time"
+
+	"github.com/shopspring/decimal"
 )
 
 func (managerDB *UserDBManager) GetWallets(ctx context.Context, in *profile.UserID) (*profile.Wallets, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Println(fmt.Errorf("GetWallets: %v", err))
+		}
+	}()
 
 	result, err := tx.Query(
 		"SELECT title, value FROM accounts WHERE user_id = $1",
@@ -52,8 +59,7 @@ func (managerDB *UserDBManager) GetWallets(ctx context.Context, in *profile.User
 		money, _ := decimal.New(100000, 0).Float64()
 		wallets.Wallets = append(
 			wallets.Wallets,
-			&profile.Wallet{Title: "RUB", Value: money,
-			})
+			&profile.Wallet{Title: "RUB", Value: money})
 	}
 
 	return &wallets, nil
@@ -67,7 +73,11 @@ func (managerDB *UserDBManager) createInitialWallet(id int64) error {
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Println(fmt.Errorf("createInitialWallet: %v", err))
+		}
+	}()
 
 	_, err = tx.Exec(
 		"INSERT INTO accounts (user_id, title, value) VALUES ($1, $2, $3)",
@@ -87,14 +97,18 @@ func (managerDB *UserDBManager) createInitialWallet(id int64) error {
 }
 
 func (managerDB *UserDBManager) CreateWallet(ctx context.Context, in *profile.ConcreteWallet) (*profile.Empty, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Println(fmt.Errorf("CreateWallet: %v", err))
+		}
+	}()
 
 	_, err = tx.Exec(
 		"INSERT INTO accounts (user_id, title, value) VALUES ($1, $2, $3)",
@@ -114,14 +128,18 @@ func (managerDB *UserDBManager) CreateWallet(ctx context.Context, in *profile.Co
 }
 
 func (managerDB *UserDBManager) CheckWallet(ctx context.Context, in *profile.ConcreteWallet) (*profile.Check, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Println(fmt.Errorf("CheckWallet: %v", err))
+		}
+	}()
 
 	row := tx.QueryRow("SELECT COUNT(user_id) FROM accounts WHERE EXISTS(select * FROM accounts WHERE user_id = $1 AND title = $2)",
 		in.Id,
@@ -140,14 +158,18 @@ func (managerDB *UserDBManager) CheckWallet(ctx context.Context, in *profile.Con
 }
 
 func (managerDB *UserDBManager) SetWallet(ctx context.Context, in *profile.ToSetWallet) (*profile.Empty, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Println(fmt.Errorf("SetWallet: %v", err))
+		}
+	}()
 
 	_, err = tx.Exec(
 		"INSERT INTO accounts (user_id, title, value) VALUES ($1, $2, $3)",
@@ -167,14 +189,18 @@ func (managerDB *UserDBManager) SetWallet(ctx context.Context, in *profile.ToSet
 }
 
 func (managerDB *UserDBManager) GetWallet(ctx context.Context, in *profile.ConcreteWallet) (*profile.Wallet, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Println(fmt.Errorf("GetWallet: %v", err))
+		}
+	}()
 
 	row := tx.QueryRow(
 		"SELECT value FROM accounts WHERE user_id = $1 AND title = $2",
@@ -197,14 +223,18 @@ func (managerDB *UserDBManager) GetWallet(ctx context.Context, in *profile.Concr
 }
 
 func (managerDB *UserDBManager) UpdateWallet(ctx context.Context, in *profile.ToSetWallet) (*profile.Empty, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Println(fmt.Errorf("UpdateWallet: %v", err))
+		}
+	}()
 
 	_, err = tx.Exec(
 		"UPDATE accounts SET value = value + $1 WHERE user_id = $2 AND title = $3",

@@ -1,25 +1,57 @@
 version: "3.8"
 services:
-  api:
-    build: .
-    image: moneycat:dev
+  canal:
+    build:
+      context: .
+      dockerfile: ./canal/Dockerfile
     ports:
-    - 127.0.0.1:8000:80
+      - 127.0.0.1:8000:8000
     volumes:
-    - ./config.yml:/etc/moneycat/moneycat.yml
-    command: ["-c", "/etc/moneycat/moneycat.yml"]
+      - ./canal/canal.yml:/etc/moneycat/canal.yml
+    command: ["-c", "/etc/moneycat/canal.yml"]
     depends_on:
-      - "postgres"
-      - "redis"
+      - profile
+      - authorization
+      - currency
+
+  profile:
+    build:
+      context: .
+      dockerfile: ./profile/Dockerfile
+    volumes:
+      - ./profile/profile.yml:/etc/moneycat/profile.yml
+    command: ["-c", "/etc/moneycat/profile.yml"]
+    depends_on:
+      - postgres
+
+  authorization:
+    build:
+      context: .
+      dockerfile: ./authorization/Dockerfile
+    volumes:
+      - ./authorization/authorization.yml:/etc/moneycat/authorization.yml
+    command: ["-c", "/etc/moneycat/authorization.yml"]
+    depends_on:
+      - redis
+
+  currency:
+    build:
+      context: .
+      dockerfile: ./currency/Dockerfile
+    volumes:
+      - ./currency/currency.yml:/etc/moneycat/currency.yml
+    command: ["-c", "/etc/moneycat/currency.yml"]
+    depends_on:
+      - postgres
 
   postgres:
-    image: postgres:latest
+    build:
+      context: postgres
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: NeverGonnaGiveYouUp
-      POSTGRES_DB: moneycat
+      - POSTGRES_MULTIPLE_DATABASES=profile,profile,123:currency,currency,123
+      - POSTGRES_PASSWORD=password
     volumes:
-      - ./backup.sql:/backup.sql
+      - ./postgres/backups:/backups
 
   redis:
     image: redis:alpine

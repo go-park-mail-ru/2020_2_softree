@@ -6,36 +6,30 @@ VERSION  = $(shell date '+%Y%m%d%H%M%S')
 BRANCH   = $(shell git rev-parse --abbrev-ref HEAD)
 REVISION = $(shell git rev-parse --short HEAD)
 
-GOPREFIX  = github.com/go-park-mail-ru/2020_2_softree/build
+GOPREFIX  = github.com/go-park-mail-ru/2020_2_softree
 LDFLAGS   = \
 			-X $(GOPREFIX).Version=$(VERSION) \
 			-X $(GOPREFIX).Branch=$(BRANCH) \
 			-X $(GOPREFIX).Revision=$(REVISION)
 
 GOTAGS ?=
-ifeq ($(DEBUG), 1)
-	GOTAGS = debug
-endif
-
 ifneq ($(GOTAGS),)
 	GOTAGS := -tags $(GOTAGS)
 endif
-
-DOCKERFILE = Dockerfile
-ifeq ($(DEBUG), 1)
-	DOCKERFILE = Dockerfile.debug
-endif
-
 
 .PHONY: all
 all: build
 
 .PHONY: build
 build:
+ifndef TARGET
+	@echo 'build target is not defined'
+else
 	go build $(GOTAGS) \
 		-ldflags '$(LDFLAGS)' \
-		-o bin/mc \
-		./src
+		-o bin/$(TARGET) \
+		./cmd/$(TARGET)
+endif
 
 .PHONY: test
 test:
@@ -43,7 +37,7 @@ test:
 
 .PHONY: fmt
 fmt:
-	gofmt -s -w src
+	gofmt -s -w ./cmd
 
 .PHONY: tidy
 tidy:
@@ -55,11 +49,15 @@ vendor: tidy
 
 .PHONY: docker-build
 docker-build: vendor
-	docker build -f $(DOCKERFILE) -t mc_api .
+ifndef TARGET
+	@echo 'build target is not defined'
+else
+		docker build -f docker-images/Dockerfile.$(TARGET) -t $(TARGET) .
+endif
 
 .PHONY: run
-run: deps
-	go run ./src/main.go
+run:
+	docker-compose up -d --build
 
 .PHONY: deps
 deps:
