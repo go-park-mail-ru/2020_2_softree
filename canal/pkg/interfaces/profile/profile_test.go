@@ -56,7 +56,7 @@ func createUpdateAvatarSuccess(t *testing.T, ctx context.Context) (*profileHTTP.
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockUser.EXPECT().
 		UpdateUserAvatar(ctx, &profileService.UpdateFields{Id: id, User: &profileService.User{Id: id, Avatar: avatar}}).
-		Return(nil, nil)
+		Return(&profileService.Empty{}, nil)
 	mockUser.EXPECT().
 		GetUserById(ctx, &profileService.UserID{Id: id}).
 		Return(createExpectedUser(), nil)
@@ -91,7 +91,7 @@ func createUpdateAvatarFail(t *testing.T, ctx context.Context) (*profileHTTP.Pro
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockUser.EXPECT().
 		UpdateUserAvatar(ctx, &profileService.UpdateFields{Id: id, User: &profileService.User{Id: id, Avatar: avatar}}).
-		Return(nil, errors.New("createUpdateAvatarFail"))
+		Return(&profileService.Empty{}, errors.New("createUpdateAvatarFail"))
 
 	mockSecurity := mock.NewSecurityMock(ctrl)
 
@@ -129,7 +129,7 @@ func createUpdatePasswordSuccess(t *testing.T, ctx context.Context) (*profileHTT
 			ctx,
 			&profileService.UpdateFields{Id: id, User: &profileService.User{Id: id, OldPassword: oldPassword, NewPassword: newPassword}},
 		).
-		Return(nil, nil)
+		Return(&profileService.Empty{}, nil)
 	mockUser.EXPECT().
 		GetUserById(ctx, &profileService.UserID{Id: id}).
 		Return(createExpectedUser(), nil)
@@ -224,7 +224,7 @@ func createGetUserFail(t *testing.T, ctx context.Context) (*profileHTTP.Profile,
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockUser.EXPECT().
 		GetUserById(ctx, &profileService.UserID{Id: id}).
-		Return(nil, errors.New("createGetUserFail"))
+		Return(&profileService.PublicUser{}, errors.New("createGetUserFail"))
 
 	mockSecurity := mock.NewSecurityMock(ctrl)
 

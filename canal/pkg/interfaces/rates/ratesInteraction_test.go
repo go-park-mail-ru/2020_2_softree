@@ -36,7 +36,7 @@ func createForexRateSuccess(t *testing.T, ctx context.Context) (*Rates, *gomock.
 
 	rateMock := mock.NewRateRepositoryForMock(ctrl)
 	rateMock.EXPECT().
-		GetRates(ctx, nil).
+		GetRates(ctx, &currencyService.Empty{}).
 		Return(createRates(), nil)
 
 	return NewRates(rateMock), ctrl
@@ -60,7 +60,7 @@ func createForexRateFail(t *testing.T, ctx context.Context) (*Rates, *gomock.Con
 
 	rateMock := mock.NewRateRepositoryForMock(ctrl)
 	rateMock.EXPECT().
-		GetRates(ctx, nil).
+		GetRates(ctx, &currencyService.Empty{}).
 		Return(nil, errors.New("createForexRateFail"))
 
 	return NewRates(rateMock), ctrl

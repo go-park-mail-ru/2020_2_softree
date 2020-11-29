@@ -44,7 +44,7 @@ func TestRateDBManager_GetRates_Success(t *testing.T) {
 	defer db.Close()
 
 	rows := sqlmock.NewRows([]string{"title", "value", "updated_at"})
-	date := ptypes.TimestampNow()
+	date := time.Now()
 	for name, data := range testData {
 		rows = rows.AddRow(name, data, date)
 	}
@@ -64,9 +64,11 @@ func TestRateDBManager_GetRates_Success(t *testing.T) {
 	currencies, err := repo.GetRates(ctx, nil)
 	require.NoError(t, err)
 
+	timestamp, err := ptypes.TimestampProto(date)
+	require.NoError(t, err)
 	for _, curr := range currencies.Rates {
 		require.EqualValues(t, testData[curr.Title], curr.Value)
-		require.EqualValues(t, date, curr.UpdatedAt)
+		require.EqualValues(t, timestamp, curr.UpdatedAt)
 	}
 }
 
@@ -104,7 +106,7 @@ func TestRateDBManager_GetRate_Success(t *testing.T) {
 	date := ptypes.TimestampNow()
 	expected := currency.Currency{Title: "USD", Value: 1.0, UpdatedAt: date}
 	rows := sqlmock.NewRows([]string{"value", "updated_at"})
-	rows = rows.AddRow(expected.Value, date)
+	rows = rows.AddRow(expected.Value, date.AsTime())
 
 	mock.ExpectBegin()
 	mock.
@@ -164,7 +166,7 @@ func TestRateDBManager_GetLastRate_Success(t *testing.T) {
 	date := ptypes.TimestampNow()
 	expected := currency.Currency{Title: "USD", Value: 1.0, UpdatedAt: date}
 	rows := sqlmock.NewRows([]string{"value", "updated_at"})
-	rows = rows.AddRow(expected.Value, date)
+	rows = rows.AddRow(expected.Value, date.AsTime())
 
 	mock.ExpectBegin()
 	mock.
