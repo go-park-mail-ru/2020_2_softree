@@ -27,7 +27,13 @@ func (a *Authentication) Auth(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "id", id.Id)
+		// линтер ругается если используем базовые типы в Value контекста
+		// типа так безопаснее разграничивать
+		type key string
+
+		const idKey key = "id"
+
+		ctx := context.WithValue(r.Context(), idKey, id.Id)
 		r = r.Clone(ctx)
 
 		next.ServeHTTP(w, r)

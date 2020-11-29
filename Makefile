@@ -1,6 +1,5 @@
 GOLINTFLAGS ?=
 GOBIN        = $(shell go env GOPATH)/bin
-GOLINT       = PATH=$(GOBIN):$(PATH) golangci-lint --color=always $(GOLINTFLAGS)
 
 VERSION  = $(shell date '+%Y%m%d%H%M%S')
 BRANCH   = $(shell git rev-parse --abbrev-ref HEAD)
@@ -65,4 +64,4 @@ deps:
 
 .PHONY: lint
 lint:
-	@$(GOLINT) run ./...
+	golangci-lint --color=always run ./... $(GOLINTFLAGS)

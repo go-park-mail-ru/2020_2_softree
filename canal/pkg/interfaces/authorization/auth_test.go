@@ -35,7 +35,13 @@ func TestAuth_Success(t *testing.T) {
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
 
-	ctx := context.WithValue(req.Context(), "id", int64(id))
+	// линтер ругается если используем базовые типы в Value контекста
+	// типа так безопаснее разграничивать
+	type key string
+
+	const idKey key = "id"
+
+	ctx := context.WithValue(req.Context(), idKey, int64(id))
 	req = req.Clone(ctx)
 	testAuth, ctrl := createAuthSuccess(t, req.Context())
 	defer ctrl.Finish()
@@ -117,7 +123,13 @@ func TestAuth_FailNoUser(t *testing.T) {
 	req := httptest.NewRequest("POST", url, body)
 	w := httptest.NewRecorder()
 
-	ctx := context.WithValue(req.Context(), "id", int64(id))
+	// линтер ругается если используем базовые типы в Value контекста
+	// типа так безопаснее разграничивать
+	type key string
+
+	const idKey key = "id"
+
+	ctx := context.WithValue(req.Context(), idKey, int64(id))
 	req = req.Clone(ctx)
 	testAuth, ctrl := createAuthFailUser(t, ctx)
 	defer ctrl.Finish()

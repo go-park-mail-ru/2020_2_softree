@@ -298,7 +298,14 @@ func createExpectedUser() *profileService.PublicUser {
 }
 
 func createContext(req **http.Request) context.Context {
-	ctx := context.WithValue((*req).Context(), "id", int64(id))
+
+	// линтер ругается если используем базовые типы в Value контекста
+	// типа так безопаснее разграничивать
+	type key string
+
+	const idKey key = "id"
+
+	ctx := context.WithValue((*req).Context(), idKey, int64(id))
 	*req = (*req).Clone(ctx)
 	return ctx
 }
