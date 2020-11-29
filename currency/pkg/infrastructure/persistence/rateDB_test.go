@@ -275,12 +275,12 @@ func TestNewRateDBManager_TruncateTable_Success(t *testing.T) {
 	require.Equal(t, nil, err)
 	defer db.Close()
 
-	tableName := "table"
+	tableName := "history_currency_by_minutes"
 
 	mock.ExpectBegin()
 	mock.
 		ExpectExec(regexp.QuoteMeta(`TRUNCATE TABLE`)).
-		WithArgs(tableName).
+		WithArgs().
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
@@ -298,13 +298,29 @@ func TestNewRateDBManager_TruncateTable_Fail(t *testing.T) {
 	require.Equal(t, nil, err)
 	defer db.Close()
 
-	tableName := "table"
+	tableName := "history_currency_by_minutes"
 
 	mock.ExpectBegin()
 	mock.
 		ExpectQuery(`TRUNCATE TABLE`).
 		WillReturnError(errors.New("error"))
 	mock.ExpectRollback()
+
+	ctrl := gomock.NewController(t)
+	finMock := mocks.NewApiMock(ctrl)
+
+	repo := NewRateDBManager(db, finMock)
+
+	err = repo.truncateTable(tableName)
+	require.NotEmpty(t, err)
+}
+
+func TestNewRateDBManager_TruncateTable_FailValidate(t *testing.T) {
+	db, _, err := sqlmock.New()
+	require.Equal(t, nil, err)
+	defer db.Close()
+
+	tableName := "table"
 
 	ctrl := gomock.NewController(t)
 	finMock := mocks.NewApiMock(ctrl)
