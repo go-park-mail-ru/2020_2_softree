@@ -195,10 +195,10 @@ func (managerDB *UserDBManager) UpdateUserPassword(ctx context.Context, in *prof
 	if err != nil {
 		return &profile.Empty{}, err
 	}
-
 	if err = tx.Commit(); err != nil {
 		return &profile.Empty{}, err
 	}
+
 	return &profile.Empty{}, nil
 }
 

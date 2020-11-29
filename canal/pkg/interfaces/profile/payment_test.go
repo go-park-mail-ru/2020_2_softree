@@ -409,8 +409,8 @@ func createSetTransactionFailCheckWalletToCreateWallet(t *testing.T, ctx context
 		CheckWallet(ctx, createWalletCheck(from)).
 		Return(&profileService.Check{Existence: true}, nil)
 	mockUser.EXPECT().
-		GetWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: to}).
-		Return(&profileService.Wallet{Title: to, Value: walletSize}, nil)
+		GetWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: from}).
+		Return(&profileService.Wallet{Title: from, Value: walletSize}, nil)
 	mockUser.EXPECT().
 		CheckWallet(ctx, createWalletCheck(to)).
 		Return(&profileService.Check{Existence: false}, nil)

@@ -3,6 +3,7 @@ package persistence_test
 import (
 	"context"
 	"errors"
+	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 	"reflect"
@@ -10,6 +11,7 @@ import (
 	database "server/profile/pkg/infrastructure/persistence"
 	profile "server/profile/pkg/profile/gen"
 	"testing"
+	"time"
 )
 
 const (
@@ -25,13 +27,16 @@ func TestGetAllPaymentHistory_Success(t *testing.T) {
 	require.Equal(t, nil, err)
 	defer db.Close()
 
+	date := time.Now()
+	timestamp, err := ptypes.TimestampProto(date)
+	require.NoError(t, err)
 	rows := sqlmock.NewRows([]string{"from_title", "to_title", "value", "amount", "updated_at"})
 	expected := profile.AllHistory{History: []*profile.PaymentHistory{
 		{
 			From:      from,
 			To:        to,
 			Amount:    amount,
-			UpdatedAt: nil,
+			UpdatedAt: timestamp,
 			Value:     value,
 		},
 	}}
@@ -40,7 +45,7 @@ func TestGetAllPaymentHistory_Success(t *testing.T) {
 		expected.History[0].To,
 		expected.History[0].Value,
 		expected.History[0].Amount,
-		expected.History[0].UpdatedAt,
+		date,
 	)
 
 	mock.ExpectBegin()
