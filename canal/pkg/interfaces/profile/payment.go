@@ -26,7 +26,7 @@ func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := json.Marshal(history)
+	res, err := json.Marshal(history.History)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,

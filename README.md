@@ -22,16 +22,20 @@ https://softree.group
 
 2. Из корня проекта запустить выполнить команду:
     ```
-    docker-compose up -d --build
+    make run
     ```
 
-3. Поднять базу из бекапа  
-    * Получить id контейнера
+3. Поднять сервисы профиля и валют  
     ```
-    docker ps
+    docker-compose up -d --build profile currency
     ```
-    * Восстановить из бекапа
+4. Дополнительно: Зайти в базу
+    * Переход в контейнер postgres
     ```
-    docker exec <номер контейнера с бд> psql -U user -d moneycat -f /backup.sql
+    docker-compose exec postgres /bin/bash
+    ```
+    * Переключение на пользователя postgres
+    ```
+    su postgres
     ```
 
