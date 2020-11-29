@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/golang/protobuf/ptypes"
 	"github.com/sirupsen/logrus"
 	"log"
 	currency "server/currency/pkg/currency/gen"
@@ -133,7 +134,12 @@ func (rm *RateDBManager) GetRates(ctx context.Context, in *currency.Empty) (*cur
 	currencies.Rates = make([]*currency.Currency, 0, LenListOfCurrencies)
 	for result.Next() {
 		var row currency.Currency
-		if err := result.Scan(&row.Title, &row.Value, &row.UpdatedAt); err != nil {
+		var updatedAt time.Time
+
+		if err := result.Scan(&row.Title, &row.Value, &updatedAt); err != nil {
+			return nil, err
+		}
+		if row.UpdatedAt, err = ptypes.TimestampProto(updatedAt); err != nil {
 			return nil, err
 		}
 

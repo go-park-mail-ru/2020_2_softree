@@ -10,7 +10,7 @@ import (
 )
 
 func (rates *Rates) GetRates(w http.ResponseWriter, r *http.Request) {
-	resRates, err := rates.currencyService.GetRates(r.Context(), nil)
+	resRates, err := rates.currencyService.GetRates(r.Context(), &currency.Empty{})
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
@@ -20,7 +20,7 @@ func (rates *Rates) GetRates(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	result, err := json.Marshal(resRates)
+	result, err := json.Marshal(resRates.Rates)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
@@ -68,7 +68,7 @@ func (rates *Rates) GetURLRate(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	result, err := json.Marshal(resRates)
+	result, err := json.Marshal(resRates.Rates)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,

@@ -87,7 +87,10 @@ func main() {
 
 	go manager.GetRatesFromApi()
 
-	lis, err := net.Listen("tcp", ":8083")
+	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d",
+		viper.GetString("server.ip"),
+		viper.GetInt("server.port"),
+	))
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"function": "main",
