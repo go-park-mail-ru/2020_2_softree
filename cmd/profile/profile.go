@@ -36,8 +36,8 @@ func init() {
 		viper.GetString("config"),
 		map[string]interface{}{
 			"server": map[string]interface{}{
-				"ip":   "127.0.0.1",
-				"port": 8002,
+				"ip":       "127.0.0.1",
+				"port":     8002,
 				"logLevel": "Info",
 			},
 
