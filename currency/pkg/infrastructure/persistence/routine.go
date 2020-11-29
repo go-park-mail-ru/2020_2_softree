@@ -17,7 +17,8 @@ func (rm *RateDBManager) writeCurrencyDB(table string, finance domain.FinancialR
 	err := rm.saveRates(table, finance)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
-			"function": "GetRatesFromApi",
+			"function": "writeCurrencyDB",
+			"action":   "saveRates",
 		}).Error(err)
 		return
 	}
@@ -28,6 +29,7 @@ func (rm *RateDBManager) truncate(table string) {
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"function": "truncate",
+			"action":   "truncateTable",
 		}).Error(err)
 		return
 	}

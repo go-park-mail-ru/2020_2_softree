@@ -2,8 +2,7 @@ package persistence
 
 import (
 	"context"
-	"fmt"
-	"log"
+	"github.com/sirupsen/logrus"
 	profile "server/profile/pkg/profile/gen"
 	"time"
 
@@ -20,7 +19,11 @@ func (managerDB *UserDBManager) GetAllPaymentHistory(c context.Context, in *prof
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
-			log.Println(fmt.Errorf("GetAllPaymentHistory: %v", err))
+			logrus.WithFields(logrus.Fields{
+				"infrastructure": "profile",
+				"function":       "GetAllPaymentHistory",
+				"action":         "Rollback",
+			}).Error(err)
 		}
 	}()
 
@@ -63,7 +66,11 @@ func (managerDB *UserDBManager) AddToPaymentHistory(c context.Context, in *profi
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
-			log.Println(fmt.Errorf("AddToPaymentHistory: %v", err))
+			logrus.WithFields(logrus.Fields{
+				"infrastructure": "profile",
+				"function":       "AddToPaymentHistory",
+				"action":         "Rollback",
+			}).Error(err)
 		}
 	}()
 

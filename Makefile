@@ -56,7 +56,7 @@ endif
 
 .PHONY: run
 run:
-	docker-compose up -d --build
+	sudo docker-compose up -d --build
 
 .PHONY: deps
 deps:

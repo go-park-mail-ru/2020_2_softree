@@ -8,7 +8,7 @@ server:
   timeout: 10
 
 session:
-  ip: 'session'
+  ip: 'authorization'
   port: 8000
 
 profile:

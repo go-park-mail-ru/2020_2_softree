@@ -21,19 +21,15 @@ func (a *Authentication) Auth(next http.HandlerFunc) http.HandlerFunc {
 		id, err := a.auth.Check(r.Context(), &session.SessionID{SessionId: cookie.Value})
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
-				"status": http.StatusBadRequest}).Error(err)
-
+				"status":     http.StatusBadRequest,
+				"middleware": "Auth",
+				"action":     "Check",
+			}).Error(err)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
-		// линтер ругается если используем базовые типы в Value контекста
-		// типа так безопаснее разграничивать
-		type key string
-
-		const idKey key = "id"
-
-		ctx := context.WithValue(r.Context(), idKey, id.Id)
+		ctx := context.WithValue(r.Context(), "id", id.Id)
 		r = r.Clone(ctx)
 
 		next.ServeHTTP(w, r)

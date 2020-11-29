@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"math/rand"
 	"net/http"
 	"os"
 	"server/canal/pkg/infrastructure/config"
@@ -92,7 +91,6 @@ func init() {
 	if err := logger.ConfigureLogger(); err != nil {
 		log.Fatalln(err)
 	}
-	rand.Seed(time.Now().UnixNano())
 }
 
 func main() {

@@ -3,7 +3,9 @@ package persistence
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"log"
 	currency "server/currency/pkg/currency/gen"
 	"server/currency/pkg/domain"
@@ -48,6 +50,12 @@ func NewRateDBManager(db *sql.DB, api domain.FinancialAPI) *RateDBManager {
 func (rm *RateDBManager) saveRates(table string, financial domain.FinancialRepository) error {
 	currentTime := time.Now()
 
+	if !validateTable(table) {
+		return errors.New("xss found")
+	}
+
+	query := fmt.Sprintf("INSERT INTO %s (title, value, updated_at) VALUES ($1, $2, $3)", table)
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -65,11 +73,10 @@ func (rm *RateDBManager) saveRates(table string, financial domain.FinancialRepos
 	for _, name := range ListOfCurrencies {
 		quote := financial.GetQuote()[name]
 		_, err := tx.Exec(
-			"INSERT INTO $4 (title, value, updated_at) VALUES ($1, $2, $3)",
+			query,
 			name,
 			quote.(float64),
 			currentTime,
-			table,
 		)
 
 		if err != nil {
@@ -84,6 +91,17 @@ func (rm *RateDBManager) saveRates(table string, financial domain.FinancialRepos
 	return nil
 }
 
+var tables = [...]string{"history_currency_by_minutes", "history_currency_by_hours", "history_currency_by_day"}
+func validateTable(table string) bool {
+	for _, val := range tables {
+		if val == table {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (rm *RateDBManager) GetRates(ctx context.Context, in *currency.Empty) (*currency.Currencies, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
@@ -94,7 +112,11 @@ func (rm *RateDBManager) GetRates(ctx context.Context, in *currency.Empty) (*cur
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
-			log.Println(fmt.Errorf("GetRates: %v", err))
+			logrus.WithFields(logrus.Fields{
+				"infrastructure": "currency",
+				"function":       "GetRates",
+				"action":         "Rollback",
+			}).Error(err)
 		}
 	}()
 
@@ -138,7 +160,11 @@ func (rm *RateDBManager) GetRate(ctx context.Context, in *currency.CurrencyTitle
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
-			log.Println(fmt.Errorf("GetRate: %v", err))
+			logrus.WithFields(logrus.Fields{
+				"infrastructure": "currency",
+				"function":       "GetRate",
+				"action":         "Rollback",
+			}).Error(err)
 		}
 	}()
 
@@ -179,7 +205,11 @@ func (rm *RateDBManager) GetLastRate(ctx context.Context, in *currency.CurrencyT
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
-			log.Println(fmt.Errorf("GetLastRate: %v", err))
+			logrus.WithFields(logrus.Fields{
+				"infrastructure": "currency",
+				"function":       "GetLastRate",
+				"action":         "Rollback",
+			}).Error(err)
 		}
 	}()
 	row := tx.QueryRow("SELECT value, updated_at FROM history_currency_by_minutes WHERE title = $1 ORDER BY updated_at DESC LIMIT 1", in.Title)
@@ -205,7 +235,11 @@ func (rm *RateDBManager) GetInitialDayCurrency(ctx context.Context, in *currency
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
-			log.Println(fmt.Errorf("GetInitialDayCurrency: %v", err))
+			logrus.WithFields(logrus.Fields{
+				"infrastructure": "currency",
+				"function":       "GetInitialDayCurrency",
+				"action":         "Rollback",
+			}).Error(err)
 		}
 	}()
 
@@ -250,11 +284,21 @@ func (rm *RateDBManager) truncateTable(table string) error {
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
-			log.Println(fmt.Errorf("truncateTable: %v", err))
+			logrus.WithFields(logrus.Fields{
+				"infrastructure": "currency",
+				"function":       "truncateTable",
+				"action":         "Rollback",
+			}).Error(err)
 		}
 	}()
 
-	_, err = tx.Exec("TRUNCATE TABLE $1", table)
+	if !validateTable(table) {
+		return errors.New("xss found")
+	}
+
+	query := fmt.Sprintf("TRUNCATE TABLE %s", table)
+
+	_, err = tx.Exec(query)
 	if err != nil {
 		return err
 	}

@@ -2,8 +2,7 @@ package persistence
 
 import (
 	"context"
-	"fmt"
-	"log"
+	"github.com/sirupsen/logrus"
 	profile "server/profile/pkg/profile/gen"
 	"time"
 
@@ -20,7 +19,11 @@ func (managerDB *UserDBManager) GetWallets(ctx context.Context, in *profile.User
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
-			log.Println(fmt.Errorf("GetWallets: %v", err))
+			logrus.WithFields(logrus.Fields{
+				"infrastructure": "profile",
+				"function":       "GetWallets",
+				"action":         "Rollback",
+			}).Error(err)
 		}
 	}()
 
@@ -75,7 +78,11 @@ func (managerDB *UserDBManager) createInitialWallet(id int64) error {
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
-			log.Println(fmt.Errorf("createInitialWallet: %v", err))
+			logrus.WithFields(logrus.Fields{
+				"infrastructure": "profile",
+				"function":       "createInitialWallet",
+				"action":         "Rollback",
+			}).Error(err)
 		}
 	}()
 
@@ -106,7 +113,11 @@ func (managerDB *UserDBManager) CreateWallet(ctx context.Context, in *profile.Co
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
-			log.Println(fmt.Errorf("CreateWallet: %v", err))
+			logrus.WithFields(logrus.Fields{
+				"infrastructure": "profile",
+				"function":       "CreateWallet",
+				"action":         "Rollback",
+			}).Error(err)
 		}
 	}()
 
@@ -137,7 +148,11 @@ func (managerDB *UserDBManager) CheckWallet(ctx context.Context, in *profile.Con
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
-			log.Println(fmt.Errorf("CheckWallet: %v", err))
+			logrus.WithFields(logrus.Fields{
+				"infrastructure": "profile",
+				"function":       "CheckWallet",
+				"action":         "Rollback",
+			}).Error(err)
 		}
 	}()
 
@@ -167,7 +182,11 @@ func (managerDB *UserDBManager) SetWallet(ctx context.Context, in *profile.ToSet
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
-			log.Println(fmt.Errorf("SetWallet: %v", err))
+			logrus.WithFields(logrus.Fields{
+				"infrastructure": "profile",
+				"function":       "SetWallet",
+				"action":         "Rollback",
+			}).Error(err)
 		}
 	}()
 
@@ -198,7 +217,11 @@ func (managerDB *UserDBManager) GetWallet(ctx context.Context, in *profile.Concr
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
-			log.Println(fmt.Errorf("GetWallet: %v", err))
+			logrus.WithFields(logrus.Fields{
+				"infrastructure": "profile",
+				"function":       "GetWallet",
+				"action":         "Rollback",
+			}).Error(err)
 		}
 	}()
 
@@ -232,7 +255,11 @@ func (managerDB *UserDBManager) UpdateWallet(ctx context.Context, in *profile.To
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
-			log.Println(fmt.Errorf("UpdateWallet: %v", err))
+			logrus.WithFields(logrus.Fields{
+				"infrastructure": "profile",
+				"function":       "UpdateWallet",
+				"action":         "Rollback",
+			}).Error(err)
 		}
 	}()
 

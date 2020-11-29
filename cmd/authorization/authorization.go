@@ -3,12 +3,14 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"net"
 	"os"
 	"server/authorization/pkg/infrastructure/persistence"
 	session "server/authorization/pkg/session/gen"
 	"server/canal/pkg/infrastructure/config"
 	"server/canal/pkg/infrastructure/logger"
+	"time"
 
 	"github.com/gomodule/redigo/redis"
 	"github.com/sirupsen/logrus"
@@ -52,6 +54,7 @@ func init() {
 	if err := logger.ConfigureLogger(); err != nil {
 		log.Fatalln(err)
 	}
+	rand.Seed(time.Now().UnixNano())
 }
 
 func main() {

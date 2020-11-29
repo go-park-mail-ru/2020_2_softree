@@ -2,10 +2,12 @@ package persistence
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"github.com/gomodule/redigo/redis"
+	"math/rand"
 	session "server/authorization/pkg/session/gen"
-	"server/canal/pkg/infrastructure/security"
 	"strconv"
 )
 
@@ -22,12 +24,14 @@ func NewSessionManager(conn redis.Conn) *SessionManager {
 }
 
 func (sm *SessionManager) Create(ctx context.Context, in *session.UserID) (*session.Session, error) {
-	hash, err := security.MakeShieldedCookie()
+	hash, err := makeSessionValue()
 	if err != nil {
 		return nil, err
 	}
+
 	key := "sessions:" + hash
 	result, err := redis.String(sm.RedisConn.Do("SET", key, in.Id, "EX", day)) // Expires in 24 hours
+
 	if err != nil {
 		return nil, err
 	}
@@ -41,6 +45,7 @@ func (sm *SessionManager) Create(ctx context.Context, in *session.UserID) (*sess
 func (sm *SessionManager) Check(ctx context.Context, in *session.SessionID) (*session.UserID, error) {
 	key := "sessions:" + in.SessionId
 	data, err := redis.Bytes(sm.RedisConn.Do("GET", key))
+
 	if err == redis.ErrNil {
 		return nil, errors.New("no session")
 	} else if err != nil {
@@ -63,4 +68,19 @@ func (sm *SessionManager) Delete(ctx context.Context, in *session.SessionID) (*s
 	}
 
 	return nil, nil
+}
+
+func makeSessionValue() (string, error) {
+	hash := sha256.New()
+
+	salt := make([]byte, 8)
+	if _, err := rand.Read(salt); err != nil {
+		return "", err
+	}
+
+	if _, err := hash.Write(salt); err != nil {
+		return "", err
+	}
+
+	return hex.EncodeToString(hash.Sum(nil)), nil
 }

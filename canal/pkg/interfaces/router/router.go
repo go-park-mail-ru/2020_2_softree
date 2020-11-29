@@ -3,7 +3,7 @@ package router
 import (
 	"github.com/gorilla/mux"
 	"net/http"
-	"server/canal/pkg/infrastructure/corsInteraction"
+	"server/canal/pkg/infrastructure/CORS"
 	"server/canal/pkg/interfaces/authorization"
 	"server/canal/pkg/interfaces/profile"
 	"server/canal/pkg/interfaces/rates"
@@ -58,7 +58,7 @@ func NewRouter(userAuthenticate *authorization.Authentication, userProfile *prof
 	r.HandleFunc("/transactions", userAuthenticate.Auth(userProfile.SetTransaction)).
 		Methods(http.MethodPost, http.MethodOptions)
 
-	r.Use(corsInteraction.CORSMiddleware())
+	r.Use(CORS.CORSMiddleware())
 
 	return r
 }
