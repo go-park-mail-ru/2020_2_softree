@@ -105,8 +105,8 @@ func createSetTransactionSuccess(t *testing.T, ctx context.Context) (*profileHTT
 		CheckWallet(ctx, createWalletCheck(from)).
 		Return(&profileService.Check{Existence: true}, nil)
 	mockUser.EXPECT().
-		GetWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: to}).
-		Return(&profileService.Wallet{Title: to, Value: walletSize}, nil)
+		GetWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: from}).
+		Return(&profileService.Wallet{Title: from, Value: walletSize}, nil)
 	mockUser.EXPECT().
 		CheckWallet(ctx, createWalletCheck(to)).
 		Return(&profileService.Check{Existence: true}, nil)
@@ -324,7 +324,7 @@ func createSetTransactionFailGetWallet(t *testing.T, ctx context.Context) (*prof
 		CheckWallet(ctx, createWalletCheck(from)).
 		Return(&profileService.Check{Existence: true}, nil)
 	mockUser.EXPECT().
-		GetWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: to}).
+		GetWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: from}).
 		Return(nil, errors.New("createSetTransactionFailGetWallet"))
 
 	mockSecurity := mock.NewSecurityMock(ctrl)
@@ -365,8 +365,8 @@ func createSetTransactionFailCheckWalletTo(t *testing.T, ctx context.Context) (*
 		CheckWallet(ctx, createWalletCheck(from)).
 		Return(&profileService.Check{Existence: true}, nil)
 	mockUser.EXPECT().
-		GetWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: to}).
-		Return(&profileService.Wallet{Title: to, Value: walletSize}, nil)
+		GetWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: from}).
+		Return(&profileService.Wallet{Title: from, Value: walletSize}, nil)
 	mockUser.EXPECT().
 		CheckWallet(ctx, createWalletCheck(to)).
 		Return(nil, errors.New("createSetTransactionFailCheckWalletTo"))
@@ -457,8 +457,8 @@ func createSetTransactionFailUpdateFrom(t *testing.T, ctx context.Context) (*pro
 		CheckWallet(ctx, createWalletCheck(from)).
 		Return(&profileService.Check{Existence: true}, nil)
 	mockUser.EXPECT().
-		GetWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: to}).
-		Return(&profileService.Wallet{Title: to, Value: walletSize}, nil)
+		GetWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: from}).
+		Return(&profileService.Wallet{Title: from, Value: walletSize}, nil)
 	mockUser.EXPECT().
 		CheckWallet(ctx, createWalletCheck(to)).
 		Return(&profileService.Check{Existence: true}, nil)
@@ -504,8 +504,8 @@ func createSetTransactionFailUpdateTo(t *testing.T, ctx context.Context) (*profi
 		CheckWallet(ctx, createWalletCheck(from)).
 		Return(&profileService.Check{Existence: true}, nil)
 	mockUser.EXPECT().
-		GetWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: to}).
-		Return(&profileService.Wallet{Title: to, Value: walletSize}, nil)
+		GetWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: from}).
+		Return(&profileService.Wallet{Title: from, Value: walletSize}, nil)
 	mockUser.EXPECT().
 		CheckWallet(ctx, createWalletCheck(to)).
 		Return(&profileService.Check{Existence: true}, nil)
@@ -554,8 +554,8 @@ func createSetTransactionFailAddToPaymentHistory(t *testing.T, ctx context.Conte
 		CheckWallet(ctx, createWalletCheck(from)).
 		Return(&profileService.Check{Existence: true}, nil)
 	mockUser.EXPECT().
-		GetWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: to}).
-		Return(&profileService.Wallet{Title: to, Value: walletSize}, nil)
+		GetWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: from}).
+		Return(&profileService.Wallet{Title: from, Value: walletSize}, nil)
 	mockUser.EXPECT().
 		CheckWallet(ctx, createWalletCheck(to)).
 		Return(&profileService.Check{Existence: true}, nil)

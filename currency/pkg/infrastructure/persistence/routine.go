@@ -40,30 +40,37 @@ func (rm *RateDBManager) GetRatesFromApi() {
 	task := gocron.NewScheduler(time.UTC)
 	defer task.Stop()
 
-	if _, err := task.Every(1).Minute().Do(rm.writeCurrencyDB, history_currency_by_minutes, finance); err != nil {
+	if _, err := task.Every(1).
+		Minute().StartImmediately().Do(rm.writeCurrencyDB, history_currency_by_minutes, finance); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"function": "GetRatesFromApi",
 		}).Error(err)
 		return
 	}
-	if _, err := task.Every(1).Hour().Do(rm.writeCurrencyDB, history_currency_by_hours, finance); err != nil {
+
+	if _, err := task.Every(1).
+		Hour().StartImmediately().Do(rm.writeCurrencyDB, history_currency_by_hours, finance); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"function": "GetRatesFromApi",
 		}).Error(err)
 		return
 	}
-	if _, err := task.Every(1).Day().At("00:00").Do(rm.writeCurrencyDB, history_currency_by_day, finance); err != nil {
+
+	if _, err := task.Every(1).
+		Day().At("00:00").StartImmediately().Do(rm.writeCurrencyDB, history_currency_by_day, finance); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"function": "GetRatesFromApi",
 		}).Error(err)
 		return
 	}
+
 	if _, err := task.Every(1).Day().At("00:00").Do(rm.truncate, history_currency_by_minutes); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"function": "GetRatesFromApi",
 		}).Error(err)
 		return
 	}
+
 	if _, err := task.Every(1).Month(1).Do(rm.truncate, history_currency_by_hours); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"function": "GetRatesFromApi",

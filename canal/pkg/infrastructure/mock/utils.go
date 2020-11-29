@@ -41,3 +41,21 @@ func (r *RecorderSecurity) MakeShieldedPassword(stringToHash interface{}) *gomoc
 		stringToHash,
 	)
 }
+
+func (d *SecurityMock) CheckPassword(actual, inserted string) bool {
+	d.ctrl.T.Helper()
+	ret := d.ctrl.Call(d, "CheckPassword", actual, inserted)
+	out, _ := ret[0].(bool)
+	return out
+}
+
+func (r *RecorderSecurity) CheckPassword(actual, inserted interface{}) *gomock.Call {
+	r.mock.ctrl.T.Helper()
+	return r.mock.ctrl.RecordCallWithMethodType(
+		r.mock,
+		"CheckPassword",
+		reflect.TypeOf((*SecurityMock)(nil).CheckPassword),
+		actual,
+		inserted,
+	)
+}

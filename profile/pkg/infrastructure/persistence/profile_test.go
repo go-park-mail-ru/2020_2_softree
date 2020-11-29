@@ -105,7 +105,7 @@ func TestCheckExistence_Fail(t *testing.T) {
 	require.Equal(t, nil, mock.ExpectationsWereMet())
 }
 
-func TestCheckPassword_Success(t *testing.T) {
+func TestGetPassword_Success(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.Equal(t, nil, err)
 	defer db.Close()
@@ -122,11 +122,11 @@ func TestCheckPassword_Success(t *testing.T) {
 
 	repo := database.NewUserDBManager(db)
 	ctx := context.Background()
-	row, err := repo.CheckPassword(ctx, &profile.User{Id: userId, OldPassword: password})
+	row, err := repo.GetPassword(ctx, &profile.User{Id: userId, OldPassword: password})
 
 	require.Equal(t, nil, err)
 	require.Equal(t, nil, mock.ExpectationsWereMet())
-	require.Equal(t, false, row.Existence)
+	require.Equal(t, expected, row.PasswordToCheck)
 }
 
 func TestCheckPassword_Fail(t *testing.T) {
@@ -142,7 +142,7 @@ func TestCheckPassword_Fail(t *testing.T) {
 
 	repo := database.NewUserDBManager(db)
 	ctx := context.Background()
-	_, err = repo.CheckPassword(ctx, &profile.User{Id: userId, OldPassword: password})
+	_, err = repo.GetPassword(ctx, &profile.User{Id: userId, OldPassword: password})
 
 	require.NotEqual(t, nil, err)
 	require.Equal(t, nil, mock.ExpectationsWereMet())

@@ -17,3 +17,7 @@ func (u *Utils) MakeShieldedPassword(stringToHash string) (string, error) {
 
 	return string(pass), err
 }
+
+func (u *Utils) CheckPassword(actual string, inserted string) bool {
+	return bcrypt.CompareHashAndPassword([]byte(actual), []byte(inserted)) == nil
+}

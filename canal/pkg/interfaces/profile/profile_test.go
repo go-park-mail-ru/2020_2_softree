@@ -122,8 +122,8 @@ func createUpdatePasswordSuccess(t *testing.T, ctx context.Context) (*profileHTT
 
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockUser.EXPECT().
-		CheckPassword(ctx, &profileService.User{Id: id, OldPassword: oldPassword, NewPassword: newPassword}).
-		Return(&profileService.Check{Existence: true}, nil)
+		GetPassword(ctx, &profileService.User{Id: id, OldPassword: oldPassword, NewPassword: newPassword}).
+		Return(&profileService.User{Id: id, OldPassword: oldPassword, NewPassword: newPassword, PasswordToCheck: oldPassword}, nil)
 	mockUser.EXPECT().
 		UpdateUserPassword(
 			ctx,
@@ -136,6 +136,7 @@ func createUpdatePasswordSuccess(t *testing.T, ctx context.Context) (*profileHTT
 
 	mockSecurity := mock.NewSecurityMock(ctrl)
 	mockSecurity.EXPECT().MakeShieldedPassword(newPassword).Return(newPassword, nil)
+	mockSecurity.EXPECT().CheckPassword(oldPassword, oldPassword).Return(true)
 
 	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
 
@@ -162,8 +163,8 @@ func createUpdatePasswordFail(t *testing.T, ctx context.Context) (*profileHTTP.P
 
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockUser.EXPECT().
-		CheckPassword(ctx, &profileService.User{Id: id, OldPassword: oldPassword, NewPassword: newPassword}).
-		Return(&profileService.Check{Existence: false}, errors.New("createUpdatePasswordFail"))
+		GetPassword(ctx, &profileService.User{Id: id, OldPassword: oldPassword, NewPassword: newPassword}).
+		Return(&profileService.User{}, errors.New("createUpdatePasswordFail"))
 
 	mockSecurity := mock.NewSecurityMock(ctrl)
 

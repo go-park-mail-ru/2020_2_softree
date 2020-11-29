@@ -83,13 +83,13 @@ func (managerDB *UserDBManager) CheckExistence(ctx context.Context, in *profile.
 	return &profile.Check{Existence: exists != 0}, nil
 }
 
-func (managerDB *UserDBManager) CheckPassword(ctx context.Context, in *profile.User) (*profile.Check, error) {
+func (managerDB *UserDBManager) GetPassword(ctx context.Context, in *profile.User) (*profile.User, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
-		return &profile.Check{}, err
+		return &profile.User{}, err
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
@@ -101,19 +101,15 @@ func (managerDB *UserDBManager) CheckPassword(ctx context.Context, in *profile.U
 		}
 	}()
 
-	var userPassword string
-	if err := tx.QueryRow("SELECT password FROM user_trade WHERE id = $1", in.Id).Scan(&userPassword); err != nil {
-		return &profile.Check{}, err
+	if err := tx.QueryRow("SELECT password FROM user_trade WHERE id = $1", in.Id).Scan(&in.PasswordToCheck); err != nil {
+		return &profile.User{}, err
 	}
 
 	if err = tx.Commit(); err != nil {
-		return &profile.Check{}, err
+		return &profile.User{}, err
 	}
 
-	check := profile.Check{
-		Existence: bcrypt.CompareHashAndPassword([]byte(userPassword), []byte(in.OldPassword)) == nil,
-	}
-	return &check, nil
+	return in, nil
 }
 
 func (managerDB *UserDBManager) SaveUser(ctx context.Context, in *profile.User) (*profile.PublicUser, error) {

@@ -75,8 +75,8 @@ func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
-	var user profile.User
-	err := json.NewDecoder(r.Body).Decode(&user)
+	var in profile.User
+	err := json.NewDecoder(r.Body).Decode(&in)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
@@ -86,23 +86,23 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	user.Id = r.Context().Value(entity.UserIdKey).(int64)
+	in.Id = r.Context().Value(entity.UserIdKey).(int64)
 
-	if !p.validate("Passwords", &user) {
+	if !p.validate("Passwords", &in) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	p.sanitizer.Sanitize(user.OldPassword)
-	p.sanitizer.Sanitize(user.NewPassword)
+	p.sanitizer.Sanitize(in.OldPassword)
+	p.sanitizer.Sanitize(in.NewPassword)
 
-	if errs := p.validateUpdate(&user); errs.NotEmpty {
+	if errs := p.validateUpdate(&in); errs.NotEmpty {
 		p.createServerError(&errs, w)
 		return
 	}
 
-	var check *profile.Check
-	if check, err = p.profile.CheckPassword(r.Context(), &user); err != nil {
+	var user *profile.User
+	if user, err = p.profile.GetPassword(r.Context(), &in); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "UpdateUserPassword",
@@ -111,7 +111,7 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	if !check.Existence {
+	if !p.security.CheckPassword(user.OldPassword, user.OldPassword) {
 		p.createOldPassError(w)
 		return
 	}
@@ -125,7 +125,7 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	if _, err = p.profile.UpdateUserPassword(r.Context(), &profile.UpdateFields{Id: user.Id, User: &user}); err != nil {
+	if _, err = p.profile.UpdateUserPassword(r.Context(), &profile.UpdateFields{Id: user.Id, User: user}); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "UpdateUserPassword",

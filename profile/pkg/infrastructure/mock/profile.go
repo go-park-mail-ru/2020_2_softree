@@ -160,20 +160,20 @@ func (profileRecorder *RecorderProfile) CheckExistence(ctx, in interface{}) *gom
 	)
 }
 
-func (profileMock *ProfileMock) CheckPassword(ctx context.Context, in *profile.User, opts ...grpc.CallOption) (*profile.Check, error) {
+func (profileMock *ProfileMock) GetPassword(ctx context.Context, in *profile.User, opts ...grpc.CallOption) (*profile.User, error) {
 	profileMock.ctrl.T.Helper()
-	ret := profileMock.ctrl.Call(profileMock, "CheckPassword", ctx, in)
-	out, _ := ret[0].(*profile.Check)
+	ret := profileMock.ctrl.Call(profileMock, "GetPassword", ctx, in)
+	out, _ := ret[0].(*profile.User)
 	err, _ := ret[1].(error)
 	return out, err
 }
 
-func (profileRecorder *RecorderProfile) CheckPassword(ctx, in interface{}) *gomock.Call {
+func (profileRecorder *RecorderProfile) GetPassword(ctx, in interface{}) *gomock.Call {
 	profileRecorder.mock.ctrl.T.Helper()
 	return profileRecorder.mock.ctrl.RecordCallWithMethodType(
 		profileRecorder.mock,
-		"CheckPassword",
-		reflect.TypeOf((*ProfileMock)(nil).CheckExistence),
+		"GetPassword",
+		reflect.TypeOf((*ProfileMock)(nil).GetPassword),
 		ctx,
 		in,
 	)

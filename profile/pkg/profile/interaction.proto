@@ -9,9 +9,10 @@ message User {
   int64  id = 1;
   string email = 2;
   string password = 3;
-  string old_password = 4;
-  string new_password = 5;
-  string avatar = 6;
+  string password_to_check = 4;
+  string old_password = 5;
+  string new_password = 6;
+  string avatar = 7;
 }
 
 message PublicUser {
@@ -88,7 +89,7 @@ service profileService {
   rpc GetUserById(UserID) returns (PublicUser) {}
   rpc GetUserByLogin(User) returns (PublicUser) {}
   rpc CheckExistence(User) returns (Check) {}
-  rpc CheckPassword(User) returns (Check) {}
+  rpc GetPassword(User) returns (User) {}
   rpc GetUserWatchlist(UserID) returns (Currencies) {}
 
   rpc GetAllPaymentHistory(UserID) returns (AllHistory) {}
