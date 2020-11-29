@@ -79,7 +79,7 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	needToPay := div.Mul(decimal.NewFromFloat(transaction.Amount))
-	if code := p.getPay(r.Context(), &profile.ConcreteWallet{Id: id, Title: transaction.To}, needToPay); code != 0 {
+	if code := p.getPay(r.Context(), &profile.ConcreteWallet{Id: id, Title: transaction.From}, needToPay); code != 0 {
 		if code == notEnoughPayment {
 			p.createErrorJSON(errors.New("not enough payment"))
 			return

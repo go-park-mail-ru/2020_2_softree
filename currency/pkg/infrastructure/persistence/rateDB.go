@@ -3,7 +3,6 @@ package persistence
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/sirupsen/logrus"
@@ -51,17 +50,12 @@ func NewRateDBManager(db *sql.DB, api domain.FinancialAPI) *RateDBManager {
 func (rm *RateDBManager) saveRates(table string, financial domain.FinancialRepository) error {
 	currentTime := time.Now()
 
-	if !validateTable(table) {
-		return errors.New("xss found")
-	}
-
 	query := fmt.Sprintf("INSERT INTO %s (title, value, updated_at) VALUES ($1, $2, $3)", table)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	tx, err := rm.db.BeginTx(ctx, nil)
-
 	if err != nil {
 		return err
 	}
@@ -90,18 +84,6 @@ func (rm *RateDBManager) saveRates(table string, financial domain.FinancialRepos
 	}
 
 	return nil
-}
-
-var tables = [...]string{"history_currency_by_minutes", "history_currency_by_hours", "history_currency_by_day"}
-
-func validateTable(table string) bool {
-	for _, val := range tables {
-		if val == table {
-			return true
-		}
-	}
-
-	return false
 }
 
 func (rm *RateDBManager) GetRates(ctx context.Context, in *currency.Empty) (*currency.Currencies, error) {
@@ -147,7 +129,7 @@ func (rm *RateDBManager) GetRates(ctx context.Context, in *currency.Empty) (*cur
 		currencies.Rates = append(currencies.Rates, &row)
 	}
 
-	if err := result.Err(); err != nil {
+	if err = result.Err(); err != nil {
 		return &currency.Currencies{}, err
 	}
 	if err = tx.Commit(); err != nil {
@@ -312,10 +294,6 @@ func (rm *RateDBManager) truncateTable(table string) error {
 			}).Error(err)
 		}
 	}()
-
-	if !validateTable(table) {
-		return errors.New("xss found")
-	}
 
 	query := fmt.Sprintf("TRUNCATE TABLE %s", table)
 

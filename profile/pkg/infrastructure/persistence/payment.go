@@ -39,7 +39,12 @@ func (managerDB *UserDBManager) GetAllPaymentHistory(c context.Context, in *prof
 	var history profile.AllHistory
 	for result.Next() {
 		var row profile.PaymentHistory
-		if err := result.Scan(&row.From, &row.To, &row.Value, &row.Amount, &row.UpdatedAt); err != nil {
+		var updatedAt time.Time
+
+		if err := result.Scan(&row.From, &row.To, &row.Value, &row.Amount, &updatedAt); err != nil {
+			return &profile.AllHistory{}, err
+		}
+		if row.UpdatedAt, err = ptypes.TimestampProto(updatedAt); err != nil {
 			return &profile.AllHistory{}, err
 		}
 
