@@ -93,6 +93,7 @@ func (rm *RateDBManager) saveRates(table string, financial domain.FinancialRepos
 }
 
 var tables = [...]string{"history_currency_by_minutes", "history_currency_by_hours", "history_currency_by_day"}
+
 func validateTable(table string) bool {
 	for _, val := range tables {
 		if val == table {
@@ -223,7 +224,10 @@ func (rm *RateDBManager) GetLastRate(ctx context.Context, in *currency.CurrencyT
 			}).Error(err)
 		}
 	}()
-	row := tx.QueryRow("SELECT value, updated_at FROM history_currency_by_minutes WHERE title = $1 ORDER BY updated_at DESC LIMIT 1", in.Title)
+	row := tx.QueryRow(
+		"SELECT value, updated_at FROM history_currency_by_minutes WHERE title = $1 ORDER BY updated_at DESC LIMIT 1",
+		in.Title,
+	)
 
 	result := currency.Currency{Title: in.Title}
 	var updatedAt time.Time
