@@ -15,7 +15,7 @@ func (managerDB *UserDBManager) GetWallets(ctx context.Context, in *profile.User
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return &profile.Wallets{}, err
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
@@ -32,7 +32,7 @@ func (managerDB *UserDBManager) GetWallets(ctx context.Context, in *profile.User
 		in.Id,
 	)
 	if err != nil {
-		return nil, err
+		return &profile.Wallets{}, err
 	}
 	defer result.Close()
 
@@ -41,7 +41,7 @@ func (managerDB *UserDBManager) GetWallets(ctx context.Context, in *profile.User
 		var wallet profile.Wallet
 		var money decimal.Decimal
 		if err := result.Scan(&wallet.Title, &money); err != nil {
-			return nil, err
+			return &profile.Wallets{}, err
 		}
 		wallet.Value, _ = money.Float64()
 
@@ -49,15 +49,15 @@ func (managerDB *UserDBManager) GetWallets(ctx context.Context, in *profile.User
 	}
 
 	if err := result.Err(); err != nil {
-		return nil, err
+		return &profile.Wallets{}, err
 	}
 	if err = tx.Commit(); err != nil {
-		return nil, err
+		return &profile.Wallets{}, err
 	}
 
 	if len(wallets.Wallets) == 0 {
 		if err = managerDB.createInitialWallet(in.Id); err != nil {
-			return nil, err
+			return &profile.Wallets{}, err
 		}
 		money, _ := decimal.New(100000, 0).Float64()
 		wallets.Wallets = append(
@@ -144,7 +144,7 @@ func (managerDB *UserDBManager) CheckWallet(ctx context.Context, in *profile.Con
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return &profile.Check{}, err
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
@@ -163,10 +163,10 @@ func (managerDB *UserDBManager) CheckWallet(ctx context.Context, in *profile.Con
 
 	var exists int
 	if err = row.Scan(&exists); err != nil {
-		return nil, err
+		return &profile.Check{}, err
 	}
 	if err = tx.Commit(); err != nil {
-		return nil, err
+		return &profile.Check{}, err
 	}
 
 	return &profile.Check{Existence: exists != 0}, nil
@@ -213,7 +213,7 @@ func (managerDB *UserDBManager) GetWallet(ctx context.Context, in *profile.Concr
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return &profile.Wallet{}, err
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
@@ -233,10 +233,10 @@ func (managerDB *UserDBManager) GetWallet(ctx context.Context, in *profile.Concr
 
 	var money decimal.Decimal
 	if err = row.Scan(&money); err != nil {
-		return nil, err
+		return &profile.Wallet{}, err
 	}
 	if err = tx.Commit(); err != nil {
-		return nil, err
+		return &profile.Wallet{}, err
 	}
 
 	wallet := profile.Wallet{Title: in.Title}

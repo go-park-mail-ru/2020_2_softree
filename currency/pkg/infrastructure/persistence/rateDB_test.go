@@ -332,3 +332,16 @@ func TestNewRateDBManager_TruncateTable_FailValidate(t *testing.T) {
 	err = repo.truncateTable(tableName)
 	require.NotEmpty(t, err)
 }
+
+func TestRateDBManager_ValidateTable_Success(t *testing.T) {
+	for _, name := range tables {
+		res := validateTable(name)
+		require.EqualValues(t, true, res)
+	}
+}
+
+func TestRateDBManager_ValidateTable_Fail(t *testing.T) {
+	name := "doesNotExist"
+	res := validateTable(name)
+	require.EqualValues(t, false, res)
+}

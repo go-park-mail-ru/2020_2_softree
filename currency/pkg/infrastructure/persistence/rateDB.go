@@ -110,7 +110,7 @@ func (rm *RateDBManager) GetRates(ctx context.Context, in *currency.Empty) (*cur
 
 	tx, err := rm.db.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return &currency.Currencies{}, err
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
@@ -127,7 +127,7 @@ func (rm *RateDBManager) GetRates(ctx context.Context, in *currency.Empty) (*cur
 		LenListOfCurrencies,
 	)
 	if err != nil {
-		return nil, err
+		return &currency.Currencies{}, err
 	}
 	defer result.Close()
 
@@ -138,20 +138,20 @@ func (rm *RateDBManager) GetRates(ctx context.Context, in *currency.Empty) (*cur
 		var updatedAt time.Time
 
 		if err := result.Scan(&row.Title, &row.Value, &updatedAt); err != nil {
-			return nil, err
+			return &currency.Currencies{}, err
 		}
 		if row.UpdatedAt, err = ptypes.TimestampProto(updatedAt); err != nil {
-			return nil, err
+			return &currency.Currencies{}, err
 		}
 
 		currencies.Rates = append(currencies.Rates, &row)
 	}
 
 	if err := result.Err(); err != nil {
-		return nil, err
+		return &currency.Currencies{}, err
 	}
 	if err = tx.Commit(); err != nil {
-		return nil, err
+		return &currency.Currencies{}, err
 	}
 
 	return &currencies, nil
@@ -163,7 +163,7 @@ func (rm *RateDBManager) GetRate(ctx context.Context, in *currency.CurrencyTitle
 
 	tx, err := rm.db.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return &currency.Currencies{}, err
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
@@ -177,7 +177,7 @@ func (rm *RateDBManager) GetRate(ctx context.Context, in *currency.CurrencyTitle
 
 	result, err := tx.Query("SELECT value, updated_at FROM history_currency_by_minutes WHERE title = $1 ", in.Title)
 	if err != nil {
-		return nil, err
+		return &currency.Currencies{}, err
 	}
 	defer result.Close()
 
@@ -189,19 +189,19 @@ func (rm *RateDBManager) GetRate(ctx context.Context, in *currency.CurrencyTitle
 
 		row.Title = in.Title
 		if err := result.Scan(&row.Value, &updatedAt); err != nil {
-			return nil, err
+			return &currency.Currencies{}, err
 		}
 		if row.UpdatedAt, err = ptypes.TimestampProto(updatedAt); err != nil {
-			return nil, err
+			return &currency.Currencies{}, err
 		}
 
 		currencies.Rates = append(currencies.Rates, &row)
 	}
 	if err = result.Err(); err != nil {
-		return nil, err
+		return &currency.Currencies{}, err
 	}
 	if err = tx.Commit(); err != nil {
-		return nil, err
+		return &currency.Currencies{}, err
 	}
 
 	return &currencies, nil
@@ -213,7 +213,7 @@ func (rm *RateDBManager) GetLastRate(ctx context.Context, in *currency.CurrencyT
 
 	tx, err := rm.db.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return &currency.Currency{}, err
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
@@ -233,14 +233,14 @@ func (rm *RateDBManager) GetLastRate(ctx context.Context, in *currency.CurrencyT
 	var updatedAt time.Time
 
 	if err = row.Scan(&result.Value, &updatedAt); err != nil {
-		return nil, err
+		return &currency.Currency{}, err
 	}
 	if result.UpdatedAt, err = ptypes.TimestampProto(updatedAt); err != nil {
-		return nil, err
+		return &currency.Currency{}, err
 	}
 
 	if err = tx.Commit(); err != nil {
-		return nil, err
+		return &currency.Currency{}, err
 	}
 
 	return &result, nil
@@ -252,7 +252,7 @@ func (rm *RateDBManager) GetInitialDayCurrency(ctx context.Context, in *currency
 
 	tx, err := rm.db.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return &currency.InitialDayCurrencies{}, err
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
@@ -269,7 +269,7 @@ func (rm *RateDBManager) GetInitialDayCurrency(ctx context.Context, in *currency
 		LenListOfCurrencies,
 	)
 	if err != nil {
-		return nil, err
+		return &currency.InitialDayCurrencies{}, err
 	}
 	defer result.Close()
 
@@ -278,17 +278,17 @@ func (rm *RateDBManager) GetInitialDayCurrency(ctx context.Context, in *currency
 	for result.Next() {
 		var row currency.InitialDayCurrency
 		if err := result.Scan(&row.Title, &row.Value); err != nil {
-			return nil, err
+			return &currency.InitialDayCurrencies{}, err
 		}
 
 		currencies.Currencies = append(currencies.Currencies, &row)
 	}
 
 	if err := result.Err(); err != nil {
-		return nil, err
+		return &currency.InitialDayCurrencies{}, err
 	}
 	if err = tx.Commit(); err != nil {
-		return nil, err
+		return &currency.InitialDayCurrencies{}, err
 	}
 
 	return &currencies, nil

@@ -15,7 +15,7 @@ func (managerDB *UserDBManager) GetAllPaymentHistory(c context.Context, in *prof
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return &profile.AllHistory{}, err
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
@@ -32,7 +32,7 @@ func (managerDB *UserDBManager) GetAllPaymentHistory(c context.Context, in *prof
 		in.Id,
 	)
 	if err != nil {
-		return nil, err
+		return &profile.AllHistory{}, err
 	}
 	defer result.Close()
 
@@ -40,17 +40,17 @@ func (managerDB *UserDBManager) GetAllPaymentHistory(c context.Context, in *prof
 	for result.Next() {
 		var row profile.PaymentHistory
 		if err := result.Scan(&row.From, &row.To, &row.Value, &row.Amount, &row.UpdatedAt); err != nil {
-			return nil, err
+			return &profile.AllHistory{}, err
 		}
 
 		history.History = append(history.History, &row)
 	}
 
 	if err := result.Err(); err != nil {
-		return nil, err
+		return &profile.AllHistory{}, err
 	}
 	if err = tx.Commit(); err != nil {
-		return nil, err
+		return &profile.AllHistory{}, err
 	}
 
 	return &history, nil

@@ -26,7 +26,7 @@ func (managerDB *UserDBManager) GetUserById(c context.Context, in *profile.UserI
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return &profile.PublicUser{}, err
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
@@ -42,10 +42,10 @@ func (managerDB *UserDBManager) GetUserById(c context.Context, in *profile.UserI
 
 	user := profile.PublicUser{}
 	if err = row.Scan(&user.Id, &user.Email, &user.Avatar); err != nil {
-		return nil, err
+		return &profile.PublicUser{}, err
 	}
 	if err = tx.Commit(); err != nil {
-		return nil, err
+		return &profile.PublicUser{}, err
 	}
 
 	return &user, nil
@@ -58,7 +58,7 @@ func (managerDB *UserDBManager) CheckExistence(ctx context.Context, in *profile.
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return &profile.Check{}, err
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
@@ -74,10 +74,10 @@ func (managerDB *UserDBManager) CheckExistence(ctx context.Context, in *profile.
 
 	var exists int
 	if err = row.Scan(&exists); err != nil {
-		return nil, err
+		return &profile.Check{}, err
 	}
 	if err = tx.Commit(); err != nil {
-		return nil, err
+		return &profile.Check{}, err
 	}
 
 	return &profile.Check{Existence: exists != 0}, nil
@@ -89,7 +89,7 @@ func (managerDB *UserDBManager) CheckPassword(ctx context.Context, in *profile.U
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return &profile.Check{}, err
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
@@ -103,11 +103,11 @@ func (managerDB *UserDBManager) CheckPassword(ctx context.Context, in *profile.U
 
 	var userPassword string
 	if err := tx.QueryRow("SELECT password FROM user_trade WHERE id = $1", in.Id).Scan(&userPassword); err != nil {
-		return nil, err
+		return &profile.Check{}, err
 	}
 
 	if err = tx.Commit(); err != nil {
-		return nil, err
+		return &profile.Check{}, err
 	}
 
 	check := profile.Check{
@@ -122,7 +122,7 @@ func (managerDB *UserDBManager) SaveUser(ctx context.Context, in *profile.User) 
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return &profile.PublicUser{}, err
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
@@ -142,7 +142,7 @@ func (managerDB *UserDBManager) SaveUser(ctx context.Context, in *profile.User) 
 		return nil, err
 	}
 	if err = tx.Commit(); err != nil {
-		return nil, err
+		return &profile.PublicUser{}, err
 	}
 
 	return &profile.PublicUser{Id: lastID, Email: in.Email}, nil
@@ -242,7 +242,7 @@ func (managerDB *UserDBManager) GetUserByLogin(ctx context.Context, in *profile.
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return &profile.PublicUser{}, err
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
@@ -258,14 +258,14 @@ func (managerDB *UserDBManager) GetUserByLogin(ctx context.Context, in *profile.
 	row := tx.QueryRow("SELECT id, password, avatar FROM user_trade WHERE email = $1", in.Email)
 
 	if err = row.Scan(&in.Id, &password, &in.Avatar); err != nil {
-		return nil, err
+		return &profile.PublicUser{}, err
 	}
 	if err = tx.Commit(); err != nil {
-		return nil, err
+		return &profile.PublicUser{}, err
 	}
 
 	if bcrypt.CompareHashAndPassword([]byte(password), []byte(in.Password)) != nil {
-		return nil, errors.New("wrong password")
+		return &profile.PublicUser{}, errors.New("wrong password")
 	}
 
 	return &profile.PublicUser{Id: in.Id, Email: in.Email, Avatar: in.Avatar}, nil
@@ -277,7 +277,7 @@ func (managerDB *UserDBManager) GetUserWatchlist(ctx context.Context, in *profil
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return &profile.Currencies{}, err
 	}
 	defer func() {
 		if err := tx.Rollback(); err != nil {
@@ -291,7 +291,7 @@ func (managerDB *UserDBManager) GetUserWatchlist(ctx context.Context, in *profil
 
 	result, err := tx.Query("SELECT base_title, currency_title FROM watchlist WHERE user_id = $1", in.Id)
 	if err != nil {
-		return nil, err
+		return &profile.Currencies{}, err
 	}
 	defer result.Close()
 
@@ -299,17 +299,17 @@ func (managerDB *UserDBManager) GetUserWatchlist(ctx context.Context, in *profil
 	for result.Next() {
 		var currency profile.Currency
 		if err := result.Scan(&currency.Base, &currency.Title); err != nil {
-			return nil, err
+			return &profile.Currencies{}, err
 		}
 
 		currencies.Currencies = append(currencies.Currencies, &currency)
 	}
 
 	if err := result.Err(); err != nil {
-		return nil, err
+		return &profile.Currencies{}, err
 	}
 	if err = tx.Commit(); err != nil {
-		return nil, err
+		return &profile.Currencies{}, err
 	}
 
 	if len(currencies.Currencies) == 0 {
