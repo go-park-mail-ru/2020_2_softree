@@ -42,8 +42,8 @@ jobs:
         name: Build canal
         run: make TARGET="canal" build
       -
-        name: Build autorization
-        run: make TARGET="autorization" build
+        name: Build authorization
+        run: make TARGET="authorization" build
       -
         name: Build profile
         run: make TARGET="profile" build
