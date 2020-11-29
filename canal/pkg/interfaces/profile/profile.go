@@ -2,6 +2,7 @@ package profile
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"server/canal/pkg/domain/entity"
 	profile "server/profile/pkg/profile/gen"
@@ -29,6 +30,8 @@ func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println(&user)
+	fmt.Println(&profile.UpdateFields{Id: user.Id, User: &user})
 	if _, err = p.profile.UpdateUserAvatar(r.Context(), &profile.UpdateFields{Id: user.Id, User: &user}); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,

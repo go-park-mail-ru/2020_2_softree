@@ -184,8 +184,13 @@ func (rm *RateDBManager) GetRate(ctx context.Context, in *currency.CurrencyTitle
 	currencies.Rates = make([]*currency.Currency, 0, LenListOfCurrencies)
 	for result.Next() {
 		var row currency.Currency
+		var updatedAt time.Time
+
 		row.Title = in.Title
-		if err := result.Scan(&row.Value, &row.UpdatedAt); err != nil {
+		if err := result.Scan(&row.Value, &updatedAt); err != nil {
+			return nil, err
+		}
+		if row.UpdatedAt, err = ptypes.TimestampProto(updatedAt); err != nil {
 			return nil, err
 		}
 
@@ -221,9 +226,15 @@ func (rm *RateDBManager) GetLastRate(ctx context.Context, in *currency.CurrencyT
 	row := tx.QueryRow("SELECT value, updated_at FROM history_currency_by_minutes WHERE title = $1 ORDER BY updated_at DESC LIMIT 1", in.Title)
 
 	result := currency.Currency{Title: in.Title}
-	if err = row.Scan(&result.Value, &result.UpdatedAt); err != nil {
+	var updatedAt time.Time
+
+	if err = row.Scan(&result.Value, &updatedAt); err != nil {
 		return nil, err
 	}
+	if result.UpdatedAt, err = ptypes.TimestampProto(updatedAt); err != nil {
+		return nil, err
+	}
+
 	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
