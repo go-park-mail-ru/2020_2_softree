@@ -102,7 +102,9 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 
 	if code := p.getPay(r.Context(), &profile.ConcreteWallet{Id: id, Title: titleToCheckPayment}, checkingPayment); code != 0 {
 		if code == notEnoughPayment {
-			p.createErrorJSON(errors.New("not enough payment"))
+			errs := p.createErrorJSON(errors.New("not enough payment"))
+			p.createServerError(&errs, w)
+			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 		w.WriteHeader(code)
