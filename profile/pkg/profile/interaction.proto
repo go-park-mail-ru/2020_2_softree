@@ -80,6 +80,15 @@ message ToSetWallet {
   Wallet new_wallet = 2;
 }
 
+message IncomeParameters {
+  int64 id = 1;
+  string period = 2;
+}
+
+message Income {
+  double change = 1;
+}
+
 message Empty {}
 
 service profileService {
@@ -102,4 +111,6 @@ service profileService {
   rpc CheckWallet(ConcreteWallet) returns (Check) {}
   rpc CreateWallet(ConcreteWallet) returns (Empty) {}
   rpc UpdateWallet(ToSetWallet) returns (Empty) {}
+
+  rpc GetIncome(IncomeParameters) returns (Income) {}
 }
