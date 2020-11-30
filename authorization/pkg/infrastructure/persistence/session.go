@@ -64,10 +64,10 @@ func (sm *SessionManager) Delete(ctx context.Context, in *session.SessionID) (*s
 	key := "sessions:" + in.SessionId
 	_, err := redis.Int(sm.RedisConn.Do("DEL", key))
 	if err != nil {
-		return nil, err
+		return &session.Empty{}, err
 	}
 
-	return nil, nil
+	return &session.Empty{}, nil
 }
 
 func makeSessionValue() (string, error) {
