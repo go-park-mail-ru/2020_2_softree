@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"server/canal/pkg/domain/entity"
 	profile "server/profile/pkg/profile/gen"
+	"strconv"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -29,7 +30,10 @@ func (a *Authentication) createServerError(errors *entity.ErrorJSON, w http.Resp
 	res, err := json.Marshal(errors)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
-			"status": http.StatusInternalServerError}).Error(err)
+			"status":   http.StatusInternalServerError,
+			"function": "createServerError",
+			"action":   "Marshal",
+		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
@@ -37,7 +41,9 @@ func (a *Authentication) createServerError(errors *entity.ErrorJSON, w http.Resp
 	w.Header().Add("Content-Type", "application/json")
 	if _, err := w.Write(res); err != nil {
 		logrus.WithFields(logrus.Fields{
-			"status": http.StatusInternalServerError}).Error(err)
+			"function": "createServerError",
+			"action":   "Write",
+		}).Error(err)
 	}
 }
 
@@ -63,6 +69,10 @@ func (a *Authentication) validate(user *profile.User) (errs entity.ErrorJSON) {
 	}
 
 	return
+}
+
+func (a *Authentication) recordHitMetric(code int, url string) {
+	a.hits.WithLabelValues(strconv.Itoa(code), url)
 }
 
 func CreateCookie() http.Cookie {

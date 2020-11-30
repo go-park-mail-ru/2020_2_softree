@@ -1,6 +1,7 @@
 package authorization
 
 import (
+	"github.com/prometheus/client_golang/prometheus"
 	session "server/authorization/pkg/session/gen"
 	"server/canal/pkg/domain/repository"
 	profile "server/profile/pkg/profile/gen"
@@ -13,6 +14,8 @@ type Authentication struct {
 	auth      session.AuthorizationServiceClient
 	security  repository.Utils
 	sanitizer bluemonday.Policy
+	hits      prometheus.CounterVec
+	gauge     prometheus.Gauge
 }
 
 func NewAuthenticate(profile profile.ProfileServiceClient,

@@ -22,6 +22,10 @@ func (a *Authentication) Logout(w http.ResponseWriter, r *http.Request) {
 			"action":     "Delete auth",
 			"session_id": session.SessionID{SessionId: cookie.Value},
 		}).Error(err)
+
+		a.recordHitMetric(http.StatusInternalServerError, r.URL.Path)
+		a.gauge.Set(/*mem and cpu*/)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -31,4 +35,6 @@ func (a *Authentication) Logout(w http.ResponseWriter, r *http.Request) {
 	newCookie.Value = ""
 	http.SetCookie(w, &newCookie)
 	w.WriteHeader(http.StatusOK)
+
+	a.recordHitMetric(http.StatusOK, r.URL.Path)
 }

@@ -197,3 +197,22 @@ func (profileRecorder *RecorderProfile) GetUserWatchlist(ctx, in interface{}) *g
 		in,
 	)
 }
+
+func (profileMock *ProfileMock) GetIncome(ctx context.Context, in *profile.IncomeParameters, opts ...grpc.CallOption) (*profile.Income, error) {
+	profileMock.ctrl.T.Helper()
+	ret := profileMock.ctrl.Call(profileMock, "GetIncome", ctx, in)
+	out, _ := ret[0].(*profile.Income)
+	err, _ := ret[1].(error)
+	return out, err
+}
+
+func (profileRecorder *RecorderProfile) GetIncome(ctx, in interface{}) *gomock.Call {
+	profileRecorder.mock.ctrl.T.Helper()
+	return profileRecorder.mock.ctrl.RecordCallWithMethodType(
+		profileRecorder.mock,
+		"GetIncome",
+		reflect.TypeOf((*ProfileMock)(nil).GetIncome),
+		ctx,
+		in,
+	)
+}

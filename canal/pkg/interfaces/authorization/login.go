@@ -19,6 +19,10 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 			"function": "Login",
 			"action":   "Decode",
 		}).Error(err)
+
+		a.recordHitMetric(http.StatusInternalServerError, r.URL.Path)
+		a.gauge.Set(/*mem and cpu*/)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -41,6 +45,10 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 			"action":   "CheckExistence",
 			"user":     user,
 		}).Error(err)
+
+		a.recordHitMetric(http.StatusInternalServerError, r.URL.Path)
+		a.gauge.Set(/*mem and cpu*/)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -65,6 +73,10 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 			"action":   "Create auth",
 			"session":  &session.UserID{Id: public.Id},
 		}).Error(err)
+
+		a.recordHitMetric(http.StatusInternalServerError, r.URL.Path)
+		a.gauge.Set(/*mem and cpu*/)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -78,12 +90,20 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 			"function": "Login",
 			"action":   "Marshal",
 		}).Error(err)
+
+		a.recordHitMetric(http.StatusInternalServerError, r.URL.Path)
+		a.gauge.Set(/*mem and cpu*/)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+
+	a.recordHitMetric(http.StatusOK, r.URL.Path)
+	a.gauge.Set(/*mem and cpu*/)
+
 	if _, err := w.Write(res); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"function": "Login",
