@@ -44,11 +44,12 @@ message Check {
 }
 
 message PaymentHistory {
-  string from = 1;
-  string to = 2;
+  string currency = 1;
+  string base = 2;
   double amount = 3;
-  google.protobuf.Timestamp updated_at = 4;
-  double value = 5;
+  string sell = 4;
+  google.protobuf.Timestamp updated_at = 5;
+  double value = 6;
 }
 
 message AllHistory {

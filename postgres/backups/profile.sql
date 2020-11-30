@@ -35,22 +35,23 @@ CREATE TABLE accounts
 
 create index idx_accounts on accounts(user_id, title);
 
+truncate user_trade cascade;
+
+create index idx_payment_history on payment_history(user_id);
+
 CREATE TABLE payment_history
 (
     user_id    bigint NOT NULL,
-    from_title text,
-    to_title   text,
+    base       text,
+    curr       text,
     value      decimal,
     amount     decimal,
+    sell       text,
     updated_at timestamp,
 
     FOREIGN KEY (user_id) REFERENCES user_trade (id)
         ON DELETE CASCADE ON UPDATE CASCADE
 );
-
-create index idx_payment_history on payment_history(user_id);
-
-truncate user_trade cascade;
 truncate watchlist;
 truncate accounts;
 truncate payment_history;

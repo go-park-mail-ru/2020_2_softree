@@ -24,7 +24,7 @@ func (p *Profile) GetWallets(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := json.Marshal(wallets)
+	res, err := json.Marshal(wallets.Wallets)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,

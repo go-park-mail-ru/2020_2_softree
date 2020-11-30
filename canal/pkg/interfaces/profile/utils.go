@@ -49,7 +49,7 @@ func (p *Profile) createServerError(errs *entity.ErrorJSON, w http.ResponseWrite
 	}
 }
 
-func (p *Profile) checkWalletFrom(ctx context.Context, wallet *profile.ConcreteWallet) (bool, int) {
+func (p *Profile) checkWalletSell(ctx context.Context, wallet *profile.ConcreteWallet) (bool, int) {
 	var exist *profile.Check
 	var err error
 	if exist, err = p.profile.CheckWallet(ctx, wallet); err != nil {
@@ -68,7 +68,7 @@ func (p *Profile) checkWalletFrom(ctx context.Context, wallet *profile.ConcreteW
 	return true, 0
 }
 
-func (p *Profile) checkWalletTo(ctx context.Context, wallet *profile.ConcreteWallet) (bool, int) {
+func (p *Profile) checkWalletBuy(ctx context.Context, wallet *profile.ConcreteWallet) (bool, int) {
 	var exist *profile.Check
 	var err error
 	if exist, err = p.profile.CheckWallet(ctx, wallet); err != nil {
@@ -96,28 +96,28 @@ func (p *Profile) checkWalletTo(ctx context.Context, wallet *profile.ConcreteWal
 
 func (p *Profile) getCurrencyDiv(
 	ctx context.Context, transaction *profile.PaymentHistory) (error, int, decimal.Decimal) {
-	var currencyFrom *currency.Currency
+	var currencyBase *currency.Currency
 	var err error
-	if currencyFrom, err = p.rates.GetLastRate(ctx, &currency.CurrencyTitle{Title: transaction.From}); err != nil {
+	if currencyBase, err = p.rates.GetLastRate(ctx, &currency.CurrencyTitle{Title: transaction.Base}); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":          http.StatusInternalServerError,
 			"function":        "checkWalletPayment",
-			"transactionFrom": transaction.From,
+			"Base": transaction.Base,
 		}).Error(err)
 		return err, http.StatusInternalServerError, decimal.Decimal{}
 	}
 
-	var currencyTo *currency.Currency
-	if currencyTo, err = p.rates.GetLastRate(ctx, &currency.CurrencyTitle{Title: transaction.To}); err != nil {
+	var currencyCurr *currency.Currency
+	if currencyCurr, err = p.rates.GetLastRate(ctx, &currency.CurrencyTitle{Title: transaction.Currency}); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":          http.StatusInternalServerError,
 			"function":        "checkWalletPayment",
-			"transactionFrom": transaction.To,
+			"Currency": transaction.Currency,
 		}).Error(err)
 		return err, http.StatusInternalServerError, decimal.Decimal{}
 	}
 
-	div := decimal.NewFromFloat(currencyFrom.Value).Div(decimal.NewFromFloat(currencyTo.Value))
+	div := decimal.NewFromFloat(currencyBase.Value).Div(decimal.NewFromFloat(currencyCurr.Value))
 	return nil, 0, div
 }
 

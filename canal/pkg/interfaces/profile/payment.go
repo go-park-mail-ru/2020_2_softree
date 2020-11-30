@@ -66,11 +66,6 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	if exist, code := p.checkWalletFrom(r.Context(), &profile.ConcreteWallet{Id: id, Title: transaction.From}); !exist {
-		w.WriteHeader(code)
-		return
-	}
-
 	var div decimal.Decimal
 	var code int
 	if err, code, div = p.getCurrencyDiv(r.Context(), &transaction); err != nil {
@@ -78,8 +73,34 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	needToPay := div.Mul(decimal.NewFromFloat(transaction.Amount))
-	if code := p.getPay(r.Context(), &profile.ConcreteWallet{Id: id, Title: transaction.From}, needToPay); code != 0 {
+	divMulAmount := div.Mul(decimal.NewFromFloat(transaction.Amount))
+
+	titleToCheckPayment := transaction.Currency
+	checkingPayment := decimal.NewFromFloat(transaction.Amount)
+
+	removedMoney := -transaction.Amount
+	removedTitle := transaction.Currency
+
+	putMoney, _ := divMulAmount.Float64()
+	putTitle := transaction.Base
+	if transaction.Sell == "false" {
+		titleToCheckPayment = transaction.Base
+		checkingPayment = divMulAmount
+
+		removedMoney, _ = checkingPayment.Float64()
+		removedMoney *= -1
+		removedTitle = transaction.Base
+
+		putMoney = transaction.Amount
+		putTitle = transaction.Currency
+	}
+
+	if exist, code := p.checkWalletSell(r.Context(), &profile.ConcreteWallet{Id: id, Title: titleToCheckPayment}); !exist {
+		w.WriteHeader(code)
+		return
+	}
+
+	if code := p.getPay(r.Context(), &profile.ConcreteWallet{Id: id, Title: titleToCheckPayment}, checkingPayment); code != 0 {
 		if code == notEnoughPayment {
 			p.createErrorJSON(errors.New("not enough payment"))
 			return
@@ -88,34 +109,32 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if exist, code := p.checkWalletTo(r.Context(), &profile.ConcreteWallet{Id: id, Title: transaction.To}); !exist {
+	if exist, code := p.checkWalletBuy(r.Context(), &profile.ConcreteWallet{Id: id, Title: putTitle}); !exist {
 		w.WriteHeader(code)
 		return
 	}
 
-	needToPay = needToPay.Mul(decimal.New(-1, 0))
-	money, _ := needToPay.Float64()
-	toSetWallet := profile.ToSetWallet{Id: id, NewWallet: &profile.Wallet{Title: transaction.From, Value: money}}
+	toSetWallet := profile.ToSetWallet{Id: id, NewWallet: &profile.Wallet{Title: removedTitle, Value: removedMoney}}
 	if _, err = p.profile.UpdateWallet(r.Context(), &toSetWallet); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "SetTransactions",
 			"action":   "UpdateWallet",
-			"title":    transaction.From,
-			"value":    money,
+			"title":    removedTitle,
+			"value":    removedMoney,
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	toSetWallet = profile.ToSetWallet{Id: id, NewWallet: &profile.Wallet{Title: transaction.To, Value: transaction.Amount}}
+	toSetWallet = profile.ToSetWallet{Id: id, NewWallet: &profile.Wallet{Title: putTitle, Value: putMoney}}
 	if _, err = p.profile.UpdateWallet(r.Context(), &toSetWallet); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "SetTransactions",
 			"action":   "UpdateWallet",
-			"title":    transaction.To,
-			"value":    transaction.Amount,
+			"title":    putTitle,
+			"value":    putMoney,
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return

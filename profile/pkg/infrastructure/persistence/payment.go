@@ -28,7 +28,7 @@ func (managerDB *UserDBManager) GetAllPaymentHistory(c context.Context, in *prof
 	}()
 
 	result, err := tx.Query(
-		"SELECT from_title, to_title, value, amount, updated_at FROM payment_history WHERE user_id = $1",
+		"SELECT base, curr, value, amount, sell, updated_at FROM payment_history WHERE user_id = $1",
 		in.Id,
 	)
 	if err != nil {
@@ -38,17 +38,17 @@ func (managerDB *UserDBManager) GetAllPaymentHistory(c context.Context, in *prof
 
 	var history profile.AllHistory
 	for result.Next() {
-		var row profile.PaymentHistory
+		var pay profile.PaymentHistory
 		var updatedAt time.Time
 
-		if err := result.Scan(&row.From, &row.To, &row.Value, &row.Amount, &updatedAt); err != nil {
+		if err := result.Scan(&pay.Base, &pay.Currency, &pay.Value, &pay.Amount, &pay.Sell, &updatedAt); err != nil {
 			return &profile.AllHistory{}, err
 		}
-		if row.UpdatedAt, err = ptypes.TimestampProto(updatedAt); err != nil {
+		if pay.UpdatedAt, err = ptypes.TimestampProto(updatedAt); err != nil {
 			return &profile.AllHistory{}, err
 		}
 
-		history.History = append(history.History, &row)
+		history.History = append(history.History, &pay)
 	}
 
 	if err := result.Err(); err != nil {
@@ -80,19 +80,20 @@ func (managerDB *UserDBManager) AddToPaymentHistory(c context.Context, in *profi
 	}()
 
 	in.Transaction.UpdatedAt = ptypes.TimestampNow()
+	query := "INSERT INTO payment_history (user_id, base, curr, value, amount, sell, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7)"
 	_, err = tx.Exec(
-		"INSERT INTO payment_history (user_id, from_title, to_title, value, amount, updated_at) VALUES ($1, $2, $3, $4, $5, $6)",
+		query,
 		in.Id,
-		in.Transaction.From,
-		in.Transaction.To,
+		in.Transaction.Base,
+		in.Transaction.Currency,
 		in.Transaction.Value,
 		in.Transaction.Amount,
+		in.Transaction.Sell,
 		in.Transaction.UpdatedAt.AsTime(),
 	)
 	if err != nil {
 		return &profile.Empty{}, err
 	}
-
 	if err = tx.Commit(); err != nil {
 		return &profile.Empty{}, err
 	}
