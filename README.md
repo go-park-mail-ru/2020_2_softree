@@ -20,22 +20,12 @@ https://softree.group
     * Docker
     * Docker-compose (можно через venv)
 
-2. Из корня проекта запустить выполнить команду:
+2. Поднять базу:
+    ```
+    docker-compose up -d --build postgres
+    ```
+
+3. Из корня проекта запустить выполнить команду:
     ```
     make run
     ```
-
-3. Поднять сервисы профиля и валют  
-    ```
-    docker-compose up -d --build profile currency
-    ```
-4. Дополнительно: Зайти в базу
-    * Переход в контейнер postgres
-    ```
-    docker-compose exec postgres /bin/bash
-    ```
-    * Переключение на пользователя postgres
-    ```
-    su postgres
-    ```
-
