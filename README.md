@@ -20,18 +20,12 @@ https://softree.group
     * Docker
     * Docker-compose (можно через venv)
 
-2. Из корня проекта запустить выполнить команду:
+2. Поднять базу:
     ```
-    docker-compose up -d --build
-    ```
-
-3. Поднять базу из бекапа  
-    * Получить id контейнера
-    ```
-    docker ps
-    ```
-    * Восстановить из бекапа
-    ```
-    docker exec <номер контейнера с бд> psql -U user -d moneycat -f /backup.sql
+    docker-compose up -d --build postgres
     ```
 
+3. Из корня проекта запустить выполнить команду:
+    ```
+    make run
+    ```

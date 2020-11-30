@@ -2,15 +2,15 @@ package main
 
 import (
 	"fmt"
-	"google.golang.org/grpc"
 	"log"
-	"math/rand"
 	"net/http"
 	"os"
-	"server/src/canal/pkg/infrastructure/config"
-	"server/src/canal/pkg/infrastructure/logger"
-	"server/src/canal/pkg/interfaces/router"
+	"server/canal/pkg/infrastructure/config"
+	"server/canal/pkg/infrastructure/logger"
+	"server/canal/pkg/interfaces/router"
 	"time"
+
+	"google.golang.org/grpc"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
@@ -18,25 +18,21 @@ import (
 )
 
 func init() {
-	pflag.StringP("viper", "c", "", "path to viper file")
+	pflag.StringP("config", "c", "", "path to config file")
 	pflag.BoolP("help", "h", false, "usage info")
 
 	pflag.Parse()
-	viper.BindPFlags(pflag.CommandLine)
+	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
+		log.Fatalln(err)
+	}
 
 	if viper.GetBool("help") {
 		pflag.Usage()
 		os.Exit(0)
 	}
 
-	if viper.GetString("viper") == "" {
-		fmt.Fprintln(os.Stderr, "There is must explicitly specify the viper file")
-		pflag.Usage()
-		os.Exit(1)
-	}
-
 	if err := config.ParseConfig(
-		viper.GetString("viper"),
+		viper.GetString("config"),
 		map[string]interface{}{
 			"server": map[string]interface{}{
 				"ip":       "127.0.0.1",
@@ -48,20 +44,19 @@ func init() {
 				"timeout":  10,
 			},
 
-			"postgres": map[string]interface{}{
-				"host":     "127.0.0.1",
-				"port":     5432,
-				"db":       "db",
-				"user":     "user",
-				"password": "",
+			"session": map[string]interface{}{
+				"ip":   "127.0.0.1",
+				"port": 8001,
 			},
 
-			"redis": map[string]interface{}{
-				"host":         "127.0.0.1",
-				"port":         6379,
-				"sessionPath":  "/1",
-				"currencyPath": "/2",
-				"user":         "user",
+			"profile": map[string]interface{}{
+				"ip":   "127.0.0.1",
+				"port": 8002,
+			},
+
+			"currency": map[string]interface{}{
+				"ip":   "127.0.0.1",
+				"port": 8003,
 			},
 
 			"CORS": map[string]interface{}{
@@ -89,34 +84,47 @@ func init() {
 					"Content-Range",
 				},
 			},
-
-			"finnhub-api": map[string]interface{}{
-				"token": "",
-			},
 		}); err != nil {
 		log.Fatalln("Error during parse defaults", err)
 	}
 
-	logger.ConfigureLogger()
-	rand.Seed(time.Now().UnixNano())
+	if err := logger.ConfigureLogger(); err != nil {
+		log.Fatalln(err)
+	}
 }
 
 func main() {
-	sessionConn, err := grpc.Dial("127.0.0.1:8081", grpc.WithInsecure())
+	sessionConn, err := grpc.Dial(
+		fmt.Sprintf("%s:%d", viper.GetString("session.ip"), viper.GetInt("session.port")),
+		grpc.WithInsecure(),
+	)
 	if err != nil {
-		log.Fatalf("cant connect to grpc")
+		logrus.WithFields(logrus.Fields{
+			"function": "main",
+		}).Fatalln("Can't connect to session grpc", err)
 	}
-	profileConn, err := grpc.Dial("127.0.0.1:8082", grpc.WithInsecure())
-	if err != nil {
-		log.Fatalf("cant connect to grpc")
-	}
-	currencyConn, err := grpc.Dial("127.0.0.1:8083", grpc.WithInsecure())
-	if err != nil {
-		log.Fatalf("cant connect to grpc")
-	}
-
 	defer sessionConn.Close()
+
+	profileConn, err := grpc.Dial(
+		fmt.Sprintf("%s:%d", viper.GetString("profile.ip"), viper.GetInt("profile.port")),
+		grpc.WithInsecure(),
+	)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"function": "main",
+		}).Fatalln("Can't connect to profile grpc", err)
+	}
 	defer profileConn.Close()
+
+	currencyConn, err := grpc.Dial(
+		fmt.Sprintf("%s:%d", viper.GetString("currency.ip"), viper.GetInt("currency.port")),
+		grpc.WithInsecure(),
+	)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"function": "main",
+		}).Fatalln("Can't connect to currency grpc", err)
+	}
 	defer currencyConn.Close()
 
 	userAuthenticate, userProfile, rateRates := router.CreateAppStructs(profileConn, sessionConn, currencyConn)
@@ -130,7 +138,7 @@ func main() {
 
 	if err := server.ListenAndServe(); err != nil {
 		logrus.WithFields(logrus.Fields{
-			"function": "canal",
+			"function": "main",
 		}).Fatal("Server cannot start", err)
 	}
 }

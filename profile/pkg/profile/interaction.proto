@@ -1,0 +1,116 @@
+syntax = "proto3";
+
+package profile;
+import "google/protobuf/timestamp.proto";
+
+option go_package = "gen;gen";
+
+message User {
+  int64  id = 1;
+  string email = 2;
+  string password = 3;
+  string password_to_check = 4;
+  string old_password = 5;
+  string new_password = 6;
+  string avatar = 7;
+}
+
+message PublicUser {
+  int64  id = 1;
+  string email = 2;
+  string avatar = 3;
+}
+
+message Currency {
+  string base = 1;
+  string title = 2;
+}
+
+message Currencies {
+  repeated Currency currencies = 1;
+}
+
+message UserID {
+  int64 id = 1;
+}
+
+message UpdateFields {
+  int64 id = 1;
+  User user = 2;
+}
+
+message Check {
+  bool existence = 1;
+}
+
+message PaymentHistory {
+  string currency = 1;
+  string base = 2;
+  double amount = 3;
+  string sell = 4;
+  google.protobuf.Timestamp updated_at = 5;
+  double value = 6;
+}
+
+message AllHistory {
+  repeated PaymentHistory history = 1;
+}
+
+message AddToHistory {
+  int64 id = 1;
+  PaymentHistory transaction = 2;
+}
+
+message Wallet {
+  string title = 1;
+  double value = 2;
+}
+
+message Wallets {
+  repeated Wallet wallets = 1;
+}
+
+message ConcreteWallet {
+  int64 id = 1;
+  string title = 2;
+}
+
+message ToSetWallet {
+  int64 id = 1;
+  Wallet new_wallet = 2;
+}
+
+message IncomeParameters {
+  int64 id = 1;
+  string period = 2;
+}
+
+message Income {
+  double change = 1;
+}
+
+message Empty {}
+
+service profileService {
+  rpc SaveUser(User) returns (PublicUser) {}
+  rpc UpdateUserAvatar(UpdateFields) returns (Empty) {}
+  rpc UpdateUserPassword(UpdateFields) returns (Empty) {}
+  rpc DeleteUser(UserID) returns (Empty) {}
+  rpc GetUserById(UserID) returns (PublicUser) {}
+  rpc GetUserByLogin(User) returns (PublicUser) {}
+  rpc CheckExistence(User) returns (Check) {}
+  rpc GetPassword(User) returns (User) {}
+  rpc GetUserWatchlist(UserID) returns (Currencies) {}
+
+  rpc GetAllPaymentHistory(UserID) returns (AllHistory) {}
+  rpc AddToPaymentHistory(AddToHistory) returns (Empty) {}
+
+  rpc GetWallets(UserID) returns (Wallets) {}
+  rpc GetWallet(ConcreteWallet) returns (Wallet) {}
+  rpc SetWallet(ToSetWallet) returns (Empty) {}
+  rpc CheckWallet(ConcreteWallet) returns (Check) {}
+  rpc CreateWallet(ConcreteWallet) returns (Empty) {}
+  rpc UpdateWallet(ToSetWallet) returns (Empty) {}
+
+  rpc GetIncome(IncomeParameters) returns (Income) {}
+}

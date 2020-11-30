@@ -3,38 +3,44 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
-	"google.golang.org/grpc"
 	"log"
 	"net"
 	"os"
-	"server/src/canal/pkg/infrastructure/config"
-	"server/src/profile/pkg/infrastructure/persistence"
-	profile "server/src/profile/pkg/profile/gen"
+	"server/canal/pkg/infrastructure/config"
+	"server/canal/pkg/infrastructure/logger"
+	"server/profile/pkg/infrastructure/persistence"
+	profile "server/profile/pkg/profile/gen"
+
+	_ "github.com/lib/pq"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
+	"google.golang.org/grpc"
 )
 
 func init() {
-	pflag.StringP("viper", "c", "", "path to viper file")
+	pflag.StringP("config", "c", "", "path to viper file")
 	pflag.BoolP("help", "h", false, "usage info")
 
 	pflag.Parse()
-	_ = viper.BindPFlags(pflag.CommandLine)
+	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
+		log.Fatalln(err)
+	}
 
 	if viper.GetBool("help") {
 		pflag.Usage()
 		os.Exit(0)
 	}
 
-	if viper.GetString("viper") == "" {
-		_, _ = fmt.Fprintln(os.Stderr, "There is must explicitly specify the viper file")
-		pflag.Usage()
-		os.Exit(1)
-	}
-
 	if err := config.ParseConfig(
-		viper.GetString("viper"),
+		viper.GetString("config"),
 		map[string]interface{}{
+			"server": map[string]interface{}{
+				"ip":       "127.0.0.1",
+				"port":     8002,
+				"logLevel": "Info",
+			},
+
 			"postgres": map[string]interface{}{
 				"host":     "127.0.0.1",
 				"port":     5432,
@@ -45,28 +51,53 @@ func init() {
 		}); err != nil {
 		log.Fatalln("Error during parse defaults", err)
 	}
+
+	if err := logger.ConfigureLogger(); err != nil {
+		log.Fatalln(err)
+	}
 }
 
 func main() {
-	lis, err := net.Listen("tcp", ":8082")
+	db, err := sql.Open("postgres", fmt.Sprintf(
+		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		viper.GetString("postgres.host"),
+		viper.GetInt("postgres.port"),
+		viper.GetString("postgres.user"),
+		viper.GetString("postgres.password"),
+		viper.GetString("postgres.db"),
+	))
 	if err != nil {
-		log.Fatalln("cant listen port", err)
-	}
-
-	server := grpc.NewServer()
-
-	db, err := sql.Open("postgres", viper.GetString("postgres.URL"))
-	if err != nil {
-		log.Fatalln("cant listen port", err)
+		logrus.WithFields(logrus.Fields{
+			"function": "main",
+		}).Fatalln("Can't connecting to postgres", err)
 	}
 	err = db.Ping()
 	if err != nil {
-		log.Fatalln("cant listen port", err)
+		logrus.WithFields(logrus.Fields{
+			"function": "main",
+		}).Fatalln("Postgres is unavailable", err)
 	}
 	db.SetMaxOpenConns(10)
 
+	server := grpc.NewServer()
+
 	profile.RegisterProfileServiceServer(server, persistence.NewUserDBManager(db))
 
-	fmt.Println("starting server at :8082")
-	server.Serve(lis)
+	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d",
+		viper.GetString("server.ip"),
+		viper.GetInt("server.port"),
+	))
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"function": "main",
+			"action":   "starting listening tcp port",
+		}).Fatalln(err)
+	}
+
+	if err := server.Serve(lis); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"infrastructure": "session",
+			"action":         "Serve",
+		}).Fatalln(err)
+	}
 }

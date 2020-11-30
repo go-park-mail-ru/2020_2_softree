@@ -19,3 +19,9 @@ static
 **/images/
 **/prove.conf
 **/.vscode
+**/.github
+**/test.sh
+**/README.md
+**/api-softree
+**/.gitmodules
+**/.golangci-yml
