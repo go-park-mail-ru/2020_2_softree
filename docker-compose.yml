@@ -51,7 +51,6 @@ services:
     volumes:
       - ./prometheus:/etc/prometheus
 
-
   postgres:
     build:
       context: postgres

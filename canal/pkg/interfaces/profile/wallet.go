@@ -20,10 +20,9 @@ func (p *Profile) GetWallets(w http.ResponseWriter, r *http.Request) {
 			"action":   "GetWallets",
 			"userID":   id,
 		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
 
 		p.recordHitMetric(http.StatusInternalServerError)
-
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -36,28 +35,24 @@ func (p *Profile) GetWallets(w http.ResponseWriter, r *http.Request) {
 			"userID":   id,
 			"wallets":  wallets,
 		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
 
 		p.recordHitMetric(http.StatusInternalServerError)
-
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Add("Content-Type", "application/json")
-	p.recordHitMetric(http.StatusOK)
 	w.WriteHeader(http.StatusOK)
+
+	p.recordHitMetric(http.StatusOK)
+
 	if _, err = w.Write(res); err != nil {
 		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusInternalServerError,
 			"function": "GetWallets",
 			"action":   "Write",
 			"userID":   id,
 			"wallet":   wallets,
 		}).Error(err)
-
-		p.recordHitMetric(http.StatusInternalServerError)
-
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 }
@@ -71,10 +66,9 @@ func (p *Profile) SetWallet(w http.ResponseWriter, r *http.Request) {
 			"function": "SetWallet",
 			"action":   "Decode",
 		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
 
 		p.recordHitMetric(http.StatusInternalServerError)
-
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	defer r.Body.Close()
@@ -87,13 +81,12 @@ func (p *Profile) SetWallet(w http.ResponseWriter, r *http.Request) {
 			"action":   "CreateWallet",
 			"wallet":   &wallet,
 		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
 
 		p.recordHitMetric(http.StatusInternalServerError)
-
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	p.recordHitMetric(http.StatusOK)
 	w.WriteHeader(http.StatusOK)
+	p.recordHitMetric(http.StatusOK)
 }

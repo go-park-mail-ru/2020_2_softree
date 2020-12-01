@@ -16,6 +16,7 @@ func (a *Authentication) Auth(next http.HandlerFunc) http.HandlerFunc {
 		cookie, err := r.Cookie("session_id")
 		if err == http.ErrNoCookie {
 			w.WriteHeader(http.StatusUnauthorized)
+			a.recordHitMetric(http.StatusUnauthorized)
 			return
 		}
 
@@ -27,6 +28,8 @@ func (a *Authentication) Auth(next http.HandlerFunc) http.HandlerFunc {
 				"action":     "Check",
 			}).Error(err)
 			w.WriteHeader(http.StatusBadRequest)
+
+			a.recordHitMetric(http.StatusBadRequest)
 			return
 		}
 
@@ -50,6 +53,8 @@ func (a *Authentication) Authenticate(w http.ResponseWriter, r *http.Request) {
 			"action":   "GetUserById",
 		}).Error(err)
 		w.WriteHeader(http.StatusBadRequest)
+
+		a.recordHitMetric(http.StatusBadRequest)
 		return
 	}
 
@@ -61,18 +66,17 @@ func (a *Authentication) Authenticate(w http.ResponseWriter, r *http.Request) {
 			"UserID":   id,
 			"action":   "Marshal",
 		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
 
 		a.recordHitMetric(http.StatusInternalServerError)
-
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
+	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
 	a.recordHitMetric(http.StatusOK)
 
-	w.Header().Add("Content-Type", "application/json")
 	if _, err := w.Write(res); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"function": "Authenticate",

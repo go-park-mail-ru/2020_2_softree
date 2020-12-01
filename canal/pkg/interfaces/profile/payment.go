@@ -22,10 +22,9 @@ func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
 			"action":   "GetAllPaymentHistory",
 			"userID":   id,
 		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
 
 		p.recordHitMetric(http.StatusInternalServerError)
-
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -36,25 +35,22 @@ func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
 			"function": "GetTransactions",
 			"action":   "Marshal",
 		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
 
 		p.recordHitMetric(http.StatusInternalServerError)
-
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+
+	p.recordHitMetric(http.StatusOK)
+
 	if _, err = w.Write(res); err != nil {
 		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusInternalServerError,
 			"function": "GetTransactions",
 			"action":   "Write",
 		}).Error(err)
-
-		p.recordHitMetric(http.StatusInternalServerError)
-
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 }
@@ -70,10 +66,9 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 			"function": "SetTransactions",
 			"action":   "Decode",
 		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
 
 		p.recordHitMetric(http.StatusInternalServerError)
-
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	defer r.Body.Close()
@@ -81,8 +76,8 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 	var div decimal.Decimal
 	var code int
 	if err, code, div = p.getCurrencyDiv(r.Context(), &transaction); err != nil {
-		p.recordHitMetric(code)
 		w.WriteHeader(code)
+		p.recordHitMetric(code)
 		return
 	}
 
@@ -109,8 +104,8 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if exist, code := p.checkWalletSell(r.Context(), &profile.ConcreteWallet{Id: id, Title: titleToCheckPayment}); !exist {
-		p.recordHitMetric(code)
 		w.WriteHeader(code)
+		p.recordHitMetric(code)
 		return
 	}
 
@@ -119,15 +114,20 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 			errs := p.createErrorJSON(errors.New("not enough payment"))
 			p.createServerError(&errs, w)
 			w.WriteHeader(http.StatusBadRequest)
+
+			p.recordHitMetric(http.StatusBadRequest)
 			return
 		}
 		w.WriteHeader(code)
+
+		p.recordHitMetric(code)
+
 		return
 	}
 
 	if exist, code := p.checkWalletBuy(r.Context(), &profile.ConcreteWallet{Id: id, Title: putTitle}); !exist {
-		p.recordHitMetric(code)
 		w.WriteHeader(code)
+		p.recordHitMetric(code)
 		return
 	}
 
@@ -140,10 +140,9 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 			"title":    removedTitle,
 			"value":    removedMoney,
 		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
 
 		p.recordHitMetric(http.StatusInternalServerError)
-
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -156,10 +155,9 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 			"title":    putTitle,
 			"value":    putMoney,
 		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
 
 		p.recordHitMetric(http.StatusInternalServerError)
-
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -172,13 +170,12 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 			"id":          id,
 			"transaction": &transaction,
 		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
 
 		p.recordHitMetric(http.StatusInternalServerError)
-
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	p.recordHitMetric(http.StatusCreated)
 	w.WriteHeader(http.StatusCreated)
+	p.recordHitMetric(http.StatusCreated)
 }

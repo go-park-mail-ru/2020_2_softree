@@ -16,10 +16,9 @@ func (rates *Rates) GetRates(w http.ResponseWriter, r *http.Request) {
 			"function": "GetRates",
 			"action":   "GetRates",
 		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
 
 		rates.recordHitMetric(http.StatusInternalServerError)
-
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	result, err := json.Marshal(resRates.Rates)
@@ -29,16 +28,17 @@ func (rates *Rates) GetRates(w http.ResponseWriter, r *http.Request) {
 			"function": "GetRates",
 			"action":   "Marshal",
 		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
 
 		rates.recordHitMetric(http.StatusInternalServerError)
-
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	rates.recordHitMetric(http.StatusOK)
 	w.WriteHeader(http.StatusOK)
+
+	rates.recordHitMetric(http.StatusOK)
+
 	if _, err := w.Write(result); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"function": "GetRates",
@@ -59,6 +59,8 @@ func (rates *Rates) GetURLRate(w http.ResponseWriter, r *http.Request) {
 			"title":    title,
 		}).Error("Bad title")
 		w.WriteHeader(http.StatusBadRequest)
+
+		rates.recordHitMetric(http.StatusBadRequest)
 		return
 	}
 
@@ -70,10 +72,9 @@ func (rates *Rates) GetURLRate(w http.ResponseWriter, r *http.Request) {
 			"action":   "GetRate",
 			"title":    title,
 		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
 
 		rates.recordHitMetric(http.StatusInternalServerError)
-
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	result, err := json.Marshal(resRates.Rates)
@@ -83,16 +84,17 @@ func (rates *Rates) GetURLRate(w http.ResponseWriter, r *http.Request) {
 			"function": "GetURLRate",
 			"action":   "Marshal",
 		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
 
 		rates.recordHitMetric(http.StatusInternalServerError)
-
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	rates.recordHitMetric(http.StatusOK)
 	w.WriteHeader(http.StatusOK)
+
+	rates.recordHitMetric(http.StatusOK)
+
 	if _, err := w.Write(result); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"function": "GetURLRate",
@@ -124,16 +126,17 @@ func (rates *Rates) GetMarkets(w http.ResponseWriter, r *http.Request) {
 			"function": "GetMarkets",
 			"action":   "Marshal",
 		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
 
 		rates.recordHitMetric(http.StatusInternalServerError)
-
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	rates.recordHitMetric(http.StatusOK)
 	w.WriteHeader(http.StatusOK)
+
+	rates.recordHitMetric(http.StatusOK)
+
 	if _, err := w.Write(result); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"function": "GetMarkets",

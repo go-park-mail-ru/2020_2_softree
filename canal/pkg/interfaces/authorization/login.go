@@ -19,10 +19,9 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 			"function": "Login",
 			"action":   "Decode",
 		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
 
 		a.recordHitMetric(http.StatusInternalServerError)
-
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	defer r.Body.Close()
@@ -44,10 +43,9 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 			"action":   "CheckExistence",
 			"user":     user,
 		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
 
 		a.recordHitMetric(http.StatusInternalServerError)
-
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	if !check.Existence {
@@ -71,10 +69,9 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 			"action":   "Create auth",
 			"session":  &session.UserID{Id: public.Id},
 		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
 
 		a.recordHitMetric(http.StatusInternalServerError)
-
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	cookie.Value = sess.SessionId
@@ -87,10 +84,9 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 			"function": "Login",
 			"action":   "Marshal",
 		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
 
 		a.recordHitMetric(http.StatusInternalServerError)
-
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 

@@ -19,10 +19,9 @@ func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
 			"function": "Signup",
 			"action":   "Decode",
 		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
 
 		a.recordHitMetric(http.StatusInternalServerError)
-
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -43,10 +42,9 @@ func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
 			"action":   "CheckExistence",
 			"user":     user,
 		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
 
 		a.recordHitMetric(http.StatusInternalServerError)
-
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	if check.Existence {
@@ -62,10 +60,9 @@ func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
 			"action":   "MakeShieldedPassword",
 			"user":     user,
 		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
 
 		a.recordHitMetric(http.StatusInternalServerError)
-
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -77,10 +74,9 @@ func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
 			"action":   "SaveUser",
 			"user":     user,
 		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
 
 		a.recordHitMetric(http.StatusInternalServerError)
-
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -93,15 +89,13 @@ func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
 			"action":   "Create auth",
 			"session":  &session.UserID{Id: public.Id},
 		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
 
 		a.recordHitMetric(http.StatusInternalServerError)
-
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	cookie.Value = sess.SessionId
 	http.SetCookie(w, &cookie)
-
 	w.WriteHeader(http.StatusCreated)
 
 	a.recordHitMetric(http.StatusCreated)
