@@ -25,7 +25,7 @@ func NewRouter(userAuthenticate *authorization.Authentication, userProfile *prof
 	r.HandleFunc("/sessions", userAuthenticate.Auth(userAuthenticate.Authenticate)).
 		Methods(http.MethodGet, http.MethodOptions)
 
-	r.HandleFunc("/rates", rateRates.GetRates).
+	r.HandleFunc("/rates", rateRates.GetAllLatestRates).
 		Methods(http.MethodGet, http.MethodOptions)
 
 	r.HandleFunc("/rates/{title}", rateRates.GetURLRate).

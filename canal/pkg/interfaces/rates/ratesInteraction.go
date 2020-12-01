@@ -8,7 +8,7 @@ import (
 	currency "server/currency/pkg/currency/gen"
 )
 
-func (rates *Rates) GetRates(w http.ResponseWriter, r *http.Request) {
+func (rates *Rates) GetAllLatestRates(w http.ResponseWriter, r *http.Request) {
 	resRates, err := rates.currencyService.GetRates(r.Context(), &currency.Empty{})
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
