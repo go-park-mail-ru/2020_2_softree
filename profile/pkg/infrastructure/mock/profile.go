@@ -216,3 +216,22 @@ func (profileRecorder *RecorderProfile) GetIncome(ctx, in interface{}) *gomock.C
 		in,
 	)
 }
+
+func (profileMock *ProfileMock) PutPortfolio(ctx context.Context, in *profile.PortfolioValue, opts ...grpc.CallOption) (*profile.Empty, error) {
+	profileMock.ctrl.T.Helper()
+	ret := profileMock.ctrl.Call(profileMock, "PutPortfolio", ctx, in)
+	out, _ := ret[0].(*profile.Empty)
+	err, _ := ret[1].(error)
+	return out, err
+}
+
+func (profileRecorder *RecorderProfile) PutPortfolio(ctx, in interface{}) *gomock.Call {
+	profileRecorder.mock.ctrl.T.Helper()
+	return profileRecorder.mock.ctrl.RecordCallWithMethodType(
+		profileRecorder.mock,
+		"PutPortfolio",
+		reflect.TypeOf((*ProfileMock)(nil).PutPortfolio),
+		ctx,
+		in,
+	)
+}
