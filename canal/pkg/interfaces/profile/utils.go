@@ -209,3 +209,21 @@ func (p *Profile) validateUpdate(u *profile.User) (errors entity.ErrorJSON) {
 func (p *Profile) recordHitMetric(code int) {
 	p.Hits.WithLabelValues(strconv.Itoa(code)).Inc()
 }
+
+func (p *Profile) transformActualUserWallets(ctx context.Context, id int64) (decimal.Decimal, error) {
+	wallets, err := p.profile.GetWallets(ctx, &profile.UserID{Id: id})
+	if err != nil {
+		return decimal.Decimal{}, err
+	}
+
+	var cash decimal.Decimal
+	for _, wallet := range wallets.Wallets {
+		curr, err := p.rates.GetLastRate(ctx, &currency.CurrencyTitle{Title: wallet.Title})
+		if err != nil {
+			return decimal.Decimal{}, err
+		}
+		cash = cash.Sub(decimal.NewFromFloat(curr.Value * wallet.Value))
+	}
+
+	return cash, nil
+}

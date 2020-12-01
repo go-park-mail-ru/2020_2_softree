@@ -26,7 +26,10 @@ func (managerDB *UserDBManager) GetIncome(c context.Context, in *profile.IncomeP
 		}
 	}()
 
-	row := tx.QueryRow("SELECT value FROM wallet_history WHERE user_id = $1 AND updated_at = $2", in.Id, in.Period)
+	row := tx.QueryRow("SELECT value FROM wallet_history WHERE user_id = $1 AND updated_at = $2",
+		in.Id,
+		in.Period,
+	)
 
 	var valueDecimal decimal.Decimal
 	if err := row.Scan(&valueDecimal); err != nil {

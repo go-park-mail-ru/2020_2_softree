@@ -3,6 +3,7 @@ package profile
 import (
 	"encoding/json"
 	"github.com/gorilla/mux"
+	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"server/canal/pkg/domain/entity"
@@ -17,10 +18,10 @@ func (p *Profile) GetIncome(w http.ResponseWriter, r *http.Request) {
 	result, err := p.profile.GetIncome(r.Context(), &incomeParameters)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusInternalServerError,
-			"function": "GetIncome",
-			"action":   "GetIncome",
-			"incomeParameters":   &incomeParameters,
+			"status":           http.StatusInternalServerError,
+			"function":         "GetIncome",
+			"action":           "GetIncome",
+			"incomeParameters": &incomeParameters,
 		}).Error(err)
 
 		p.recordHitMetric(http.StatusInternalServerError)
@@ -29,11 +30,27 @@ func (p *Profile) GetIncome(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	walletUSDCash, err := p.transformActualUserWallets(r.Context(), incomeParameters.Id)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"status":        http.StatusInternalServerError,
+			"function":      "GetIncome",
+			"action":        "transformActualUserWallets",
+			"walletUSDCash": walletUSDCash,
+		}).Error(err)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	result.Change, _ = walletUSDCash.Sub(decimal.NewFromFloat(-result.Change)).Float64()
+
 	change, err := json.Marshal(result.Change)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
-			"function": "GetWallets",
+			"function": "GetIncome",
 			"action":   "Marshal",
 			"change":   change,
 		}).Error(err)
