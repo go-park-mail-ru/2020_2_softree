@@ -2,6 +2,7 @@ package profile
 
 import (
 	"encoding/json"
+	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"server/canal/pkg/domain/entity"
@@ -9,22 +10,9 @@ import (
 )
 
 func (p *Profile) GetIncome(w http.ResponseWriter, r *http.Request) {
-	var incomeParameters profile.IncomeParameters
-	err := json.NewDecoder(r.Body).Decode(&incomeParameters.Period)
-	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusInternalServerError,
-			"function": "GetIncome",
-			"action":   "Decode",
-		}).Error(err)
-
-		p.recordHitMetric(http.StatusInternalServerError)
-
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	defer r.Body.Close()
-	incomeParameters.Id = r.Context().Value(entity.UserIdKey).(int64)
+	vars := mux.Vars(r)
+	period := vars["period"]
+	var incomeParameters = profile.IncomeParameters{Id: r.Context().Value(entity.UserIdKey).(int64), Period: period}
 
 	result, err := p.profile.GetIncome(r.Context(), &incomeParameters)
 	if err != nil {

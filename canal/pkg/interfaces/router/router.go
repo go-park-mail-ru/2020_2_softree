@@ -61,7 +61,7 @@ func NewRouter(userAuthenticate *authorization.Authentication, userProfile *prof
 	r.HandleFunc("/transactions", userAuthenticate.Auth(userProfile.SetTransaction)).
 		Methods(http.MethodPost, http.MethodOptions)
 
-	r.HandleFunc("/income", userAuthenticate.Auth(userProfile.GetIncome)).
+	r.HandleFunc("/income/{period}", userAuthenticate.Auth(userProfile.GetIncome)).
 		Methods(http.MethodGet, http.MethodOptions)
 
 	prometheus.MustRegister(metric.Metric)

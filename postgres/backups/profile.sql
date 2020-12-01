@@ -52,6 +52,14 @@ CREATE TABLE payment_history
     FOREIGN KEY (user_id) REFERENCES user_trade (id)
         ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+CREATE TABLE wallet_history
+(
+    user_id    bigint NOT NULL,
+    value      decimal,
+    updated_at timestamp,
+)
+
 truncate watchlist;
 truncate accounts;
 truncate payment_history;
