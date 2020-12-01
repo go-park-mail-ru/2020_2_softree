@@ -139,7 +139,7 @@ func (managerDB *UserDBManager) SaveUser(ctx context.Context, in *profile.User) 
 		QueryRow("INSERT INTO user_trade (email, password) VALUES ($1, $2)  RETURNING id", in.Email, in.Password).
 		Scan(&lastID)
 	if err != nil {
-		return nil, err
+		return &profile.PublicUser{}, err
 	}
 	if err = tx.Commit(); err != nil {
 		return &profile.PublicUser{}, err
@@ -317,4 +317,35 @@ func (managerDB *UserDBManager) GetUserWatchlist(ctx context.Context, in *profil
 	}
 
 	return &currencies, nil
+}
+
+func (managerDB *UserDBManager) GetUsers(ctx context.Context, in *profile.Empty) (*profile.UsersCount, error) {
+	ctx, cancel := context.WithTimeout(ctx, managerDB.timing)
+	defer cancel()
+
+	tx, err := managerDB.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return &profile.UsersCount{}, err
+	}
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			logrus.WithFields(logrus.Fields{
+				"infrastructure": "profile",
+				"function":       "GetUsers",
+				"action":         "Rollback",
+			}).Error(err)
+		}
+	}()
+
+	var res int
+	err = tx.QueryRow("SELECT COUNT(id) FROM user_trade").Scan(&res)
+	if err != nil {
+		return &profile.UsersCount{}, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return &profile.UsersCount{}, err
+	}
+
+	return &profile.UsersCount{Num: int64(res)}, nil
 }

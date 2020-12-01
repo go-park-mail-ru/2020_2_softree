@@ -1,13 +1,16 @@
 package profile
 
 import (
+	"context"
 	"encoding/json"
+	"github.com/go-co-op/gocron"
 	"github.com/gorilla/mux"
 	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"server/canal/pkg/domain/entity"
 	profile "server/profile/pkg/profile/gen"
+	"time"
 )
 
 func (p *Profile) GetIncome(w http.ResponseWriter, r *http.Request) {
@@ -72,4 +75,59 @@ func (p *Profile) GetIncome(w http.ResponseWriter, r *http.Request) {
 		}).Error(err)
 		return
 	}
+}
+
+func (p *Profile) writePortfolios() {
+	ctx := context.Background()
+
+	userNum, err := p.profile.GetUsers(ctx, &profile.Empty{})
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"function": "WritePortfolio",
+			"action":   "GetUsers",
+		}).Error(err)
+
+		return
+	}
+
+	for i := int64(0); i < userNum.Num; i++ {
+		portfolioValue, err := p.transformActualUserWallets(ctx, i)
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"function": "WritePortfolio",
+				"action":   "transformActualUserWallets",
+				"user_id":  i,
+			}).Error(err)
+
+			return
+		}
+
+		value, _ := portfolioValue.Float64()
+		_, err = p.profile.PutPortfolio(ctx, &profile.PortfolioValue{Id: i, Value: value})
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"function": "WritePortfolio",
+				"action":   "PutPortfolio",
+				"user_id":  i,
+				"value":    value,
+			}).Error(err)
+
+			return
+		}
+	}
+}
+
+func (p *Profile) UpdatePortfolios() {
+	task := gocron.NewScheduler(time.UTC)
+	defer task.Stop()
+
+	if _, err := task.Every(1).
+		Day().At("00:00").StartImmediately().Do(p.writePortfolios); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"function": "UpdatePortfolios",
+		}).Error(err)
+		return
+	}
+
+	<-task.StartAsync()
 }
