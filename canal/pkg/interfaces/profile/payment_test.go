@@ -82,7 +82,9 @@ func createGetTransactionsFail(t *testing.T, ctx context.Context) (*profileHTTP.
 
 func TestSetTransaction_Success(t *testing.T) {
 	url := "http://127.0.0.1:8000/api/users"
-	body := strings.NewReader(fmt.Sprintf(`{"from": "%s", "to": "%s", "amount": %f}`, from, to, amount))
+	body := strings.NewReader(
+		fmt.Sprintf(`{"base": "%s", "currency": "%s", "amount": %f, "sell": "%s"}`, base, curr, amount, sell),
+	)
 
 	req := httptest.NewRequest(http.MethodPost, url, body)
 	w := httptest.NewRecorder()
@@ -102,33 +104,37 @@ func createSetTransactionSuccess(t *testing.T, ctx context.Context) (*profileHTT
 
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockUser.EXPECT().
-		CheckWallet(ctx, createWalletCheck(from)).
+		CheckWallet(ctx, createWalletCheck(base)).
 		Return(&profileService.Check{Existence: true}, nil)
 	mockUser.EXPECT().
-		GetWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: from}).
-		Return(&profileService.Wallet{Title: from, Value: walletSize}, nil)
+		GetWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: base}).
+		Return(&profileService.Wallet{Title: base, Value: walletSize}, nil)
 	mockUser.EXPECT().
-		CheckWallet(ctx, createWalletCheck(to)).
+		CheckWallet(ctx, createWalletCheck(curr)).
 		Return(&profileService.Check{Existence: true}, nil)
 	mockUser.EXPECT().
-		UpdateWallet(ctx, createWalletToSet(from, -amount)).
+		UpdateWallet(ctx, createWalletToSet(base, -amount)).
 		Return(nil, nil)
 	mockUser.EXPECT().
-		UpdateWallet(ctx, createWalletToSet(to, amount)).
+		UpdateWallet(ctx, createWalletToSet(curr, amount)).
 		Return(nil, nil)
 	mockUser.EXPECT().
-		AddToPaymentHistory(ctx, &profileService.AddToHistory{Id: id, Transaction: &profileService.PaymentHistory{From: from, To: to, Amount: amount, Value: 1}}).
+		AddToPaymentHistory(ctx,
+			&profileService.AddToHistory{
+				Id: id,
+				Transaction: &profileService.PaymentHistory{Base: base, Currency: curr, Amount: amount, Value: 1, Sell: "false",
+				}}).
 		Return(nil, nil)
 
 	mockSecurity := mock.NewSecurityMock(ctrl)
 
 	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
 	mockRates.EXPECT().
-		GetLastRate(ctx, &currency.CurrencyTitle{Title: from}).
-		Return(&currency.Currency{Title: from, Value: value}, nil)
+		GetLastRate(ctx, &currency.CurrencyTitle{Title: base}).
+		Return(&currency.Currency{Title: base, Value: value}, nil)
 	mockRates.EXPECT().
-		GetLastRate(ctx, &currency.CurrencyTitle{Title: to}).
-		Return(&currency.Currency{Title: to, Value: value}, nil)
+		GetLastRate(ctx, &currency.CurrencyTitle{Title: curr}).
+		Return(&currency.Currency{Title: curr, Value: value}, nil)
 
 	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
 }
@@ -164,7 +170,9 @@ func createSetTransactionFailDecode(t *testing.T) (*profileHTTP.Profile, *gomock
 
 func TestSetTransaction_FailCheckFrom400(t *testing.T) {
 	url := "http://127.0.0.1:8000/api/users"
-	body := strings.NewReader(fmt.Sprintf(`{"from": "%s", "to": "%s", "amount": %f}`, from, to, amount))
+	body := strings.NewReader(
+		fmt.Sprintf(`{"base": "%s", "currency": "%s", "amount": %f, "sell": "%s"}`, base, curr, amount, sell),
+	)
 
 	req := httptest.NewRequest(http.MethodPost, url, body)
 	w := httptest.NewRecorder()
@@ -184,19 +192,27 @@ func createSetTransactionFailCheckFrom400(t *testing.T, ctx context.Context) (*p
 
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockUser.EXPECT().
-		CheckWallet(ctx, createWalletCheck(from)).
+		CheckWallet(ctx, createWalletCheck(base)).
 		Return(&profileService.Check{Existence: false}, nil)
 
 	mockSecurity := mock.NewSecurityMock(ctrl)
 
 	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
+	mockRates.EXPECT().
+		GetLastRate(ctx, &currency.CurrencyTitle{Title: base}).
+		Return(&currency.Currency{Title: base, Value: value}, nil)
+	mockRates.EXPECT().
+		GetLastRate(ctx, &currency.CurrencyTitle{Title: curr}).
+		Return(&currency.Currency{Title: curr, Value: value}, nil)
 
 	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
 }
 
 func TestSetTransaction_FailCheckFrom500(t *testing.T) {
 	url := "http://127.0.0.1:8000/api/users"
-	body := strings.NewReader(fmt.Sprintf(`{"from": "%s", "to": "%s", "amount": %f}`, from, to, amount))
+	body := strings.NewReader(
+		fmt.Sprintf(`{"base": "%s", "currency": "%s", "amount": %f, "sell": "%s"}`, base, curr, amount, sell),
+	)
 
 	req := httptest.NewRequest(http.MethodPost, url, body)
 	w := httptest.NewRecorder()
@@ -216,19 +232,27 @@ func createSetTransactionFailCheckFrom500(t *testing.T, ctx context.Context) (*p
 
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockUser.EXPECT().
-		CheckWallet(ctx, createWalletCheck(from)).
+		CheckWallet(ctx, createWalletCheck(base)).
 		Return(&profileService.Check{Existence: false}, errors.New("createSetTransactionFailCheckFrom500"))
 
 	mockSecurity := mock.NewSecurityMock(ctrl)
 
 	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
+	mockRates.EXPECT().
+		GetLastRate(ctx, &currency.CurrencyTitle{Title: base}).
+		Return(&currency.Currency{Title: base, Value: value}, nil)
+	mockRates.EXPECT().
+		GetLastRate(ctx, &currency.CurrencyTitle{Title: curr}).
+		Return(&currency.Currency{Title: curr, Value: value}, nil)
 
 	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
 }
 
 func TestSetTransaction_FailCurrencyDivFrom(t *testing.T) {
 	url := "http://127.0.0.1:8000/api/users"
-	body := strings.NewReader(fmt.Sprintf(`{"from": "%s", "to": "%s", "amount": %f}`, from, to, amount))
+	body := strings.NewReader(
+		fmt.Sprintf(`{"base": "%s", "currency": "%s", "amount": %f, "sell": "%s"}`, base, curr, amount, sell),
+	)
 
 	req := httptest.NewRequest(http.MethodPost, url, body)
 	w := httptest.NewRecorder()
@@ -247,15 +271,12 @@ func createSetTransactionFailCurrencyDivFrom(t *testing.T, ctx context.Context) 
 	ctrl := gomock.NewController(t)
 
 	mockUser := profileMock.NewProfileMock(ctrl)
-	mockUser.EXPECT().
-		CheckWallet(ctx, createWalletCheck(from)).
-		Return(&profileService.Check{Existence: true}, nil)
 
 	mockSecurity := mock.NewSecurityMock(ctrl)
 
 	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
 	mockRates.EXPECT().
-		GetLastRate(ctx, &currency.CurrencyTitle{Title: from}).
+		GetLastRate(ctx, &currency.CurrencyTitle{Title: base}).
 		Return(nil, errors.New("createSetTransactionFailCurrencyDivFrom"))
 
 	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
@@ -263,7 +284,9 @@ func createSetTransactionFailCurrencyDivFrom(t *testing.T, ctx context.Context) 
 
 func TestSetTransaction_FailCurrencyDivTo(t *testing.T) {
 	url := "http://127.0.0.1:8000/api/users"
-	body := strings.NewReader(fmt.Sprintf(`{"from": "%s", "to": "%s", "amount": %f}`, from, to, amount))
+	body := strings.NewReader(
+		fmt.Sprintf(`{"base": "%s", "currency": "%s", "amount": %f, "sell": "%s"}`, base, curr, amount, sell),
+	)
 
 	req := httptest.NewRequest(http.MethodPost, url, body)
 	w := httptest.NewRecorder()
@@ -282,18 +305,15 @@ func createSetTransactionFailCurrencyDivTo(t *testing.T, ctx context.Context) (*
 	ctrl := gomock.NewController(t)
 
 	mockUser := profileMock.NewProfileMock(ctrl)
-	mockUser.EXPECT().
-		CheckWallet(ctx, createWalletCheck(from)).
-		Return(&profileService.Check{Existence: true}, nil)
 
 	mockSecurity := mock.NewSecurityMock(ctrl)
 
 	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
 	mockRates.EXPECT().
-		GetLastRate(ctx, &currency.CurrencyTitle{Title: from}).
-		Return(&currency.Currency{Title: from, Value: value}, nil)
+		GetLastRate(ctx, &currency.CurrencyTitle{Title: base}).
+		Return(&currency.Currency{Title: base, Value: value}, nil)
 	mockRates.EXPECT().
-		GetLastRate(ctx, &currency.CurrencyTitle{Title: to}).
+		GetLastRate(ctx, &currency.CurrencyTitle{Title: curr}).
 		Return(nil, errors.New("createSetTransactionFailCurrencyDivTo"))
 
 	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
@@ -301,7 +321,9 @@ func createSetTransactionFailCurrencyDivTo(t *testing.T, ctx context.Context) (*
 
 func TestSetTransaction_FailGetWallet(t *testing.T) {
 	url := "http://127.0.0.1:8000/api/users"
-	body := strings.NewReader(fmt.Sprintf(`{"from": "%s", "to": "%s", "amount": %f}`, from, to, amount))
+	body := strings.NewReader(
+		fmt.Sprintf(`{"base": "%s", "currency": "%s", "amount": %f, "sell": "%s"}`, base, curr, amount, sell),
+	)
 
 	req := httptest.NewRequest(http.MethodPost, url, body)
 	w := httptest.NewRecorder()
@@ -321,28 +343,30 @@ func createSetTransactionFailGetWallet(t *testing.T, ctx context.Context) (*prof
 
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockUser.EXPECT().
-		CheckWallet(ctx, createWalletCheck(from)).
+		CheckWallet(ctx, createWalletCheck(base)).
 		Return(&profileService.Check{Existence: true}, nil)
 	mockUser.EXPECT().
-		GetWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: from}).
+		GetWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: base}).
 		Return(nil, errors.New("createSetTransactionFailGetWallet"))
 
 	mockSecurity := mock.NewSecurityMock(ctrl)
 
 	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
 	mockRates.EXPECT().
-		GetLastRate(ctx, &currency.CurrencyTitle{Title: from}).
-		Return(&currency.Currency{Title: from, Value: value}, nil)
+		GetLastRate(ctx, &currency.CurrencyTitle{Title: base}).
+		Return(&currency.Currency{Title: base, Value: value}, nil)
 	mockRates.EXPECT().
-		GetLastRate(ctx, &currency.CurrencyTitle{Title: to}).
-		Return(&currency.Currency{Title: to, Value: value}, nil)
+		GetLastRate(ctx, &currency.CurrencyTitle{Title: curr}).
+		Return(&currency.Currency{Title: curr, Value: value}, nil)
 
 	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
 }
 
 func TestSetTransaction_FailCheckWalletTo(t *testing.T) {
 	url := "http://127.0.0.1:8000/api/users"
-	body := strings.NewReader(fmt.Sprintf(`{"from": "%s", "to": "%s", "amount": %f}`, from, to, amount))
+	body := strings.NewReader(
+		fmt.Sprintf(`{"base": "%s", "currency": "%s", "amount": %f, "sell": "%s"}`, base, curr, amount, sell),
+	)
 
 	req := httptest.NewRequest(http.MethodPost, url, body)
 	w := httptest.NewRecorder()
@@ -362,31 +386,33 @@ func createSetTransactionFailCheckWalletTo(t *testing.T, ctx context.Context) (*
 
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockUser.EXPECT().
-		CheckWallet(ctx, createWalletCheck(from)).
+		CheckWallet(ctx, createWalletCheck(base)).
 		Return(&profileService.Check{Existence: true}, nil)
 	mockUser.EXPECT().
-		GetWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: from}).
-		Return(&profileService.Wallet{Title: from, Value: walletSize}, nil)
+		GetWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: base}).
+		Return(&profileService.Wallet{Title: base, Value: walletSize}, nil)
 	mockUser.EXPECT().
-		CheckWallet(ctx, createWalletCheck(to)).
+		CheckWallet(ctx, createWalletCheck(curr)).
 		Return(nil, errors.New("createSetTransactionFailCheckWalletTo"))
 
 	mockSecurity := mock.NewSecurityMock(ctrl)
 
 	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
 	mockRates.EXPECT().
-		GetLastRate(ctx, &currency.CurrencyTitle{Title: from}).
-		Return(&currency.Currency{Title: from, Value: value}, nil)
+		GetLastRate(ctx, &currency.CurrencyTitle{Title: base}).
+		Return(&currency.Currency{Title: base, Value: value}, nil)
 	mockRates.EXPECT().
-		GetLastRate(ctx, &currency.CurrencyTitle{Title: to}).
-		Return(&currency.Currency{Title: to, Value: value}, nil)
+		GetLastRate(ctx, &currency.CurrencyTitle{Title: curr}).
+		Return(&currency.Currency{Title: curr, Value: value}, nil)
 
 	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
 }
 
 func TestSetTransaction_FailCheckWalletToCreateWallet(t *testing.T) {
 	url := "http://127.0.0.1:8000/api/users"
-	body := strings.NewReader(fmt.Sprintf(`{"from": "%s", "to": "%s", "amount": %f}`, from, to, amount))
+	body := strings.NewReader(
+		fmt.Sprintf(`{"base": "%s", "currency": "%s", "amount": %f, "sell": "%s"}`, base, curr, amount, sell),
+	)
 
 	req := httptest.NewRequest(http.MethodPost, url, body)
 	w := httptest.NewRecorder()
@@ -406,35 +432,36 @@ func createSetTransactionFailCheckWalletToCreateWallet(t *testing.T, ctx context
 
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockUser.EXPECT().
-		CheckWallet(ctx, createWalletCheck(from)).
+		CheckWallet(ctx, createWalletCheck(base)).
 		Return(&profileService.Check{Existence: true}, nil)
 	mockUser.EXPECT().
-		GetWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: from}).
-		Return(&profileService.Wallet{Title: from, Value: walletSize}, nil)
+		GetWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: base}).
+		Return(&profileService.Wallet{Title: base, Value: walletSize}, nil)
 	mockUser.EXPECT().
-		CheckWallet(ctx, createWalletCheck(to)).
+		CheckWallet(ctx, createWalletCheck(curr)).
 		Return(&profileService.Check{Existence: false}, nil)
 	mockUser.EXPECT().
-		CreateWallet(ctx, createWalletCheck(to)).
+		CreateWallet(ctx, createWalletCheck(curr)).
 		Return(nil, errors.New("createSetTransactionFailCheckWalletToCreateWallet"))
-
 
 	mockSecurity := mock.NewSecurityMock(ctrl)
 
 	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
 	mockRates.EXPECT().
-		GetLastRate(ctx, &currency.CurrencyTitle{Title: from}).
-		Return(&currency.Currency{Title: from, Value: value}, nil)
+		GetLastRate(ctx, &currency.CurrencyTitle{Title: base}).
+		Return(&currency.Currency{Title: base, Value: value}, nil)
 	mockRates.EXPECT().
-		GetLastRate(ctx, &currency.CurrencyTitle{Title: to}).
-		Return(&currency.Currency{Title: to, Value: value}, nil)
+		GetLastRate(ctx, &currency.CurrencyTitle{Title: curr}).
+		Return(&currency.Currency{Title: curr, Value: value}, nil)
 
 	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
 }
 
 func TestSetTransaction_FailUpdateFrom(t *testing.T) {
 	url := "http://127.0.0.1:8000/api/users"
-	body := strings.NewReader(fmt.Sprintf(`{"from": "%s", "to": "%s", "amount": %f}`, from, to, amount))
+	body := strings.NewReader(
+		fmt.Sprintf(`{"base": "%s", "currency": "%s", "amount": %f, "sell": "%s"}`, base, curr, amount, sell),
+	)
 
 	req := httptest.NewRequest(http.MethodPost, url, body)
 	w := httptest.NewRecorder()
@@ -454,34 +481,36 @@ func createSetTransactionFailUpdateFrom(t *testing.T, ctx context.Context) (*pro
 
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockUser.EXPECT().
-		CheckWallet(ctx, createWalletCheck(from)).
+		CheckWallet(ctx, createWalletCheck(base)).
 		Return(&profileService.Check{Existence: true}, nil)
 	mockUser.EXPECT().
-		GetWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: from}).
-		Return(&profileService.Wallet{Title: from, Value: walletSize}, nil)
+		GetWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: base}).
+		Return(&profileService.Wallet{Title: base, Value: walletSize}, nil)
 	mockUser.EXPECT().
-		CheckWallet(ctx, createWalletCheck(to)).
+		CheckWallet(ctx, createWalletCheck(curr)).
 		Return(&profileService.Check{Existence: true}, nil)
 	mockUser.EXPECT().
-		UpdateWallet(ctx, createWalletToSet(from, -amount)).
+		UpdateWallet(ctx, createWalletToSet(base, -amount)).
 		Return(nil, errors.New("createSetTransactionFailUpdateFrom"))
 
 	mockSecurity := mock.NewSecurityMock(ctrl)
 
 	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
 	mockRates.EXPECT().
-		GetLastRate(ctx, &currency.CurrencyTitle{Title: from}).
-		Return(&currency.Currency{Title: from, Value: value}, nil)
+		GetLastRate(ctx, &currency.CurrencyTitle{Title: base}).
+		Return(&currency.Currency{Title: base, Value: value}, nil)
 	mockRates.EXPECT().
-		GetLastRate(ctx, &currency.CurrencyTitle{Title: to}).
-		Return(&currency.Currency{Title: to, Value: value}, nil)
+		GetLastRate(ctx, &currency.CurrencyTitle{Title: curr}).
+		Return(&currency.Currency{Title: curr, Value: value}, nil)
 
 	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
 }
 
 func TestSetTransaction_FailUpdateTo(t *testing.T) {
 	url := "http://127.0.0.1:8000/api/users"
-	body := strings.NewReader(fmt.Sprintf(`{"from": "%s", "to": "%s", "amount": %f}`, from, to, amount))
+	body := strings.NewReader(
+		fmt.Sprintf(`{"base": "%s", "currency": "%s", "amount": %f, "sell": "%s"}`, base, curr, amount, sell),
+	)
 
 	req := httptest.NewRequest(http.MethodPost, url, body)
 	w := httptest.NewRecorder()
@@ -501,37 +530,39 @@ func createSetTransactionFailUpdateTo(t *testing.T, ctx context.Context) (*profi
 
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockUser.EXPECT().
-		CheckWallet(ctx, createWalletCheck(from)).
+		CheckWallet(ctx, createWalletCheck(base)).
 		Return(&profileService.Check{Existence: true}, nil)
 	mockUser.EXPECT().
-		GetWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: from}).
-		Return(&profileService.Wallet{Title: from, Value: walletSize}, nil)
+		GetWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: base}).
+		Return(&profileService.Wallet{Title: base, Value: walletSize}, nil)
 	mockUser.EXPECT().
-		CheckWallet(ctx, createWalletCheck(to)).
+		CheckWallet(ctx, createWalletCheck(curr)).
 		Return(&profileService.Check{Existence: true}, nil)
 	mockUser.EXPECT().
-		UpdateWallet(ctx, createWalletToSet(from, -amount)).
+		UpdateWallet(ctx, createWalletToSet(base, -amount)).
 		Return(nil, nil)
 	mockUser.EXPECT().
-		UpdateWallet(ctx, createWalletToSet(to, amount)).
+		UpdateWallet(ctx, createWalletToSet(curr, amount)).
 		Return(nil, errors.New("createSetTransactionFailUpdateTo"))
 
 	mockSecurity := mock.NewSecurityMock(ctrl)
 
 	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
 	mockRates.EXPECT().
-		GetLastRate(ctx, &currency.CurrencyTitle{Title: from}).
-		Return(&currency.Currency{Title: from, Value: value}, nil)
+		GetLastRate(ctx, &currency.CurrencyTitle{Title: base}).
+		Return(&currency.Currency{Title: base, Value: value}, nil)
 	mockRates.EXPECT().
-		GetLastRate(ctx, &currency.CurrencyTitle{Title: to}).
-		Return(&currency.Currency{Title: to, Value: value}, nil)
+		GetLastRate(ctx, &currency.CurrencyTitle{Title: curr}).
+		Return(&currency.Currency{Title: curr, Value: value}, nil)
 
 	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
 }
 
 func TestSetTransaction_FailAddToPaymentHistory(t *testing.T) {
 	url := "http://127.0.0.1:8000/api/users"
-	body := strings.NewReader(fmt.Sprintf(`{"from": "%s", "to": "%s", "amount": %f}`, from, to, amount))
+	body := strings.NewReader(
+		fmt.Sprintf(`{"base": "%s", "currency": "%s", "amount": %f, "sell": "%s"}`, base, curr, amount, sell),
+	)
 
 	req := httptest.NewRequest(http.MethodPost, url, body)
 	w := httptest.NewRecorder()
@@ -551,39 +582,46 @@ func createSetTransactionFailAddToPaymentHistory(t *testing.T, ctx context.Conte
 
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockUser.EXPECT().
-		CheckWallet(ctx, createWalletCheck(from)).
+		CheckWallet(ctx, createWalletCheck(base)).
 		Return(&profileService.Check{Existence: true}, nil)
 	mockUser.EXPECT().
-		GetWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: from}).
-		Return(&profileService.Wallet{Title: from, Value: walletSize}, nil)
+		GetWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: base}).
+		Return(&profileService.Wallet{Title: base, Value: walletSize}, nil)
 	mockUser.EXPECT().
-		CheckWallet(ctx, createWalletCheck(to)).
+		CheckWallet(ctx, createWalletCheck(curr)).
 		Return(&profileService.Check{Existence: true}, nil)
 	mockUser.EXPECT().
-		UpdateWallet(ctx, createWalletToSet(from, -amount)).
+		UpdateWallet(ctx, createWalletToSet(base, -amount)).
 		Return(nil, nil)
 	mockUser.EXPECT().
-		UpdateWallet(ctx, createWalletToSet(to, amount)).
+		UpdateWallet(ctx, createWalletToSet(curr, amount)).
 		Return(nil, nil)
 	mockUser.EXPECT().
-		AddToPaymentHistory(ctx, &profileService.AddToHistory{Id: id, Transaction: &profileService.PaymentHistory{From: from, To: to, Amount: amount, Value: 1}}).
+		AddToPaymentHistory(ctx, &profileService.AddToHistory{
+			Id: id,
+			Transaction: &profileService.PaymentHistory{Base: base, Currency: curr, Amount: amount, Value: 1, Sell: sell,
+			}}).
 		Return(nil, errors.New("createSetTransactionFailAddToPaymentHistory"))
 
 	mockSecurity := mock.NewSecurityMock(ctrl)
 
 	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
 	mockRates.EXPECT().
-		GetLastRate(ctx, &currency.CurrencyTitle{Title: from}).
-		Return(&currency.Currency{Title: from, Value: value}, nil)
+		GetLastRate(ctx, &currency.CurrencyTitle{Title: base}).
+		Return(&currency.Currency{Title: base, Value: value}, nil)
 	mockRates.EXPECT().
-		GetLastRate(ctx, &currency.CurrencyTitle{Title: to}).
-		Return(&currency.Currency{Title: to, Value: value}, nil)
+		GetLastRate(ctx, &currency.CurrencyTitle{Title: curr}).
+		Return(&currency.Currency{Title: curr, Value: value}, nil)
 
 	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
 }
 
 func createExpectedHistory() *profileService.AllHistory {
-	return &profileService.AllHistory{History: []*profileService.PaymentHistory{{From: from, To: to, Amount: amount, Value: value}}}
+	return &profileService.AllHistory{
+		History: []*profileService.PaymentHistory{
+			{Base: base, Currency: curr, Amount: amount, Value: value, Sell: sell},
+		},
+	}
 }
 
 func createWalletCheck(dest string) *profileService.ConcreteWallet {

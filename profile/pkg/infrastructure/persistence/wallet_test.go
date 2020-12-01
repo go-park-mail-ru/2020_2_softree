@@ -19,7 +19,7 @@ func TestGetWallets_Success(t *testing.T) {
 	defer db.Close()
 
 	rows := sqlmock.NewRows([]string{"title", "value"})
-	expected := profile.Wallets{Wallets: []*profile.Wallet{{Title: from, Value: value}}}
+	expected := profile.Wallets{Wallets: []*profile.Wallet{{Title: base, Value: value}}}
 	rows = rows.AddRow(expected.Wallets[0].Title, expected.Wallets[0].Value)
 
 	mock.ExpectBegin()
@@ -60,7 +60,7 @@ func TestGetWallet_Success(t *testing.T) {
 	defer db.Close()
 
 	rows := sqlmock.NewRows([]string{"value"})
-	expected := &profile.Wallet{Title: from, Value: value}
+	expected := &profile.Wallet{Title: base, Value: value}
 	rows = rows.AddRow(expected.Value)
 
 	mock.ExpectBegin()
@@ -69,7 +69,7 @@ func TestGetWallet_Success(t *testing.T) {
 
 	repo := database.NewUserDBManager(db)
 	ctx := context.Background()
-	row, err := repo.GetWallet(ctx, &profile.ConcreteWallet{Id: userId, Title: from})
+	row, err := repo.GetWallet(ctx, &profile.ConcreteWallet{Id: userId, Title: base})
 
 	require.Equal(t, nil, err)
 	require.Equal(t, nil, mock.ExpectationsWereMet())
@@ -83,13 +83,13 @@ func TestGetWallet_Fail(t *testing.T) {
 
 	mock.ExpectBegin()
 	mock.ExpectQuery("SELECT value FROM accounts WHERE").
-		WithArgs(userId, from).
+		WithArgs(userId, base).
 		WillReturnError(errors.New("error"))
 	mock.ExpectRollback()
 
 	repo := database.NewUserDBManager(db)
 	ctx := context.Background()
-	_, err = repo.GetWallet(ctx, &profile.ConcreteWallet{Id: userId, Title: from})
+	_, err = repo.GetWallet(ctx, &profile.ConcreteWallet{Id: userId, Title: base})
 
 	require.NotEqual(t, nil, err)
 	require.Equal(t, nil, mock.ExpectationsWereMet())
@@ -102,13 +102,13 @@ func TestCreateWallet_Success(t *testing.T) {
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO accounts (user_id, title, value) VALUES`)).
-		WithArgs(userId, from, decimal.New(0, 0)).
+		WithArgs(userId, base, decimal.New(0, 0)).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
 	repo := database.NewUserDBManager(db)
 	ctx := context.Background()
-	_, err = repo.CreateWallet(ctx, &profile.ConcreteWallet{Id: userId, Title: from})
+	_, err = repo.CreateWallet(ctx, &profile.ConcreteWallet{Id: userId, Title: base})
 
 	require.Equal(t, nil, err)
 	require.Equal(t, nil, mock.ExpectationsWereMet())
@@ -121,13 +121,13 @@ func TestCreateWallet_Fail(t *testing.T) {
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO accounts (user_id, title, value) VALUES`)).
-		WithArgs(userId, from, decimal.New(0, 0)).
+		WithArgs(userId, base, decimal.New(0, 0)).
 		WillReturnError(errors.New("error"))
 	mock.ExpectRollback()
 
 	repo := database.NewUserDBManager(db)
 	ctx := context.Background()
-	_, err = repo.CreateWallet(ctx, &profile.ConcreteWallet{Id: userId, Title: from})
+	_, err = repo.CreateWallet(ctx, &profile.ConcreteWallet{Id: userId, Title: base})
 
 	require.NotEqual(t, nil, err)
 	require.Equal(t, nil, mock.ExpectationsWereMet())
@@ -144,13 +144,13 @@ func TestCheckWallet_Success(t *testing.T) {
 
 	mock.ExpectBegin()
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT COUNT(user_id) FROM accounts WHERE`)).
-		WithArgs(userId, from).
+		WithArgs(userId, base).
 		WillReturnRows(rows)
 	mock.ExpectCommit()
 
 	repo := database.NewUserDBManager(db)
 	ctx := context.Background()
-	row, err := repo.CheckWallet(ctx, &profile.ConcreteWallet{Id: userId, Title: from})
+	row, err := repo.CheckWallet(ctx, &profile.ConcreteWallet{Id: userId, Title: base})
 
 	require.Equal(t, nil, err)
 	require.Equal(t, nil, mock.ExpectationsWereMet())
@@ -164,13 +164,13 @@ func TestCheckWallet_Fail(t *testing.T) {
 
 	mock.ExpectBegin()
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT COUNT(user_id) FROM accounts WHERE`)).
-		WithArgs(userId, from).
+		WithArgs(userId, base).
 		WillReturnError(errors.New("error"))
 	mock.ExpectRollback()
 
 	repo := database.NewUserDBManager(db)
 	ctx := context.Background()
-	_, err = repo.CheckWallet(ctx, &profile.ConcreteWallet{Id: userId, Title: from})
+	_, err = repo.CheckWallet(ctx, &profile.ConcreteWallet{Id: userId, Title: base})
 
 	require.NotEqual(t, nil, err)
 	require.Equal(t, nil, mock.ExpectationsWereMet())
@@ -183,13 +183,13 @@ func TestSetWallet_Success(t *testing.T) {
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO accounts (user_id, title, value) VALUES`)).
-		WithArgs(userId, from, value).
+		WithArgs(userId, base, value).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
 	repo := database.NewUserDBManager(db)
 	ctx := context.Background()
-	_, err = repo.SetWallet(ctx, &profile.ToSetWallet{Id: userId, NewWallet: &profile.Wallet{Title: from, Value: value}})
+	_, err = repo.SetWallet(ctx, &profile.ToSetWallet{Id: userId, NewWallet: &profile.Wallet{Title: base, Value: value}})
 
 	require.Equal(t, nil, err)
 	require.Equal(t, nil, mock.ExpectationsWereMet())
@@ -202,13 +202,13 @@ func TestSetWallet_Fail(t *testing.T) {
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(`INSERT INTO accounts (user_id, title, value) VALUES`)).
-		WithArgs(userId, from, value).
+		WithArgs(userId, base, value).
 		WillReturnError(errors.New("error"))
 	mock.ExpectRollback()
 
 	repo := database.NewUserDBManager(db)
 	ctx := context.Background()
-	_, err = repo.SetWallet(ctx, &profile.ToSetWallet{Id: userId, NewWallet: &profile.Wallet{Title: from, Value: value}})
+	_, err = repo.SetWallet(ctx, &profile.ToSetWallet{Id: userId, NewWallet: &profile.Wallet{Title: base, Value: value}})
 
 	require.NotEqual(t, nil, err)
 	require.Equal(t, nil, mock.ExpectationsWereMet())
@@ -221,13 +221,13 @@ func TestUpdateWallet_Success(t *testing.T) {
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(`UPDATE accounts SET value = value + $1 WHERE`)).
-		WithArgs(decimal.NewFromFloat(value), userId, from).
+		WithArgs(decimal.NewFromFloat(value), userId, base).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
 	repo := database.NewUserDBManager(db)
 	ctx := context.Background()
-	_, err = repo.UpdateWallet(ctx, &profile.ToSetWallet{Id: userId, NewWallet: &profile.Wallet{Title: from, Value: value}})
+	_, err = repo.UpdateWallet(ctx, &profile.ToSetWallet{Id: userId, NewWallet: &profile.Wallet{Title: base, Value: value}})
 
 	require.Equal(t, nil, err)
 	require.Equal(t, nil, mock.ExpectationsWereMet())
@@ -240,13 +240,13 @@ func TestUpdateWallet_Fail(t *testing.T) {
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(`UPDATE accounts SET value = value + $1 WHERE`)).
-		WithArgs(decimal.NewFromFloat(value), userId, from).
+		WithArgs(decimal.NewFromFloat(value), userId, base).
 		WillReturnError(errors.New("error"))
 	mock.ExpectRollback()
 
 	repo := database.NewUserDBManager(db)
 	ctx := context.Background()
-	_, err = repo.UpdateWallet(ctx, &profile.ToSetWallet{Id: userId, NewWallet: &profile.Wallet{Title: from, Value: value}})
+	_, err = repo.UpdateWallet(ctx, &profile.ToSetWallet{Id: userId, NewWallet: &profile.Wallet{Title: base, Value: value}})
 
 	require.NotEqual(t, nil, err)
 	require.Equal(t, nil, mock.ExpectationsWereMet())

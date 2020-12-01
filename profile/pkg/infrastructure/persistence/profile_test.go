@@ -358,8 +358,8 @@ func TestGetUserWatchlist_Success(t *testing.T) {
 	rows := sqlmock.NewRows([]string{"base_title", "currency_title"})
 	expected := profile.Currencies{Currencies: []*profile.Currency{
 		{
-			Base:  from,
-			Title: to,
+			Base:  base,
+			Title: currency,
 		},
 	}}
 	rows = rows.AddRow(
@@ -390,8 +390,8 @@ func TestGetUserWatchlistNew_Success(t *testing.T) {
 	rows := sqlmock.NewRows([]string{"base_title", "currency_title"})
 	expected := profile.Currencies{Currencies: []*profile.Currency{
 		{
-			Base:  to,
-			Title: from,
+			Base:  currency,
+			Title: base,
 		},
 	}}
 

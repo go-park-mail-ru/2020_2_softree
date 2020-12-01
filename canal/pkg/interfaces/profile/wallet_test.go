@@ -79,7 +79,7 @@ func createGetWalletsFail(t *testing.T, ctx context.Context) (*profileHTTP.Profi
 
 func TestSetWallets_Success(t *testing.T) {
 	url := "http://127.0.0.1:8000/api/users"
-	body := strings.NewReader(fmt.Sprintf(`{"title": "%s"}`, to))
+	body := strings.NewReader(fmt.Sprintf(`{"title": "%s"}`, curr))
 
 	req := httptest.NewRequest(http.MethodGet, url, body)
 	w := httptest.NewRecorder()
@@ -99,7 +99,7 @@ func createSetWalletsSuccess(t *testing.T, ctx context.Context) (*profileHTTP.Pr
 
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockUser.EXPECT().
-		CreateWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: to}).
+		CreateWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: curr}).
 		Return(nil, nil)
 
 	mockSecurity := mock.NewSecurityMock(ctrl)
@@ -111,7 +111,7 @@ func createSetWalletsSuccess(t *testing.T, ctx context.Context) (*profileHTTP.Pr
 
 func TestSetWallets_Fail(t *testing.T) {
 	url := "http://127.0.0.1:8000/api/users"
-	body := strings.NewReader(fmt.Sprintf(`{"title": "%s"}`, to))
+	body := strings.NewReader(fmt.Sprintf(`{"title": "%s"}`, curr))
 
 	req := httptest.NewRequest(http.MethodGet, url, body)
 	w := httptest.NewRecorder()
@@ -131,7 +131,7 @@ func createSetWalletsFail(t *testing.T, ctx context.Context) (*profileHTTP.Profi
 
 	mockUser := profileMock.NewProfileMock(ctrl)
 	mockUser.EXPECT().
-		CreateWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: to}).
+		CreateWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: curr}).
 		Return(nil, errors.New("createSetWalletsFail"))
 
 	mockSecurity := mock.NewSecurityMock(ctrl)
@@ -171,5 +171,5 @@ func createSetWalletsFailDecode(t *testing.T) (*profileHTTP.Profile, *gomock.Con
 }
 
 func createExpectedWallets() *profileService.Wallets {
-	return &profileService.Wallets{Wallets: []*profileService.Wallet{{Title: to, Value: value}}}
+	return &profileService.Wallets{Wallets: []*profileService.Wallet{{Title: curr, Value: value}}}
 }

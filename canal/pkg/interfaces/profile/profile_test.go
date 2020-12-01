@@ -29,8 +29,9 @@ const (
 	walletSize = 100000.0
 	value      = 79.7
 	amount     = 1000.0
-	from       = "RUB"
-	to         = "USD"
+	base       = "RUB"
+	curr       = "USD"
+	sell       = "false"
 )
 
 func TestUpdateUserAvatar_Success(t *testing.T) {
@@ -127,7 +128,8 @@ func createUpdatePasswordSuccess(t *testing.T, ctx context.Context) (*profileHTT
 	mockUser.EXPECT().
 		UpdateUserPassword(
 			ctx,
-			&profileService.UpdateFields{Id: id, User: &profileService.User{Id: id, OldPassword: oldPassword, NewPassword: newPassword}},
+			&profileService.UpdateFields{Id: id, User:
+			&profileService.User{Id: id, OldPassword: oldPassword, NewPassword: newPassword, PasswordToCheck: oldPassword}},
 		).
 		Return(&profileService.Empty{}, nil)
 	mockUser.EXPECT().
@@ -306,5 +308,5 @@ func createContext(req **http.Request) context.Context {
 }
 
 func createExpectedCurrencies() *profileService.Currencies {
-	return &profileService.Currencies{Currencies: []*profileService.Currency{{Base: to, Title: from}}}
+	return &profileService.Currencies{Currencies: []*profileService.Currency{{Base: curr, Title: base}}}
 }
