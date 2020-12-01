@@ -86,7 +86,7 @@ func (rm *RateDBManager) saveRates(table string, financial domain.FinancialRepos
 	return nil
 }
 
-func (rm *RateDBManager) GetRates(ctx context.Context, in *currency.Empty) (*currency.Currencies, error) {
+func (rm *RateDBManager) GetAllLatestRates(ctx context.Context, in *currency.Empty) (*currency.Currencies, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
@@ -139,7 +139,7 @@ func (rm *RateDBManager) GetRates(ctx context.Context, in *currency.Empty) (*cur
 	return &currencies, nil
 }
 
-func (rm *RateDBManager) GetRate(ctx context.Context, in *currency.CurrencyTitle) (*currency.Currencies, error) {
+func (rm *RateDBManager) GetAllRatesByTitle(ctx context.Context, in *currency.CurrencyTitle) (*currency.Currencies, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 

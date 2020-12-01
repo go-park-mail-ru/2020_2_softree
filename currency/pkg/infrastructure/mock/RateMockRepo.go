@@ -27,39 +27,39 @@ func (rateMock *RateMock) EXPECT() *RecorderRate {
 	return rateMock.recorder
 }
 
-func (rateMock *RateMock) GetRates(ctx context.Context, in *currency.Empty, opts ...grpc.CallOption) (*currency.Currencies, error) {
+func (rateMock *RateMock) GetAllLatestRates(ctx context.Context, in *currency.Empty, opts ...grpc.CallOption) (*currency.Currencies, error) {
 	rateMock.ctrl.T.Helper()
-	ret := rateMock.ctrl.Call(rateMock, "GetRates", ctx, in)
+	ret := rateMock.ctrl.Call(rateMock, "GetAllLatestRates", ctx, in)
 	out, _ := ret[0].(*currency.Currencies)
 	err, _ := ret[1].(error)
 	return out, err
 }
 
-func (recorder *RecorderRate) GetRates(ctx, in interface{}) *gomock.Call {
+func (recorder *RecorderRate) GetAllLatestRates(ctx, in interface{}) *gomock.Call {
 	recorder.mock.ctrl.T.Helper()
 	return recorder.mock.ctrl.RecordCallWithMethodType(
 		recorder.mock,
-		"GetRates",
-		reflect.TypeOf((*RateMock)(nil).GetRates),
+		"GetAllLatestRates",
+		reflect.TypeOf((*RateMock)(nil).GetAllLatestRates),
 		ctx,
 		in,
 	)
 }
 
-func (rateMock *RateMock) GetRate(ctx context.Context, in *currency.CurrencyTitle, opts ...grpc.CallOption) (*currency.Currencies, error) {
+func (rateMock *RateMock) GetAllRatesByTitle(ctx context.Context, in *currency.CurrencyTitle, opts ...grpc.CallOption) (*currency.Currencies, error) {
 	rateMock.ctrl.T.Helper()
-	ret := rateMock.ctrl.Call(rateMock, "GetRate", ctx, in)
+	ret := rateMock.ctrl.Call(rateMock, "GetAllRatesByTitle", ctx, in)
 	out, _ := ret[0].(*currency.Currencies)
 	err, _ := ret[1].(error)
 	return out, err
 }
 
-func (recorder *RecorderRate) GetRate(ctx, in interface{}) *gomock.Call {
+func (recorder *RecorderRate) GetAllRatesByTitle(ctx, in interface{}) *gomock.Call {
 	recorder.mock.ctrl.T.Helper()
 	return recorder.mock.ctrl.RecordCallWithMethodType(
 		recorder.mock,
-		"GetRate",
-		reflect.TypeOf((*RateMock)(nil).GetRate),
+		"GetAllRatesByTitle",
+		reflect.TypeOf((*RateMock)(nil).GetAllRatesByTitle),
 		ctx,
 		in,
 	)
