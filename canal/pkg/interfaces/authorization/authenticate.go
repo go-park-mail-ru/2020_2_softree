@@ -5,6 +5,7 @@ import (
 	session "server/authorization/pkg/session/gen"
 	"server/canal/pkg/domain/repository"
 	profile "server/profile/pkg/profile/gen"
+	profileInter "server/canal/pkg/interfaces/profile"
 
 	"github.com/microcosm-cc/bluemonday"
 )
@@ -24,6 +25,6 @@ func NewAuthenticate(profile profile.ProfileServiceClient,
 		auth:      auth,
 		security:  security,
 		sanitizer: *bluemonday.UGCPolicy(),
-		Hits:      *prometheus.NewCounterVec(prometheus.CounterOpts{Name: "hits"}, []string{"status"}),
+		Hits:      *profileInter.Metric,
 	}
 }

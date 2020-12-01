@@ -17,6 +17,8 @@ type Profile struct {
 	Hits      prometheus.CounterVec
 }
 
+var Metric = prometheus.NewCounterVec(prometheus.CounterOpts{Name: "hits"}, []string{"status"})
+
 func NewProfile(
 	profile profile.ProfileServiceClient, security repository.Utils, currency currency.CurrencyServiceClient) *Profile {
 	return &Profile{
@@ -24,6 +26,6 @@ func NewProfile(
 		rates:     currency,
 		security:  security,
 		sanitizer: *bluemonday.UGCPolicy(),
-		Hits:      *prometheus.NewCounterVec(prometheus.CounterOpts{Name: "hits"}, []string{"status"}),
+		Hits:      *Metric,
 	}
 }

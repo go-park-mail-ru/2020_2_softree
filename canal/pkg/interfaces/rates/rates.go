@@ -2,6 +2,7 @@ package rates
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
+	"server/canal/pkg/interfaces/profile"
 	currency "server/currency/pkg/currency/gen"
 )
 
@@ -13,6 +14,6 @@ type Rates struct {
 func NewRates(currencyService currency.CurrencyServiceClient) *Rates {
 	return &Rates{
 		currencyService: currencyService,
-		Hits:            *prometheus.NewCounterVec(prometheus.CounterOpts{Name: "hits"}, []string{"status"}),
+		Hits:            *profile.Metric,
 	}
 }

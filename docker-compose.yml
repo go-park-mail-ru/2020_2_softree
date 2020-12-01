@@ -44,6 +44,9 @@ services:
     depends_on:
       - postgres
 
+  prometheus:
+    image: prom/prometheus
+
   postgres:
     build:
       context: postgres
