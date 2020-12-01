@@ -12,3 +12,6 @@ postgres:
 
 finnhub-api:
   token: 'bttn28748v6ojt2hev60'
+
+sql:
+  timing: 5

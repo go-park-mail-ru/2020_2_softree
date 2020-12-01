@@ -2,15 +2,13 @@ package persistence
 
 import (
 	"context"
+	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
 	profile "server/profile/pkg/profile/gen"
-	"time"
-
-	"github.com/shopspring/decimal"
 )
 
 func (managerDB *UserDBManager) GetWallets(ctx context.Context, in *profile.UserID) (*profile.Wallets, error) {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, managerDB.timing)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
@@ -69,7 +67,7 @@ func (managerDB *UserDBManager) GetWallets(ctx context.Context, in *profile.User
 }
 
 func (managerDB *UserDBManager) createInitialWallet(id int64) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), managerDB.timing)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
@@ -104,7 +102,7 @@ func (managerDB *UserDBManager) createInitialWallet(id int64) error {
 }
 
 func (managerDB *UserDBManager) CreateWallet(ctx context.Context, in *profile.ConcreteWallet) (*profile.Empty, error) {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, managerDB.timing)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
@@ -139,7 +137,7 @@ func (managerDB *UserDBManager) CreateWallet(ctx context.Context, in *profile.Co
 }
 
 func (managerDB *UserDBManager) CheckWallet(ctx context.Context, in *profile.ConcreteWallet) (*profile.Check, error) {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, managerDB.timing)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
@@ -173,7 +171,7 @@ func (managerDB *UserDBManager) CheckWallet(ctx context.Context, in *profile.Con
 }
 
 func (managerDB *UserDBManager) SetWallet(ctx context.Context, in *profile.ToSetWallet) (*profile.Empty, error) {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, managerDB.timing)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
@@ -208,7 +206,7 @@ func (managerDB *UserDBManager) SetWallet(ctx context.Context, in *profile.ToSet
 }
 
 func (managerDB *UserDBManager) GetWallet(ctx context.Context, in *profile.ConcreteWallet) (*profile.Wallet, error) {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, managerDB.timing)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
@@ -246,7 +244,7 @@ func (managerDB *UserDBManager) GetWallet(ctx context.Context, in *profile.Concr
 }
 
 func (managerDB *UserDBManager) UpdateWallet(ctx context.Context, in *profile.ToSetWallet) (*profile.Empty, error) {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, managerDB.timing)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)

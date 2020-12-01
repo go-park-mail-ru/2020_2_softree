@@ -49,6 +49,10 @@ func init() {
 				"user":     "user",
 				"password": "",
 			},
+
+			"sql": map[string]interface{}{
+				"timing": 5,
+			},
 		}); err != nil {
 		log.Fatalln("Error during parse defaults", err)
 	}

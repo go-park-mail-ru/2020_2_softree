@@ -10,7 +10,7 @@ import (
 )
 
 func (managerDB *UserDBManager) GetAllPaymentHistory(c context.Context, in *profile.UserID) (*profile.AllHistory, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), managerDB.timing)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
@@ -62,7 +62,7 @@ func (managerDB *UserDBManager) GetAllPaymentHistory(c context.Context, in *prof
 }
 
 func (managerDB *UserDBManager) AddToPaymentHistory(c context.Context, in *profile.AddToHistory) (*profile.Empty, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), managerDB.timing)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
