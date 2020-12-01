@@ -6,7 +6,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"net/http"
 	currency "server/currency/pkg/currency/gen"
-	persistence2 "server/currency/pkg/infrastructure/persistence"
 )
 
 func (rates *Rates) GetRates(w http.ResponseWriter, r *http.Request) {
@@ -17,6 +16,9 @@ func (rates *Rates) GetRates(w http.ResponseWriter, r *http.Request) {
 			"function": "GetRates",
 			"action":   "GetRates",
 		}).Error(err)
+
+		rates.recordHitMetric(http.StatusInternalServerError)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -27,13 +29,16 @@ func (rates *Rates) GetRates(w http.ResponseWriter, r *http.Request) {
 			"function": "GetRates",
 			"action":   "Marshal",
 		}).Error(err)
+
+		rates.recordHitMetric(http.StatusInternalServerError)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	rates.recordHitMetric(http.StatusOK)
 	w.WriteHeader(http.StatusOK)
-
 	if _, err := w.Write(result); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"function": "GetRates",
@@ -65,6 +70,9 @@ func (rates *Rates) GetURLRate(w http.ResponseWriter, r *http.Request) {
 			"action":   "GetRate",
 			"title":    title,
 		}).Error(err)
+
+		rates.recordHitMetric(http.StatusInternalServerError)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -75,34 +83,22 @@ func (rates *Rates) GetURLRate(w http.ResponseWriter, r *http.Request) {
 			"function": "GetURLRate",
 			"action":   "Marshal",
 		}).Error(err)
+
+		rates.recordHitMetric(http.StatusInternalServerError)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	rates.recordHitMetric(http.StatusOK)
 	w.WriteHeader(http.StatusOK)
-
 	if _, err := w.Write(result); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"function": "GetURLRate",
 			"action":   "Write",
 		}).Error(err)
 	}
-}
-
-func validate(title string) bool {
-	lenOfCurrency := 3
-	if len(title) != lenOfCurrency {
-		return false
-	}
-
-	for _, rate := range persistence2.ListOfCurrencies {
-		if rate == title {
-			return true
-		}
-	}
-
-	return false
 }
 
 func (rates *Rates) GetMarkets(w http.ResponseWriter, r *http.Request) {
@@ -128,13 +124,16 @@ func (rates *Rates) GetMarkets(w http.ResponseWriter, r *http.Request) {
 			"function": "GetMarkets",
 			"action":   "Marshal",
 		}).Error(err)
+
+		rates.recordHitMetric(http.StatusInternalServerError)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	rates.recordHitMetric(http.StatusOK)
 	w.WriteHeader(http.StatusOK)
-
 	if _, err := w.Write(result); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"function": "GetMarkets",

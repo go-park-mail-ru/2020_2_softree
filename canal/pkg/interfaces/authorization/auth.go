@@ -62,8 +62,7 @@ func (a *Authentication) Authenticate(w http.ResponseWriter, r *http.Request) {
 			"action":   "Marshal",
 		}).Error(err)
 
-		a.recordHitMetric(http.StatusInternalServerError, r.URL.Path)
-		a.gauge.Set(/*mem and cpu*/)
+		a.recordHitMetric(http.StatusInternalServerError)
 
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -71,8 +70,7 @@ func (a *Authentication) Authenticate(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 
-	a.recordHitMetric(http.StatusOK, r.URL.Path)
-	a.gauge.Set(/*mem and cpu*/)
+	a.recordHitMetric(http.StatusOK)
 
 	w.Header().Add("Content-Type", "application/json")
 	if _, err := w.Write(res); err != nil {

@@ -20,8 +20,7 @@ func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
 			"action":   "Decode",
 		}).Error(err)
 
-		a.recordHitMetric(http.StatusInternalServerError, r.URL.Path)
-		a.gauge.Set(/*mem and cpu*/)
+		a.recordHitMetric(http.StatusInternalServerError)
 
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -45,8 +44,7 @@ func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
 			"user":     user,
 		}).Error(err)
 
-		a.recordHitMetric(http.StatusInternalServerError, r.URL.Path)
-		a.gauge.Set(/*mem and cpu*/)
+		a.recordHitMetric(http.StatusInternalServerError)
 
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -65,8 +63,7 @@ func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
 			"user":     user,
 		}).Error(err)
 
-		a.recordHitMetric(http.StatusInternalServerError, r.URL.Path)
-		a.gauge.Set(/*mem and cpu*/)
+		a.recordHitMetric(http.StatusInternalServerError)
 
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -81,8 +78,7 @@ func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
 			"user":     user,
 		}).Error(err)
 
-		a.recordHitMetric(http.StatusInternalServerError, r.URL.Path)
-		a.gauge.Set(/*mem and cpu*/)
+		a.recordHitMetric(http.StatusInternalServerError)
 
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -98,8 +94,7 @@ func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
 			"session":  &session.UserID{Id: public.Id},
 		}).Error(err)
 
-		a.recordHitMetric(http.StatusInternalServerError, r.URL.Path)
-		a.gauge.Set(/*mem and cpu*/)
+		a.recordHitMetric(http.StatusInternalServerError)
 
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -109,6 +104,5 @@ func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 
-	a.recordHitMetric(http.StatusCreated, r.URL.Path)
-	a.gauge.Set(/*mem and cpu*/)
+	a.recordHitMetric(http.StatusCreated)
 }

@@ -18,6 +18,9 @@ func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 			"function": "UpdateUserAvatar",
 			"action":   "Decode",
 		}).Error(err)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -35,6 +38,9 @@ func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 			"function": "UpdateUserAvatar",
 			"action":   "UpdateUserAvatar",
 		}).Error(err)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -46,6 +52,9 @@ func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 			"function": "UpdateUserAvatar",
 			"action":   "GetUserById",
 		}).Error(err)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -58,10 +67,14 @@ func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 			"function": "UpdateUserAvatar",
 			"action":   "Marshal",
 		}).Error(err)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
+	p.recordHitMetric(http.StatusOK)
 	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-Type", "application/json")
 	if _, err := w.Write(res); err != nil {
@@ -80,6 +93,9 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 			"function": "UpdateUserPassword",
 			"action":   "Decode",
 		}).Error(err)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -105,6 +121,9 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 			"function": "UpdateUserPassword",
 			"action":   "CheckPassword",
 		}).Error(err)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -119,6 +138,9 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 			"function": "UpdateUserPassword",
 			"action":   "MakeShieldedPassword",
 		}).Error(err)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -128,6 +150,9 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 			"function": "UpdateUserPassword",
 			"action":   "UpdateUserPassword",
 		}).Error(err)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -139,6 +164,9 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 			"function": "UpdateUserPassword",
 			"action":   "GetUserById",
 		}).Error(err)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -150,10 +178,14 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 			"function": "UpdateUserPassword",
 			"action":   "Marshal",
 		}).Error(err)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
+	p.recordHitMetric(http.StatusOK)
 	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-Type", "application/json")
 	if _, err := w.Write(res); err != nil {

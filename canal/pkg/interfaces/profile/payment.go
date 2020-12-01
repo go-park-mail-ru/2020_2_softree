@@ -22,6 +22,9 @@ func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
 			"action":   "GetAllPaymentHistory",
 			"userID":   id,
 		}).Error(err)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -33,6 +36,9 @@ func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
 			"function": "GetTransactions",
 			"action":   "Marshal",
 		}).Error(err)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -45,6 +51,9 @@ func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
 			"function": "GetTransactions",
 			"action":   "Write",
 		}).Error(err)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -61,6 +70,9 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 			"function": "SetTransactions",
 			"action":   "Decode",
 		}).Error(err)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -69,6 +81,7 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 	var div decimal.Decimal
 	var code int
 	if err, code, div = p.getCurrencyDiv(r.Context(), &transaction); err != nil {
+		p.recordHitMetric(code)
 		w.WriteHeader(code)
 		return
 	}
@@ -96,6 +109,7 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if exist, code := p.checkWalletSell(r.Context(), &profile.ConcreteWallet{Id: id, Title: titleToCheckPayment}); !exist {
+		p.recordHitMetric(code)
 		w.WriteHeader(code)
 		return
 	}
@@ -112,6 +126,7 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if exist, code := p.checkWalletBuy(r.Context(), &profile.ConcreteWallet{Id: id, Title: putTitle}); !exist {
+		p.recordHitMetric(code)
 		w.WriteHeader(code)
 		return
 	}
@@ -125,6 +140,9 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 			"title":    removedTitle,
 			"value":    removedMoney,
 		}).Error(err)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -138,6 +156,9 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 			"title":    putTitle,
 			"value":    putMoney,
 		}).Error(err)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -151,9 +172,13 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 			"id":          id,
 			"transaction": &transaction,
 		}).Error(err)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
+	p.recordHitMetric(http.StatusCreated)
 	w.WriteHeader(http.StatusCreated)
 }

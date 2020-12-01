@@ -17,6 +17,9 @@ func (p *Profile) GetIncome(w http.ResponseWriter, r *http.Request) {
 			"function": "GetIncome",
 			"action":   "Decode",
 		}).Error(err)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -31,6 +34,9 @@ func (p *Profile) GetIncome(w http.ResponseWriter, r *http.Request) {
 			"action":   "GetIncome",
 			"incomeParameters":   &incomeParameters,
 		}).Error(err)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -43,20 +49,22 @@ func (p *Profile) GetIncome(w http.ResponseWriter, r *http.Request) {
 			"action":   "Marshal",
 			"change":   change,
 		}).Error(err)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Add("Content-Type", "application/json")
+	p.recordHitMetric(http.StatusOK)
 	w.WriteHeader(http.StatusOK)
 	if _, err = w.Write(change); err != nil {
 		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusInternalServerError,
 			"function": "GetIncome",
 			"action":   "Write",
 			"change":   change,
 		}).Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 }

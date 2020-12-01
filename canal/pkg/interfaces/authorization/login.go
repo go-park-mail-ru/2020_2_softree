@@ -20,8 +20,7 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 			"action":   "Decode",
 		}).Error(err)
 
-		a.recordHitMetric(http.StatusInternalServerError, r.URL.Path)
-		a.gauge.Set(/*mem and cpu*/)
+		a.recordHitMetric(http.StatusInternalServerError)
 
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -46,8 +45,7 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 			"user":     user,
 		}).Error(err)
 
-		a.recordHitMetric(http.StatusInternalServerError, r.URL.Path)
-		a.gauge.Set(/*mem and cpu*/)
+		a.recordHitMetric(http.StatusInternalServerError)
 
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -74,8 +72,7 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 			"session":  &session.UserID{Id: public.Id},
 		}).Error(err)
 
-		a.recordHitMetric(http.StatusInternalServerError, r.URL.Path)
-		a.gauge.Set(/*mem and cpu*/)
+		a.recordHitMetric(http.StatusInternalServerError)
 
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -91,8 +88,7 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 			"action":   "Marshal",
 		}).Error(err)
 
-		a.recordHitMetric(http.StatusInternalServerError, r.URL.Path)
-		a.gauge.Set(/*mem and cpu*/)
+		a.recordHitMetric(http.StatusInternalServerError)
 
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -101,8 +97,7 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	a.recordHitMetric(http.StatusOK, r.URL.Path)
-	a.gauge.Set(/*mem and cpu*/)
+	a.recordHitMetric(http.StatusOK)
 
 	if _, err := w.Write(res); err != nil {
 		logrus.WithFields(logrus.Fields{

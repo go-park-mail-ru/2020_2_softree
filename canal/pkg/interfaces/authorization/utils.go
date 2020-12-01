@@ -71,8 +71,8 @@ func (a *Authentication) validate(user *profile.User) (errs entity.ErrorJSON) {
 	return
 }
 
-func (a *Authentication) recordHitMetric(code int, url string) {
-	a.hits.WithLabelValues(strconv.Itoa(code), url)
+func (a *Authentication) recordHitMetric(code int) {
+	a.Hits.WithLabelValues(strconv.Itoa(code)).Inc()
 }
 
 func CreateCookie() http.Cookie {

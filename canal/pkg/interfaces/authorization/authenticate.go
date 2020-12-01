@@ -14,11 +14,16 @@ type Authentication struct {
 	auth      session.AuthorizationServiceClient
 	security  repository.Utils
 	sanitizer bluemonday.Policy
-	hits      prometheus.CounterVec
-	gauge     prometheus.Gauge
+	Hits      prometheus.CounterVec
 }
 
 func NewAuthenticate(profile profile.ProfileServiceClient,
 	auth session.AuthorizationServiceClient, security repository.Utils) *Authentication {
-	return &Authentication{profile: profile, auth: auth, sanitizer: *bluemonday.UGCPolicy(), security: security}
+	return &Authentication{
+		profile:   profile,
+		auth:      auth,
+		security:  security,
+		sanitizer: *bluemonday.UGCPolicy(),
+		Hits:      *prometheus.NewCounterVec(prometheus.CounterOpts{Name: "hits"}, []string{"status"}),
+	}
 }

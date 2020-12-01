@@ -23,8 +23,7 @@ func (a *Authentication) Logout(w http.ResponseWriter, r *http.Request) {
 			"session_id": session.SessionID{SessionId: cookie.Value},
 		}).Error(err)
 
-		a.recordHitMetric(http.StatusInternalServerError, r.URL.Path)
-		a.gauge.Set(/*mem and cpu*/)
+		a.recordHitMetric(http.StatusInternalServerError)
 
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -36,5 +35,5 @@ func (a *Authentication) Logout(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &newCookie)
 	w.WriteHeader(http.StatusOK)
 
-	a.recordHitMetric(http.StatusOK, r.URL.Path)
+	a.recordHitMetric(http.StatusOK)
 }
