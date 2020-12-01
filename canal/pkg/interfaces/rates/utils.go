@@ -9,7 +9,7 @@ func (rates *Rates) recordHitMetric(code int) {
 	rates.Hits.WithLabelValues(strconv.Itoa(code)).Inc()
 }
 
-func validate(title string) bool {
+func validateTitleFromQuery(title string) bool {
 	lenOfCurrency := 3
 	if len(title) != lenOfCurrency {
 		return false

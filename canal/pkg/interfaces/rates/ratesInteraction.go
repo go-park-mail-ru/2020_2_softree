@@ -51,7 +51,7 @@ func (rates *Rates) GetURLRate(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	title := vars["title"]
-	if !validate(title) {
+	if !validateTitleFromQuery(title) {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusBadRequest,
 			"function": "GetURLRate",

@@ -46,7 +46,11 @@ type RateDBManager struct {
 }
 
 func NewRateDBManager(db *sql.DB, api domain.FinancialAPI) *RateDBManager {
-	return &RateDBManager{db: db, api: api, timing: viper.GetDuration("sql.timing")*time.Second}
+	var timing time.Duration = 5
+	if viper.GetDuration("sql.timing") != 0 {
+		timing = viper.GetDuration("sql.timing")
+	}
+	return &RateDBManager{db: db, api: api, timing: timing * time.Second}
 }
 
 func (rm *RateDBManager) saveRates(table string, financial domain.FinancialRepository) error {

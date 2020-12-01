@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	profile "server/profile/pkg/profile/gen"
@@ -19,7 +18,11 @@ type UserDBManager struct {
 }
 
 func NewUserDBManager(DB *sql.DB) *UserDBManager {
-	return &UserDBManager{DB: DB, timing: viper.GetDuration("sql.timing")*time.Second}
+	var timing time.Duration = 5
+	if viper.GetDuration("sql.timing") != 0 {
+		timing = viper.GetDuration("sql.timing")
+	}
+	return &UserDBManager{DB: DB, timing: timing * time.Second}
 }
 
 func (managerDB *UserDBManager) GetUserById(c context.Context, in *profile.UserID) (*profile.PublicUser, error) {
@@ -54,7 +57,6 @@ func (managerDB *UserDBManager) GetUserById(c context.Context, in *profile.UserI
 }
 
 func (managerDB *UserDBManager) CheckExistence(ctx context.Context, in *profile.User) (*profile.Check, error) {
-	fmt.Println("*")
 	ctx, cancel := context.WithTimeout(ctx, managerDB.timing)
 	defer cancel()
 

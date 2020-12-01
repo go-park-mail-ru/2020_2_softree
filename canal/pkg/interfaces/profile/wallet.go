@@ -87,6 +87,6 @@ func (p *Profile) SetWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	p.recordHitMetric(http.StatusOK)
+	w.WriteHeader(http.StatusCreated)
+	p.recordHitMetric(http.StatusCreated)
 }
