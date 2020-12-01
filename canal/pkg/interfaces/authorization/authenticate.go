@@ -1,13 +1,12 @@
 package authorization
 
 import (
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/prometheus/client_golang/prometheus"
 	session "server/authorization/pkg/session/gen"
 	"server/canal/pkg/domain/repository"
+	"server/canal/pkg/infrastructure/metric"
 	profile "server/profile/pkg/profile/gen"
-	profileInter "server/canal/pkg/interfaces/profile"
-
-	"github.com/microcosm-cc/bluemonday"
 )
 
 type Authentication struct {
@@ -25,6 +24,6 @@ func NewAuthenticate(profile profile.ProfileServiceClient,
 		auth:      auth,
 		security:  security,
 		sanitizer: *bluemonday.UGCPolicy(),
-		Hits:      *profileInter.Metric,
+		Hits:      *metric.Metric,
 	}
 }
