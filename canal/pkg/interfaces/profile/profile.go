@@ -249,7 +249,7 @@ func (p *Profile) GetUserWatchlist(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := json.Marshal(currencies)
+	res, err := json.Marshal(currencies.Currencies)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
