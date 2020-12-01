@@ -235,3 +235,22 @@ func (profileRecorder *RecorderProfile) PutPortfolio(ctx, in interface{}) *gomoc
 		in,
 	)
 }
+
+func (profileMock *ProfileMock) GetUsers(ctx context.Context, in *profile.Empty, opts ...grpc.CallOption) (*profile.UsersCount, error) {
+	profileMock.ctrl.T.Helper()
+	ret := profileMock.ctrl.Call(profileMock, "GetUsers", ctx, in)
+	out, _ := ret[0].(*profile.UsersCount)
+	err, _ := ret[1].(error)
+	return out, err
+}
+
+func (profileRecorder *RecorderProfile) GetUsers(ctx, in interface{}) *gomock.Call {
+	profileRecorder.mock.ctrl.T.Helper()
+	return profileRecorder.mock.ctrl.RecordCallWithMethodType(
+		profileRecorder.mock,
+		"GetUsers",
+		reflect.TypeOf((*ProfileMock)(nil).GetUsers),
+		ctx,
+		in,
+	)
+}

@@ -37,6 +37,25 @@ func TestSignup_Success(t *testing.T) {
 	require.NotEmpty(t, w.Result().Cookies())
 }
 
+func TestSignup_FailPutPortfolio(t *testing.T) {
+	url := "http://127.0.0.1:8000/signup"
+	body := strings.NewReader(fmt.Sprintf("{\"email\": \"%s\", \"password\": \"%s\"}", email, password))
+
+	req := httptest.NewRequest("POST", url, body)
+	w := httptest.NewRecorder()
+
+	ctx := req.Context()
+	testAuth, ctrl := createSignupFailPutPortfolio(t, ctx)
+	defer ctrl.Finish()
+
+	testAuth.Signup(w, req)
+
+	require.Empty(t, w.Header().Get("Content-Type"))
+	require.Empty(t, w.Body)
+	require.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
+	require.Empty(t, w.Result().Cookies())
+}
+
 func TestSignup_FailUserExist(t *testing.T) {
 	url := "http://127.0.0.1:8000/signup"
 	body := strings.NewReader(fmt.Sprintf("{\"email\": \"%s\", \"password\": \"%s\"}", email, password))
@@ -134,11 +153,39 @@ func createSignupSuccess(t *testing.T, ctx context.Context) (*Authentication, *g
 		SaveUser(ctx, &profile.User{Email: email, Password: password}).
 		Times(1).
 		Return(createExpectedUser(), nil)
+	mockUser.EXPECT().
+		PutPortfolio(ctx, &profile.PortfolioValue{Id: id, Value: 1000}).
+		Return(&profile.Empty{}, nil)
 
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
 	mockAuth.EXPECT().
 		Create(ctx, &session.UserID{Id: id}).
 		Return(&session.Session{Id: id, SessionId: value}, nil)
+
+	mockSecurity := mock.NewSecurityMock(ctrl)
+	mockSecurity.EXPECT().
+		MakeShieldedPassword(password).
+		Return(password, nil)
+
+	return NewAuthenticate(mockUser, mockAuth, mockSecurity), ctrl
+}
+
+func createSignupFailPutPortfolio(t *testing.T, ctx context.Context) (*Authentication, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	mockUser := profileMock.NewProfileMock(ctrl)
+	mockUser.EXPECT().
+		CheckExistence(ctx, &profile.User{Email: email, Password: password}).
+		Return(&profile.Check{Existence: false}, nil)
+	mockUser.EXPECT().
+		SaveUser(ctx, &profile.User{Email: email, Password: password}).
+		Times(1).
+		Return(createExpectedUser(), nil)
+	mockUser.EXPECT().
+		PutPortfolio(ctx, &profile.PortfolioValue{Id: id, Value: 1000}).
+		Return(&profile.Empty{}, errors.New("createSignupFailPutPortfolio"))
+
+	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
 
 	mockSecurity := mock.NewSecurityMock(ctrl)
 	mockSecurity.EXPECT().
