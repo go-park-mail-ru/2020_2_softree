@@ -47,7 +47,8 @@ func (p *Profile) GetIncome(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	result.Change, _ = walletUSDCash.Sub(decimal.NewFromFloat(-result.Change)).Float64()
+
+	result.Change, _ = walletUSDCash.Sub(decimal.NewFromFloat(result.Change)).Float64()
 
 	change, err := json.Marshal(result.Change)
 	if err != nil {

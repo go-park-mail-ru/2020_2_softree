@@ -222,7 +222,7 @@ func (p *Profile) transformActualUserWallets(ctx context.Context, id int64) (dec
 		if err != nil {
 			return decimal.Decimal{}, err
 		}
-		cash = cash.Sub(decimal.NewFromFloat(curr.Value * wallet.Value))
+		cash = cash.Add(decimal.NewFromFloat(wallet.Value / curr.Value))
 	}
 
 	return cash, nil

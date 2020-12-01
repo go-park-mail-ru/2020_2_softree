@@ -80,6 +80,18 @@ func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if _, err := a.profile.PutPortfolio(r.Context(), &profile.PortfolioValue{Id: public.Id, Value: 1000}); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"status":   http.StatusInternalServerError,
+			"function": "Signup",
+			"action":   "PutPortfolio",
+		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+
+		a.recordHitMetric(http.StatusInternalServerError)
+		return
+	}
+
 	cookie := CreateCookie()
 	var sess *session.Session
 	if sess, err = a.auth.Create(r.Context(), &session.UserID{Id: public.Id}); err != nil {

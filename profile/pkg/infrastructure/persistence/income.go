@@ -3,6 +3,7 @@ package persistence
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
 	profile "server/profile/pkg/profile/gen"
@@ -30,22 +31,22 @@ func (managerDB *UserDBManager) GetIncome(c context.Context, in *profile.IncomeP
 	var valueDecimal decimal.Decimal
 	switch in.Period {
 	case "day":
-		err = tx.QueryRow("SELECT value FROM wallet_history WHERE user_id = $1 AND updated_at >= DATEADD(day, -1, $2) order by updated_at limit 1",
+		err = tx.QueryRow("SELECT value FROM wallet_history WHERE user_id = $1 AND updated_at >= $2::date - interval '1 day' order by updated_at limit 1",
 			in.Id,
 			time.Now(),
 		).Scan(&valueDecimal)
 	case "week":
-		err = tx.QueryRow("SELECT value FROM wallet_history WHERE user_id = $1 AND updated_at >= DATEADD(week, -1, $2) order by updated_at limit 1",
+		err = tx.QueryRow("SELECT value FROM wallet_history WHERE user_id = $1 AND updated_at >= $2::date - interval '1 week' order by updated_at limit 1",
 			in.Id,
 			time.Now(),
 		).Scan(&valueDecimal)
 	case "month":
-		err = tx.QueryRow("SELECT value FROM wallet_history WHERE user_id = $1 AND updated_at >= DATEADD(month, -1, $2) order by updated_at limit 1",
+		err = tx.QueryRow("SELECT value FROM wallet_history WHERE user_id = $1 AND updated_at >= $2::date - interval '1 month' order by updated_at limit 1",
 			in.Id,
 			time.Now(),
 		).Scan(&valueDecimal)
 	case "year":
-		err = tx.QueryRow("SELECT value FROM wallet_history WHERE user_id = $1 AND updated_at >= DATEADD(year, -1, $2) order by updated_at limit 1",
+		err = tx.QueryRow("SELECT value FROM wallet_history WHERE user_id = $1 AND updated_at >= $2::date - interval '1 year' order by updated_at limit 1",
 			in.Id,
 			time.Now(),
 		).Scan(&valueDecimal)
@@ -57,7 +58,7 @@ func (managerDB *UserDBManager) GetIncome(c context.Context, in *profile.IncomeP
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return &profile.Income{Change: 0}, nil
+			return &profile.Income{Change: 0}, errors.New("no record")
 		}
 		return &profile.Income{}, err
 	}

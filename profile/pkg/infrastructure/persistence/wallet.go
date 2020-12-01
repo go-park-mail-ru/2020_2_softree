@@ -57,10 +57,10 @@ func (managerDB *UserDBManager) GetWallets(ctx context.Context, in *profile.User
 		if err = managerDB.createInitialWallet(in.Id); err != nil {
 			return &profile.Wallets{}, err
 		}
-		money, _ := decimal.New(100000, 0).Float64()
+		money, _ := decimal.New(1000, 0).Float64()
 		wallets.Wallets = append(
 			wallets.Wallets,
-			&profile.Wallet{Title: "RUB", Value: money})
+			&profile.Wallet{Title: "USD", Value: money})
 	}
 
 	return &wallets, nil
@@ -87,8 +87,8 @@ func (managerDB *UserDBManager) createInitialWallet(id int64) error {
 	_, err = tx.Exec(
 		"INSERT INTO accounts (user_id, title, value) VALUES ($1, $2, $3)",
 		id,
-		"RUB",
-		decimal.New(100000, 0),
+		"USD",
+		decimal.New(1000, 0),
 	)
 
 	if err != nil {
