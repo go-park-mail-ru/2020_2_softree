@@ -154,6 +154,9 @@ func createSignupSuccess(t *testing.T, ctx context.Context) (*Authentication, *g
 		Times(1).
 		Return(createExpectedUser(), nil)
 	mockUser.EXPECT().
+		CreateInitialWallet(ctx, &profile.UserID{Id: id}).
+		Return(&profile.Empty{}, nil)
+	mockUser.EXPECT().
 		PutPortfolio(ctx, &profile.PortfolioValue{Id: id, Value: 1000}).
 		Return(&profile.Empty{}, nil)
 
@@ -181,6 +184,9 @@ func createSignupFailPutPortfolio(t *testing.T, ctx context.Context) (*Authentic
 		SaveUser(ctx, &profile.User{Email: email, Password: password}).
 		Times(1).
 		Return(createExpectedUser(), nil)
+	mockUser.EXPECT().
+		CreateInitialWallet(ctx, &profile.UserID{Id: id}).
+		Return(&profile.Empty{}, nil)
 	mockUser.EXPECT().
 		PutPortfolio(ctx, &profile.PortfolioValue{Id: id, Value: 1000}).
 		Return(&profile.Empty{}, errors.New("createSignupFailPutPortfolio"))
