@@ -119,6 +119,7 @@ service profileService {
   rpc GetWallet(ConcreteWallet) returns (Wallet) {}
   rpc SetWallet(ToSetWallet) returns (Empty) {}
   rpc CheckWallet(ConcreteWallet) returns (Check) {}
+  rpc CreateInitialWallet(UserID) returns (Empty) {}
   rpc CreateWallet(ConcreteWallet) returns (Empty) {}
   rpc UpdateWallet(ToSetWallet) returns (Empty) {}
 
