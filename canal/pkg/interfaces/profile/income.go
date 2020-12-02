@@ -2,9 +2,9 @@ package profile
 
 import (
 	"context"
-	"encoding/json"
 	"github.com/go-co-op/gocron"
 	"github.com/gorilla/mux"
+	json "github.com/mailru/easyjson"
 	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
 	"net/http"
@@ -50,7 +50,7 @@ func (p *Profile) GetIncome(w http.ResponseWriter, r *http.Request) {
 
 	result.Change, _ = walletUSDCash.Sub(decimal.NewFromFloat(result.Change)).Float64()
 
-	change, err := json.Marshal(result.Change)
+	change, err := json.Marshal(result)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,

@@ -1,7 +1,8 @@
 package profile
 
 import (
-	"encoding/json"
+	json "github.com/mailru/easyjson"
+	"io/ioutil"
 	"net/http"
 	"server/canal/pkg/domain/entity"
 	profile "server/profile/pkg/profile/gen"
@@ -26,7 +27,7 @@ func (p *Profile) GetWallets(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := json.Marshal(wallets.Wallets)
+	res, err := json.Marshal(wallets)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
@@ -59,19 +60,32 @@ func (p *Profile) GetWallets(w http.ResponseWriter, r *http.Request) {
 
 func (p *Profile) SetWallet(w http.ResponseWriter, r *http.Request) {
 	var wallet profile.ConcreteWallet
-	err := json.NewDecoder(r.Body).Decode(&wallet)
+	data, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
-			"function": "SetWallet",
-			"action":   "Decode",
+			"function": "UpdateUserAvatar",
+			"action":   "ReadAll",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 
 		p.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
-	defer r.Body.Close()
+
+	err = json.Unmarshal(data, &wallet)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"status":   http.StatusInternalServerError,
+			"function": "UpdateUserAvatar",
+			"action":   "Unmarshal",
+		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+		return
+	}
 	wallet.Id = r.Context().Value(entity.UserIdKey).(int64)
 
 	if _, err = p.profile.CreateWallet(r.Context(), &wallet); err != nil {
