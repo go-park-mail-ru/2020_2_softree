@@ -1,8 +1,9 @@
 package profile
 
 import (
-	"encoding/json"
 	"errors"
+	json "github.com/mailru/easyjson"
+	"io/ioutil"
 	"net/http"
 	"server/canal/pkg/domain/entity"
 	profile "server/profile/pkg/profile/gen"
@@ -28,7 +29,7 @@ func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := json.Marshal(history.History)
+	res, err := json.Marshal(history)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
@@ -59,19 +60,31 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 	id := r.Context().Value(entity.UserIdKey).(int64)
 
 	var transaction profile.PaymentHistory
-	err := json.NewDecoder(r.Body).Decode(&transaction)
+	data, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "SetTransactions",
-			"action":   "Decode",
+			"action":   "ReadAll",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 
 		p.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
-	defer r.Body.Close()
+	err = json.Unmarshal(data, &transaction)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"status":   http.StatusInternalServerError,
+			"function": "SetTransactions",
+			"action":   "Unmarshal",
+		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+		return
+	}
 
 	var div decimal.Decimal
 	var code int

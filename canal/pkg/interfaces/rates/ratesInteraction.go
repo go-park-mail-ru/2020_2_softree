@@ -1,8 +1,9 @@
 package rates
 
 import (
-	"encoding/json"
+	simpleJson "encoding/json"
 	"github.com/gorilla/mux"
+	json "github.com/mailru/easyjson"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	currency "server/currency/pkg/currency/gen"
@@ -21,7 +22,7 @@ func (rates *Rates) GetAllLatestRates(w http.ResponseWriter, r *http.Request) {
 		rates.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
-	result, err := json.Marshal(resRates.Rates)
+	result, err := json.Marshal(resRates)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
@@ -77,7 +78,7 @@ func (rates *Rates) GetURLRate(w http.ResponseWriter, r *http.Request) {
 		rates.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
-	result, err := json.Marshal(resRates.Rates)
+	result, err := json.Marshal(resRates)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
@@ -119,7 +120,7 @@ func (rates *Rates) GetMarkets(w http.ResponseWriter, r *http.Request) {
 		{Base: "RUB", Title: "ILS"},
 		{Base: "RUB", Title: "JPY"},
 	}
-	result, err := json.Marshal(resRates)
+	result, err := simpleJson.Marshal(resRates)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,

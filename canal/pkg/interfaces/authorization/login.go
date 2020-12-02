@@ -55,9 +55,11 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	public, err := a.profile.GetUserByLogin(r.Context(), user)
-	if errs = a.checkGetUserByLoginErrors(err); errs.NotEmpty {
-		a.createServerError(&errs, w)
-		return
+	if err != nil {
+		if errs = a.checkGetUserByLoginErrors(err); errs.NotEmpty {
+			a.createServerError(&errs, w)
+			return
+		}
 	}
 
 	cookie := CreateCookie()

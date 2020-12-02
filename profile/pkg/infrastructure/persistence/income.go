@@ -3,7 +3,6 @@ package persistence
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
 	profile "server/profile/pkg/profile/gen"
@@ -58,7 +57,7 @@ func (managerDB *UserDBManager) GetIncome(c context.Context, in *profile.IncomeP
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return &profile.Income{Change: 0}, errors.New("no record")
+			return &profile.Income{Change: 0}, nil
 		}
 		return &profile.Income{}, err
 	}

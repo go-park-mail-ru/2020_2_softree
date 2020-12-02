@@ -14,10 +14,9 @@ import (
 )
 
 func (a *Authentication) checkGetUserByLoginErrors(err error) (errs entity.ErrorJSON) {
-	if err == nil {
+	if err != nil {
 		errs.NotEmpty = true
 		errs.NonFieldError = append(errs.NonFieldError, "")
-		return
 	}
 
 	if err.Error() == "wrong password" {

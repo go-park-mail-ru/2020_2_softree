@@ -1,7 +1,9 @@
 package profile
 
 import (
-	"encoding/json"
+	jsonSimple "encoding/json"
+	json "github.com/mailru/easyjson"
+	"io/ioutil"
 	"net/http"
 	"server/canal/pkg/domain/entity"
 	profile "server/profile/pkg/profile/gen"
@@ -11,12 +13,26 @@ import (
 
 func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 	var user profile.User
-	var err error
-	if err = json.NewDecoder(r.Body).Decode(&user); err != nil {
+	data, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "UpdateUserAvatar",
-			"action":   "Decode",
+			"action":   "ReadAll",
+		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+		return
+	}
+
+	err = json.Unmarshal(data, &user)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"status":   http.StatusInternalServerError,
+			"function": "UpdateUserAvatar",
+			"action":   "Unmarshal",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 
@@ -86,12 +102,26 @@ func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 
 func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 	var in profile.User
-	err := json.NewDecoder(r.Body).Decode(&in)
+	data, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "UpdateUserPassword",
-			"action":   "Decode",
+			"action":   "ReadAll",
+		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+		return
+	}
+
+	err = json.Unmarshal(data, &in)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"status":   http.StatusInternalServerError,
+			"function": "UpdateUserPassword",
+			"action":   "Unmarshal",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 
@@ -249,7 +279,7 @@ func (p *Profile) GetUserWatchlist(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := json.Marshal(currencies.Currencies)
+	res, err := json.Marshal(currencies)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
@@ -280,7 +310,7 @@ func (p *Profile) createOldPassError(w http.ResponseWriter) {
 	errs.Password = append(errs.Password, "введен неверно старый пароль")
 	errs.NotEmpty = true
 
-	res, err := json.Marshal(errs)
+	res, err := jsonSimple.Marshal(errs)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
