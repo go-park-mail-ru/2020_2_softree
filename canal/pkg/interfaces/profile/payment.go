@@ -1,7 +1,7 @@
 package profile
 
 import (
-	json "github.com/mailru/easyjson"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"server/canal/pkg/domain/entity"
