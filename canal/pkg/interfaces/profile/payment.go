@@ -1,7 +1,7 @@
 package profile
 
 import (
-	"encoding/json"
+	json "github.com/mailru/easyjson"
 	"errors"
 	"net/http"
 	"server/canal/pkg/domain/entity"
@@ -28,7 +28,7 @@ func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := json.Marshal(history.History)
+	res, err := json.Marshal(history)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
@@ -59,6 +59,7 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 	id := r.Context().Value(entity.UserIdKey).(int64)
 
 	var transaction profile.PaymentHistory
+
 	err := json.NewDecoder(r.Body).Decode(&transaction)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
