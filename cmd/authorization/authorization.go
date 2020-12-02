@@ -58,7 +58,7 @@ func init() {
 }
 
 func main() {
-	connect, err := redis.DialURL(fmt.Sprintf("redis://%s:%s:%d",
+	/*connect, err := redis.DialURL(fmt.Sprintf("redis://%s:%s:%d",
 		viper.GetString("redis.user"),
 		viper.GetString("redis.host"),
 		viper.GetInt("redis.port"),
@@ -69,10 +69,29 @@ func main() {
 			"action":   "connect to redis",
 		}).Fatalln(err)
 	}
+*/
+	pool := &redis.Pool{
+		MaxIdle:   80,
+		MaxActive: 12000,
+		Dial: func() (redis.Conn, error) {
+			conn, err := redis.DialURL(fmt.Sprintf("redis://%s:%s:%d",
+				viper.GetString("redis.user"),
+				viper.GetString("redis.host"),
+				viper.GetInt("redis.port"),
+			))
+			if err != nil {
+				logrus.WithFields(logrus.Fields{
+					"function": "main",
+					"action":   "connect to redis",
+				}).Fatalln(err)
+			}
+			return conn, err
+		},
+	}
 
 	server := grpc.NewServer()
 
-	session.RegisterAuthorizationServiceServer(server, persistence.NewSessionManager(connect))
+	session.RegisterAuthorizationServiceServer(server, persistence.NewSessionManager(*pool))
 
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d",
 		viper.GetString("server.ip"),

@@ -13,12 +13,12 @@ import (
 const day = 60 * 60 * 24
 
 type SessionManager struct {
-	RedisConn redis.Conn
+	ConnPool redis.Pool
 }
 
-func NewSessionManager(conn redis.Conn) *SessionManager {
+func NewSessionManager(pool redis.Pool) *SessionManager {
 	return &SessionManager{
-		RedisConn: conn,
+		ConnPool: pool,
 	}
 }
 
@@ -28,8 +28,11 @@ func (sm *SessionManager) Create(ctx context.Context, in *session.UserID) (*sess
 		return nil, err
 	}
 
+	conn := sm.ConnPool.Get()
+	defer conn.Close()
+
 	key := "sessions:" + hash
-	reply, err := sm.RedisConn.Do("SET", key, in.Id, "EX", day)
+	reply, err := conn.Do("SET", key, in.Id, "EX", day)
 	if err != nil {
 		return &session.Session{}, err
 	}
@@ -49,8 +52,11 @@ func (sm *SessionManager) Create(ctx context.Context, in *session.UserID) (*sess
 }
 
 func (sm *SessionManager) Check(ctx context.Context, in *session.SessionID) (*session.UserID, error) {
+	conn := sm.ConnPool.Get()
+	defer conn.Close()
+
 	key := "sessions:" + in.SessionId
-	reply, err := sm.RedisConn.Do("GET", key)
+	reply, err := conn.Do("GET", key)
 	if err != nil {
 		return &session.UserID{}, err
 	}
@@ -69,8 +75,11 @@ func (sm *SessionManager) Check(ctx context.Context, in *session.SessionID) (*se
 }
 
 func (sm *SessionManager) Delete(ctx context.Context, in *session.SessionID) (*session.Empty, error) {
+	conn := sm.ConnPool.Get()
+	defer conn.Close()
+
 	key := "sessions:" + in.SessionId
-	reply, err := sm.RedisConn.Do("DEL", key)
+	reply, err := conn.Do("DEL", key)
 	if err != nil {
 		return &session.Empty{}, err
 	}
