@@ -118,7 +118,6 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(code)
 
 		p.recordHitMetric(code)
-
 		return
 	}
 

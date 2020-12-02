@@ -8,7 +8,6 @@ import (
 	"github.com/gomodule/redigo/redis"
 	"math/rand"
 	session "server/authorization/pkg/session/gen"
-	"strconv"
 )
 
 const day = 60 * 60 * 24
@@ -44,7 +43,7 @@ func (sm *SessionManager) Create(ctx context.Context, in *session.UserID) (*sess
 
 func (sm *SessionManager) Check(ctx context.Context, in *session.SessionID) (*session.UserID, error) {
 	key := "sessions:" + in.SessionId
-	data, err := redis.Bytes(sm.RedisConn.Do("GET", key))
+	data, err := redis.Int64(sm.RedisConn.Do("GET", key))
 
 	if err == redis.ErrNil {
 		return nil, errors.New("no session")
@@ -52,12 +51,7 @@ func (sm *SessionManager) Check(ctx context.Context, in *session.SessionID) (*se
 		return nil, err
 	}
 
-	var id int64
-	if id, err = strconv.ParseInt(string(data), 10, 64); err != nil {
-		return nil, err
-	}
-
-	return &session.UserID{Id: id}, nil
+	return &session.UserID{Id: data}, nil
 }
 
 func (sm *SessionManager) Delete(ctx context.Context, in *session.SessionID) (*session.Empty, error) {
