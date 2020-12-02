@@ -20,6 +20,8 @@ func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
 			"action":   "Decode",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		a.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 
@@ -41,6 +43,8 @@ func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
 			"user":     user,
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		a.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 	if check.Existence {
@@ -57,6 +61,8 @@ func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
 			"user":     user,
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		a.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 
@@ -69,6 +75,32 @@ func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
 			"user":     user,
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		a.recordHitMetric(http.StatusInternalServerError)
+		return
+	}
+
+	if _, err := a.profile.CreateInitialWallet(r.Context(), &profile.UserID{Id: public.Id}); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"status":   http.StatusInternalServerError,
+			"function": "Signup",
+			"action":   "CreateInitialWallet",
+		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+
+		a.recordHitMetric(http.StatusInternalServerError)
+		return
+	}
+
+	if _, err := a.profile.PutPortfolio(r.Context(), &profile.PortfolioValue{Id: public.Id, Value: 1000}); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"status":   http.StatusInternalServerError,
+			"function": "Signup",
+			"action":   "PutPortfolio",
+		}).Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+
+		a.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 
@@ -82,10 +114,13 @@ func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
 			"session":  &session.UserID{Id: public.Id},
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		a.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 	cookie.Value = sess.SessionId
 	http.SetCookie(w, &cookie)
-
 	w.WriteHeader(http.StatusCreated)
+
+	a.recordHitMetric(http.StatusCreated)
 }

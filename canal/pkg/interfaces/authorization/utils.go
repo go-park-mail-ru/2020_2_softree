@@ -7,14 +7,16 @@ import (
 	"net/http"
 	"server/canal/pkg/domain/entity"
 	profile "server/profile/pkg/profile/gen"
+	"strconv"
 	"time"
 
 	"github.com/sirupsen/logrus"
 )
 
 func (a *Authentication) checkGetUserByLoginErrors(err error) (errs entity.ErrorJSON) {
-	if err == nil {
-		return
+	if err != nil {
+		errs.NotEmpty = true
+		errs.NonFieldError = append(errs.NonFieldError, "")
 	}
 
 	if err.Error() == "wrong password" {
@@ -29,15 +31,26 @@ func (a *Authentication) createServerError(errors *entity.ErrorJSON, w http.Resp
 	res, err := json.Marshal(errors)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
-			"status": http.StatusInternalServerError}).Error(err)
+			"status":   http.StatusInternalServerError,
+			"function": "createServerError",
+			"action":   "Marshal",
+		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		a.recordHitMetric(http.StatusInternalServerError)
+		return
 	}
 
-	w.WriteHeader(http.StatusBadRequest)
 	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusBadRequest)
+
+	a.recordHitMetric(http.StatusBadRequest)
+
 	if _, err := w.Write(res); err != nil {
 		logrus.WithFields(logrus.Fields{
-			"status": http.StatusInternalServerError}).Error(err)
+			"function": "createServerError",
+			"action":   "Write",
+		}).Error(err)
 	}
 }
 
@@ -63,6 +76,10 @@ func (a *Authentication) validate(user *profile.User) (errs entity.ErrorJSON) {
 	}
 
 	return
+}
+
+func (a *Authentication) recordHitMetric(code int) {
+	a.Hits.WithLabelValues(strconv.Itoa(code)).Inc()
 }
 
 func CreateCookie() http.Cookie {

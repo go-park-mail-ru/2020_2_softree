@@ -24,7 +24,7 @@ func TestGetRates_Success(t *testing.T) {
 	testRate, ctrl := createForexRateSuccess(t, req.Context())
 	defer ctrl.Finish()
 
-	testRate.GetRates(w, req)
+	testRate.GetAllLatestRates(w, req)
 
 	require.Equal(t, http.StatusOK, w.Result().StatusCode)
 	require.NotEmpty(t, w.Header().Get("Content-Type"))
@@ -36,7 +36,7 @@ func createForexRateSuccess(t *testing.T, ctx context.Context) (*Rates, *gomock.
 
 	rateMock := mock.NewRateRepositoryForMock(ctrl)
 	rateMock.EXPECT().
-		GetRates(ctx, &currencyService.Empty{}).
+		GetAllLatestRates(ctx, &currencyService.Empty{}).
 		Return(createRates(), nil)
 
 	return NewRates(rateMock), ctrl
@@ -50,7 +50,7 @@ func TestGetRates_Fail(t *testing.T) {
 	testRate, ctrl := createForexRateFail(t, req.Context())
 	defer ctrl.Finish()
 
-	testRate.GetRates(w, req)
+	testRate.GetAllLatestRates(w, req)
 
 	require.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
 }
@@ -60,7 +60,7 @@ func createForexRateFail(t *testing.T, ctx context.Context) (*Rates, *gomock.Con
 
 	rateMock := mock.NewRateRepositoryForMock(ctrl)
 	rateMock.EXPECT().
-		GetRates(ctx, &currencyService.Empty{}).
+		GetAllLatestRates(ctx, &currencyService.Empty{}).
 		Return(nil, errors.New("createForexRateFail"))
 
 	return NewRates(rateMock), ctrl
@@ -88,7 +88,7 @@ func createGetURLRateSuccess(t *testing.T, ctx context.Context) (*Rates, *gomock
 
 	rateMock := mock.NewRateRepositoryForMock(ctrl)
 	rateMock.EXPECT().
-		GetRate(ctx, &currencyService.CurrencyTitle{Title: title}).
+		GetAllRatesByTitle(ctx, &currencyService.CurrencyTitle{Title: title}).
 		Return(createRates(), nil)
 
 	return NewRates(rateMock), ctrl
@@ -116,7 +116,7 @@ func createGetURLRateFailGetRate(t *testing.T, ctx context.Context) (*Rates, *go
 
 	rateMock := mock.NewRateRepositoryForMock(ctrl)
 	rateMock.EXPECT().
-		GetRate(ctx, &currencyService.CurrencyTitle{Title: title}).
+		GetAllRatesByTitle(ctx, &currencyService.CurrencyTitle{Title: title}).
 		Return(nil, errors.New("createGetURLRateFailGetRate"))
 
 	return NewRates(rateMock), ctrl

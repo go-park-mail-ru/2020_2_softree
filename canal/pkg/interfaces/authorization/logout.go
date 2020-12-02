@@ -12,6 +12,7 @@ func (a *Authentication) Logout(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("session_id")
 	if err == http.ErrNoCookie {
 		w.WriteHeader(http.StatusUnauthorized)
+		a.recordHitMetric(http.StatusUnauthorized)
 		return
 	}
 
@@ -23,6 +24,8 @@ func (a *Authentication) Logout(w http.ResponseWriter, r *http.Request) {
 			"session_id": session.SessionID{SessionId: cookie.Value},
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		a.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 
@@ -31,4 +34,6 @@ func (a *Authentication) Logout(w http.ResponseWriter, r *http.Request) {
 	newCookie.Value = ""
 	http.SetCookie(w, &newCookie)
 	w.WriteHeader(http.StatusOK)
+
+	a.recordHitMetric(http.StatusOK)
 }

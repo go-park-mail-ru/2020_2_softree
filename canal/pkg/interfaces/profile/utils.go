@@ -8,6 +8,7 @@ import (
 	"server/canal/pkg/domain/entity"
 	currency "server/currency/pkg/currency/gen"
 	profile "server/profile/pkg/profile/gen"
+	"strconv"
 
 	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
@@ -37,14 +38,21 @@ func (p *Profile) createServerError(errs *entity.ErrorJSON, w http.ResponseWrite
 			"status":   http.StatusInternalServerError,
 			"function": "createServerError",
 		}).Error(err)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
-	w.WriteHeader(http.StatusBadRequest)
 	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusBadRequest)
+
+	p.recordHitMetric(http.StatusBadRequest)
+
 	if _, err := w.Write(res); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"function": "createServerError",
+			"action":   "Write",
 		}).Error(err)
 	}
 }
@@ -58,6 +66,9 @@ func (p *Profile) checkWalletSell(ctx context.Context, wallet *profile.ConcreteW
 			"function": "checkWalletFrom",
 			"action":   "CheckWallet",
 		}).Error(err)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+
 		return false, http.StatusInternalServerError
 	}
 
@@ -77,6 +88,9 @@ func (p *Profile) checkWalletBuy(ctx context.Context, wallet *profile.ConcreteWa
 			"function": "checkWalletTo",
 			"action":   "CheckWallet",
 		}).Error(err)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+
 		return false, http.StatusInternalServerError
 	}
 
@@ -87,6 +101,9 @@ func (p *Profile) checkWalletBuy(ctx context.Context, wallet *profile.ConcreteWa
 				"function": "checkWallets",
 				"action":   "CreateWallet",
 			}).Error(err)
+
+			p.recordHitMetric(http.StatusInternalServerError)
+
 			return false, http.StatusInternalServerError
 		}
 	}
@@ -100,20 +117,26 @@ func (p *Profile) getCurrencyDiv(
 	var err error
 	if currencyBase, err = p.rates.GetLastRate(ctx, &currency.CurrencyTitle{Title: transaction.Base}); err != nil {
 		logrus.WithFields(logrus.Fields{
-			"status":          http.StatusInternalServerError,
-			"function":        "checkWalletPayment",
-			"Base": transaction.Base,
+			"status":   http.StatusInternalServerError,
+			"function": "checkWalletPayment",
+			"Base":     transaction.Base,
 		}).Error(err)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+
 		return err, http.StatusInternalServerError, decimal.Decimal{}
 	}
 
 	var currencyCurr *currency.Currency
 	if currencyCurr, err = p.rates.GetLastRate(ctx, &currency.CurrencyTitle{Title: transaction.Currency}); err != nil {
 		logrus.WithFields(logrus.Fields{
-			"status":          http.StatusInternalServerError,
-			"function":        "checkWalletPayment",
+			"status":   http.StatusInternalServerError,
+			"function": "checkWalletPayment",
 			"Currency": transaction.Currency,
 		}).Error(err)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+
 		return err, http.StatusInternalServerError, decimal.Decimal{}
 	}
 
@@ -133,6 +156,9 @@ func (p *Profile) getPay(ctx context.Context, userWallet *profile.ConcreteWallet
 			"transactionFrom": userWallet.Title,
 			"action":          "GetWallet",
 		}).Error(err)
+
+		p.recordHitMetric(http.StatusInternalServerError)
+
 		return http.StatusInternalServerError
 	}
 
@@ -181,4 +207,26 @@ func (p *Profile) validateUpdate(u *profile.User) (errors entity.ErrorJSON) {
 	}
 
 	return errors
+}
+
+func (p *Profile) recordHitMetric(code int) {
+	p.Hits.WithLabelValues(strconv.Itoa(code)).Inc()
+}
+
+func (p *Profile) transformActualUserWallets(ctx context.Context, id int64) (decimal.Decimal, error) {
+	wallets, err := p.profile.GetWallets(ctx, &profile.UserID{Id: id})
+	if err != nil {
+		return decimal.Decimal{}, err
+	}
+
+	var cash decimal.Decimal
+	for _, wallet := range wallets.Wallets {
+		curr, err := p.rates.GetLastRate(ctx, &currency.CurrencyTitle{Title: wallet.Title})
+		if err != nil {
+			return decimal.Decimal{}, err
+		}
+		cash = cash.Add(decimal.NewFromFloat(wallet.Value / curr.Value))
+	}
+
+	return cash, nil
 }

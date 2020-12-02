@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"log"
 	currency "server/currency/pkg/currency/gen"
 	"server/currency/pkg/domain"
@@ -39,12 +40,17 @@ var ListOfCurrencies = [...]string{
 var LenListOfCurrencies = len(ListOfCurrencies)
 
 type RateDBManager struct {
-	db  *sql.DB
-	api domain.FinancialAPI
+	db     *sql.DB
+	api    domain.FinancialAPI
+	timing time.Duration
 }
 
 func NewRateDBManager(db *sql.DB, api domain.FinancialAPI) *RateDBManager {
-	return &RateDBManager{db, api}
+	var timing time.Duration = 5
+	if viper.GetDuration("sql.timing") != 0 {
+		timing = viper.GetDuration("sql.timing")
+	}
+	return &RateDBManager{db: db, api: api, timing: timing * time.Second}
 }
 
 func (rm *RateDBManager) saveRates(table string, financial domain.FinancialRepository) error {
@@ -52,7 +58,7 @@ func (rm *RateDBManager) saveRates(table string, financial domain.FinancialRepos
 
 	query := fmt.Sprintf("INSERT INTO %s (title, value, updated_at) VALUES ($1, $2, $3)", table)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), rm.timing)
 	defer cancel()
 
 	tx, err := rm.db.BeginTx(ctx, nil)
@@ -86,8 +92,8 @@ func (rm *RateDBManager) saveRates(table string, financial domain.FinancialRepos
 	return nil
 }
 
-func (rm *RateDBManager) GetRates(ctx context.Context, in *currency.Empty) (*currency.Currencies, error) {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+func (rm *RateDBManager) GetAllLatestRates(ctx context.Context, in *currency.Empty) (*currency.Currencies, error) {
+	ctx, cancel := context.WithTimeout(ctx, rm.timing)
 	defer cancel()
 
 	tx, err := rm.db.BeginTx(ctx, nil)
@@ -139,8 +145,8 @@ func (rm *RateDBManager) GetRates(ctx context.Context, in *currency.Empty) (*cur
 	return &currencies, nil
 }
 
-func (rm *RateDBManager) GetRate(ctx context.Context, in *currency.CurrencyTitle) (*currency.Currencies, error) {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+func (rm *RateDBManager) GetAllRatesByTitle(ctx context.Context, in *currency.CurrencyTitle) (*currency.Currencies, error) {
+	ctx, cancel := context.WithTimeout(ctx, rm.timing)
 	defer cancel()
 
 	tx, err := rm.db.BeginTx(ctx, nil)
@@ -190,7 +196,7 @@ func (rm *RateDBManager) GetRate(ctx context.Context, in *currency.CurrencyTitle
 }
 
 func (rm *RateDBManager) GetLastRate(ctx context.Context, in *currency.CurrencyTitle) (*currency.Currency, error) {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, rm.timing)
 	defer cancel()
 
 	tx, err := rm.db.BeginTx(ctx, nil)
@@ -229,7 +235,7 @@ func (rm *RateDBManager) GetLastRate(ctx context.Context, in *currency.CurrencyT
 }
 
 func (rm *RateDBManager) GetInitialDayCurrency(ctx context.Context, in *currency.Empty) (*currency.InitialDayCurrencies, error) {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, rm.timing)
 	defer cancel()
 
 	tx, err := rm.db.BeginTx(ctx, nil)
@@ -277,7 +283,7 @@ func (rm *RateDBManager) GetInitialDayCurrency(ctx context.Context, in *currency
 }
 
 func (rm *RateDBManager) truncateTable(table string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), rm.timing)
 	defer cancel()
 
 	tx, err := rm.db.BeginTx(ctx, nil)

@@ -2,8 +2,11 @@ package router
 
 import (
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
 	"server/canal/pkg/infrastructure/CORS"
+	"server/canal/pkg/infrastructure/metric"
 	"server/canal/pkg/interfaces/authorization"
 	"server/canal/pkg/interfaces/profile"
 	"server/canal/pkg/interfaces/rates"
@@ -13,31 +16,28 @@ func NewRouter(userAuthenticate *authorization.Authentication, userProfile *prof
 	router := mux.NewRouter()
 	r := router.PathPrefix("/api").Subrouter()
 
-	r.HandleFunc("/session", userAuthenticate.Login).
+	r.HandleFunc("/sessions", userAuthenticate.Login).
 		Methods(http.MethodPost, http.MethodOptions)
 
-	r.HandleFunc("/session", userAuthenticate.Logout).
+	r.HandleFunc("/sessions", userAuthenticate.Logout).
 		Methods(http.MethodDelete, http.MethodOptions)
 
-	r.HandleFunc("/session", userAuthenticate.Auth(userAuthenticate.Authenticate)).
+	r.HandleFunc("/sessions", userAuthenticate.Auth(userAuthenticate.Authenticate)).
 		Methods(http.MethodGet, http.MethodOptions)
 
-	r.HandleFunc("/rates", rateRates.GetRates).
+	r.HandleFunc("/rates", rateRates.GetAllLatestRates).
 		Methods(http.MethodGet, http.MethodOptions)
 
 	r.HandleFunc("/rates/{title}", rateRates.GetURLRate).
 		Methods(http.MethodGet, http.MethodOptions)
 
-	r.HandleFunc("/user", userAuthenticate.Signup).
+	r.HandleFunc("/users", userAuthenticate.Signup).
 		Methods(http.MethodPost, http.MethodOptions)
 
-	r.HandleFunc("/user/avatar", userAuthenticate.Auth(userProfile.UpdateUserAvatar)).
+	r.HandleFunc("/users/avatar", userAuthenticate.Auth(userProfile.UpdateUserAvatar)).
 		Methods(http.MethodPut, http.MethodOptions)
 
-	r.HandleFunc("/user", userAuthenticate.Auth(userProfile.GetUser)).
-		Methods(http.MethodGet, http.MethodOptions)
-
-	r.HandleFunc("/user/password", userAuthenticate.Auth(userProfile.UpdateUserPassword)).
+	r.HandleFunc("/users/password", userAuthenticate.Auth(userProfile.UpdateUserPassword)).
 		Methods(http.MethodPut, http.MethodOptions)
 
 	r.HandleFunc("/watchers", userAuthenticate.Auth(userProfile.GetUserWatchlist)).
@@ -58,8 +58,11 @@ func NewRouter(userAuthenticate *authorization.Authentication, userProfile *prof
 	r.HandleFunc("/transactions", userAuthenticate.Auth(userProfile.SetTransaction)).
 		Methods(http.MethodPost, http.MethodOptions)
 
-	r.HandleFunc("/income", userAuthenticate.Auth(userProfile.GetIncome)).
+	r.HandleFunc("/income/{period}", userAuthenticate.Auth(userProfile.GetIncome)).
 		Methods(http.MethodGet, http.MethodOptions)
+
+	prometheus.MustRegister(metric.Metric)
+	r.Handle("/metrics", promhttp.Handler())
 
 	r.Use(CORS.CORSMiddleware())
 

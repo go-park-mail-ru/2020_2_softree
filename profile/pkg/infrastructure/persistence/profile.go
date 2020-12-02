@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	profile "server/profile/pkg/profile/gen"
 	"time"
 
@@ -13,15 +14,20 @@ import (
 )
 
 type UserDBManager struct {
-	DB *sql.DB
+	DB     *sql.DB
+	timing time.Duration
 }
 
 func NewUserDBManager(DB *sql.DB) *UserDBManager {
-	return &UserDBManager{DB}
+	var timing time.Duration = 5
+	if viper.GetDuration("sql.timing") != 0 {
+		timing = viper.GetDuration("sql.timing")
+	}
+	return &UserDBManager{DB: DB, timing: timing * time.Second}
 }
 
 func (managerDB *UserDBManager) GetUserById(c context.Context, in *profile.UserID) (*profile.PublicUser, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), managerDB.timing)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
@@ -52,8 +58,7 @@ func (managerDB *UserDBManager) GetUserById(c context.Context, in *profile.UserI
 }
 
 func (managerDB *UserDBManager) CheckExistence(ctx context.Context, in *profile.User) (*profile.Check, error) {
-	fmt.Println("*")
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, managerDB.timing)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
@@ -80,11 +85,12 @@ func (managerDB *UserDBManager) CheckExistence(ctx context.Context, in *profile.
 		return &profile.Check{}, err
 	}
 
+	fmt.Println(exists)
 	return &profile.Check{Existence: exists != 0}, nil
 }
 
 func (managerDB *UserDBManager) GetPassword(ctx context.Context, in *profile.User) (*profile.User, error) {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, managerDB.timing)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
@@ -113,7 +119,7 @@ func (managerDB *UserDBManager) GetPassword(ctx context.Context, in *profile.Use
 }
 
 func (managerDB *UserDBManager) SaveUser(ctx context.Context, in *profile.User) (*profile.PublicUser, error) {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, managerDB.timing)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
@@ -135,7 +141,7 @@ func (managerDB *UserDBManager) SaveUser(ctx context.Context, in *profile.User) 
 		QueryRow("INSERT INTO user_trade (email, password) VALUES ($1, $2)  RETURNING id", in.Email, in.Password).
 		Scan(&lastID)
 	if err != nil {
-		return nil, err
+		return &profile.PublicUser{}, err
 	}
 	if err = tx.Commit(); err != nil {
 		return &profile.PublicUser{}, err
@@ -145,7 +151,7 @@ func (managerDB *UserDBManager) SaveUser(ctx context.Context, in *profile.User) 
 }
 
 func (managerDB *UserDBManager) UpdateUserAvatar(ctx context.Context, in *profile.UpdateFields) (*profile.Empty, error) {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, managerDB.timing)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
@@ -174,7 +180,7 @@ func (managerDB *UserDBManager) UpdateUserAvatar(ctx context.Context, in *profil
 }
 
 func (managerDB *UserDBManager) UpdateUserPassword(ctx context.Context, in *profile.UpdateFields) (*profile.Empty, error) {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, managerDB.timing)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
@@ -203,7 +209,7 @@ func (managerDB *UserDBManager) UpdateUserPassword(ctx context.Context, in *prof
 }
 
 func (managerDB *UserDBManager) DeleteUser(ctx context.Context, in *profile.UserID) (*profile.Empty, error) {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, managerDB.timing)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
@@ -233,7 +239,7 @@ func (managerDB *UserDBManager) DeleteUser(ctx context.Context, in *profile.User
 }
 
 func (managerDB *UserDBManager) GetUserByLogin(ctx context.Context, in *profile.User) (*profile.PublicUser, error) {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, managerDB.timing)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
@@ -261,14 +267,16 @@ func (managerDB *UserDBManager) GetUserByLogin(ctx context.Context, in *profile.
 	}
 
 	if bcrypt.CompareHashAndPassword([]byte(password), []byte(in.Password)) != nil {
+		fmt.Println(password)
 		return &profile.PublicUser{}, errors.New("wrong password")
 	}
+	fmt.Println("*")
 
 	return &profile.PublicUser{Id: in.Id, Email: in.Email, Avatar: in.Avatar}, nil
 }
 
 func (managerDB *UserDBManager) GetUserWatchlist(ctx context.Context, in *profile.UserID) (*profile.Currencies, error) {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, managerDB.timing)
 	defer cancel()
 
 	tx, err := managerDB.DB.BeginTx(ctx, nil)
@@ -313,4 +321,35 @@ func (managerDB *UserDBManager) GetUserWatchlist(ctx context.Context, in *profil
 	}
 
 	return &currencies, nil
+}
+
+func (managerDB *UserDBManager) GetUsers(ctx context.Context, in *profile.Empty) (*profile.UsersCount, error) {
+	ctx, cancel := context.WithTimeout(ctx, managerDB.timing)
+	defer cancel()
+
+	tx, err := managerDB.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return &profile.UsersCount{}, err
+	}
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			logrus.WithFields(logrus.Fields{
+				"infrastructure": "profile",
+				"function":       "GetUsers",
+				"action":         "Rollback",
+			}).Error(err)
+		}
+	}()
+
+	var res int
+	err = tx.QueryRow("SELECT COUNT(id) FROM user_trade").Scan(&res)
+	if err != nil {
+		return &profile.UsersCount{}, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return &profile.UsersCount{}, err
+	}
+
+	return &profile.UsersCount{Num: int64(res)}, nil
 }

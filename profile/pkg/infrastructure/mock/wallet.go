@@ -27,6 +27,25 @@ func (profileRecorder *RecorderProfile) GetWallet(ctx, in interface{}) *gomock.C
 	)
 }
 
+func (profileMock *ProfileMock) CreateInitialWallet(ctx context.Context, in *profile.UserID, opts ...grpc.CallOption) (*profile.Empty, error) {
+	profileMock.ctrl.T.Helper()
+	ret := profileMock.ctrl.Call(profileMock, "CreateInitialWallet", ctx, in)
+	out, _ := ret[0].(*profile.Empty)
+	err, _ := ret[1].(error)
+	return out, err
+}
+
+func (profileRecorder *RecorderProfile) CreateInitialWallet(ctx, in interface{}) *gomock.Call {
+	profileRecorder.mock.ctrl.T.Helper()
+	return profileRecorder.mock.ctrl.RecordCallWithMethodType(
+		profileRecorder.mock,
+		"CreateInitialWallet",
+		reflect.TypeOf((*ProfileMock)(nil).CreateInitialWallet),
+		ctx,
+		in,
+	)
+}
+
 func (profileMock *ProfileMock) SetWallet(ctx context.Context, in *profile.ToSetWallet, opts ...grpc.CallOption) (*profile.Empty, error) {
 	profileMock.ctrl.T.Helper()
 	ret := profileMock.ctrl.Call(profileMock, "SetWallet", ctx, in)

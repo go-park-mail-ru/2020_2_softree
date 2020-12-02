@@ -19,6 +19,8 @@ func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 			"action":   "Decode",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		p.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 	user.Id = r.Context().Value(entity.UserIdKey).(int64)
@@ -26,6 +28,7 @@ func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 
 	if !p.validate("Avatar", &user) {
 		w.WriteHeader(http.StatusBadRequest)
+		p.recordHitMetric(http.StatusBadRequest)
 		return
 	}
 
@@ -36,6 +39,8 @@ func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 			"action":   "UpdateUserAvatar",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		p.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 
@@ -47,6 +52,8 @@ func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 			"action":   "GetUserById",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		p.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 
@@ -59,14 +66,20 @@ func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 			"action":   "Marshal",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		p.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	p.recordHitMetric(http.StatusOK)
+
 	if _, err := w.Write(res); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"function": "UpdateUserAvatar",
+			"action":   "Write",
 		}).Error(err)
 	}
 }
@@ -81,12 +94,15 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 			"action":   "Decode",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		p.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 	in.Id = r.Context().Value(entity.UserIdKey).(int64)
 
 	if !p.validate("Passwords", &in) {
 		w.WriteHeader(http.StatusBadRequest)
+		p.recordHitMetric(http.StatusBadRequest)
 		return
 	}
 
@@ -106,9 +122,11 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 			"action":   "CheckPassword",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		p.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
-	if !p.security.CheckPassword(user.OldPassword, user.OldPassword) {
+	if !p.security.CheckPassword(user.PasswordToCheck, user.OldPassword) {
 		p.createOldPassError(w)
 		return
 	}
@@ -120,6 +138,8 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 			"action":   "MakeShieldedPassword",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		p.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 	if _, err = p.profile.UpdateUserPassword(r.Context(), &profile.UpdateFields{Id: user.Id, User: user}); err != nil {
@@ -129,6 +149,8 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 			"action":   "UpdateUserPassword",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		p.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 
@@ -140,6 +162,8 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 			"action":   "GetUserById",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		p.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 
@@ -151,11 +175,16 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 			"action":   "Marshal",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		p.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	p.recordHitMetric(http.StatusOK)
+
 	if _, err := w.Write(res); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"function": "UpdateUserPassword",
@@ -176,6 +205,8 @@ func (p *Profile) GetUser(w http.ResponseWriter, r *http.Request) {
 			"action":   "GetUserById",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		p.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 
@@ -187,6 +218,8 @@ func (p *Profile) GetUser(w http.ResponseWriter, r *http.Request) {
 			"action":   "Marshal",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		p.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 
@@ -211,10 +244,12 @@ func (p *Profile) GetUserWatchlist(w http.ResponseWriter, r *http.Request) {
 			"action":   "GetUserWatchlist",
 		}).Error(err)
 		w.WriteHeader(http.StatusBadRequest)
+
+		p.recordHitMetric(http.StatusBadRequest)
 		return
 	}
 
-	res, err := json.Marshal(currencies)
+	res, err := json.Marshal(currencies.Currencies)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
@@ -222,11 +257,16 @@ func (p *Profile) GetUserWatchlist(w http.ResponseWriter, r *http.Request) {
 			"action":   "Marshal",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		p.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	p.recordHitMetric(http.StatusOK)
+
 	if _, err := w.Write(res); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"function": "GetUserWatchlist",
@@ -248,11 +288,16 @@ func (p *Profile) createOldPassError(w http.ResponseWriter) {
 			"action":   "Marshal",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		p.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusBadRequest)
 	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusBadRequest)
+
+	p.recordHitMetric(http.StatusBadRequest)
+
 	if _, err := w.Write(res); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"function": "createOldPassError",

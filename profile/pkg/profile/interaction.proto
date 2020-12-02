@@ -34,6 +34,10 @@ message UserID {
   int64 id = 1;
 }
 
+message UsersCount {
+  int64 num = 1;
+}
+
 message UpdateFields {
   int64 id = 1;
   User user = 2;
@@ -89,6 +93,11 @@ message Income {
   double change = 1;
 }
 
+message PortfolioValue {
+  int64 id = 1;
+  double value = 2;
+}
+
 message Empty {}
 
 service profileService {
@@ -101,6 +110,7 @@ service profileService {
   rpc CheckExistence(User) returns (Check) {}
   rpc GetPassword(User) returns (User) {}
   rpc GetUserWatchlist(UserID) returns (Currencies) {}
+  rpc GetUsers(Empty) returns (UsersCount) {}
 
   rpc GetAllPaymentHistory(UserID) returns (AllHistory) {}
   rpc AddToPaymentHistory(AddToHistory) returns (Empty) {}
@@ -109,8 +119,11 @@ service profileService {
   rpc GetWallet(ConcreteWallet) returns (Wallet) {}
   rpc SetWallet(ToSetWallet) returns (Empty) {}
   rpc CheckWallet(ConcreteWallet) returns (Check) {}
+  rpc CreateInitialWallet(UserID) returns (Empty) {}
   rpc CreateWallet(ConcreteWallet) returns (Empty) {}
   rpc UpdateWallet(ToSetWallet) returns (Empty) {}
 
   rpc GetIncome(IncomeParameters) returns (Income) {}
+
+  rpc PutPortfolio(PortfolioValue) returns (Empty) {}
 }

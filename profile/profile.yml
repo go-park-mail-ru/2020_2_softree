@@ -9,3 +9,6 @@ postgres:
   db: 'profile'
   user: 'profile'
   password: '123'
+
+sql:
+  timing: 5

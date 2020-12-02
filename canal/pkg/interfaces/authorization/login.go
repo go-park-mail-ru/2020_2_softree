@@ -20,6 +20,8 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 			"action":   "Decode",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		a.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 	defer r.Body.Close()
@@ -42,6 +44,8 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 			"user":     user,
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		a.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 	if !check.Existence {
@@ -51,14 +55,17 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	public, err := a.profile.GetUserByLogin(r.Context(), user)
-	if errs = a.checkGetUserByLoginErrors(err); errs.NotEmpty {
-		a.createServerError(&errs, w)
-		return
+	if err != nil {
+		if errs = a.checkGetUserByLoginErrors(err); errs.NotEmpty {
+			a.createServerError(&errs, w)
+			return
+		}
 	}
 
 	cookie := CreateCookie()
 	var sess *session.Session
-	if sess, err = a.auth.Create(r.Context(), &session.UserID{Id: public.Id}); err != nil {
+	var userId = &session.UserID{Id: public.Id}
+	if sess, err = a.auth.Create(r.Context(), userId); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "Login",
@@ -66,6 +73,8 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 			"session":  &session.UserID{Id: public.Id},
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		a.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 	cookie.Value = sess.SessionId
@@ -79,11 +88,16 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 			"action":   "Marshal",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		a.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+
+	a.recordHitMetric(http.StatusOK)
+
 	if _, err := w.Write(res); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"function": "Login",

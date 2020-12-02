@@ -136,6 +136,8 @@ func main() {
 		ReadTimeout:  time.Duration(viper.GetInt("server.timeout")) * time.Second,
 	}
 
+	go userProfile.UpdatePortfolios()
+
 	if err := server.ListenAndServe(); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"function": "main",

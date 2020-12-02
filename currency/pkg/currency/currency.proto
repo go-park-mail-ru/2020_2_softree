@@ -32,8 +32,8 @@ message InitialDayCurrencies {
 message Empty {}
 
 service currencyService {
-  rpc GetRates(Empty) returns (Currencies) {}
-  rpc GetRate(CurrencyTitle) returns (Currencies) {}
+  rpc GetAllLatestRates(Empty) returns (Currencies) {}
+  rpc GetAllRatesByTitle(CurrencyTitle) returns (Currencies) {}
   rpc GetLastRate(CurrencyTitle) returns (Currency) {}
   rpc GetInitialDayCurrency(Empty) returns (InitialDayCurrencies) {}
 }

@@ -15,11 +15,12 @@ import (
 )
 
 const (
-	userId = 1
-	from   = "RUB"
-	to     = "USD"
-	amount = 200
-	value  = 79.9
+	userId   = 1
+	base     = "RUB"
+	currency = "USD"
+	amount   = 200
+	value    = 79.9
+	sell     = "false"
 )
 
 func TestGetAllPaymentHistory_Success(t *testing.T) {
@@ -30,27 +31,29 @@ func TestGetAllPaymentHistory_Success(t *testing.T) {
 	date := time.Now()
 	timestamp, err := ptypes.TimestampProto(date)
 	require.NoError(t, err)
-	rows := sqlmock.NewRows([]string{"from_title", "to_title", "value", "amount", "updated_at"})
+	rows := sqlmock.NewRows([]string{"base", "curr", "value", "amount", "sell", "updated_at"})
 	expected := profile.AllHistory{History: []*profile.PaymentHistory{
 		{
-			From:      from,
-			To:        to,
+			Base:      base,
+			Currency:  currency,
 			Amount:    amount,
 			UpdatedAt: timestamp,
 			Value:     value,
+			Sell:      sell,
 		},
 	}}
 	rows = rows.AddRow(
-		expected.History[0].From,
-		expected.History[0].To,
+		expected.History[0].Base,
+		expected.History[0].Currency,
 		expected.History[0].Value,
 		expected.History[0].Amount,
+		expected.History[0].Sell,
 		date,
 	)
 
 	mock.ExpectBegin()
 	mock.
-		ExpectQuery("SELECT from_title, to_title, value, amount, updated_at FROM payment_history WHERE").
+		ExpectQuery("SELECT base, curr, value, amount, sell, updated_at FROM payment_history WHERE").
 		WithArgs(userId).
 		WillReturnRows(rows)
 	mock.ExpectCommit()
@@ -71,7 +74,7 @@ func TestGetAllPaymentHistory_Fail(t *testing.T) {
 
 	mock.ExpectBegin()
 	mock.
-		ExpectQuery("SELECT from_title, to_title, value, amount, updated_at FROM payment_history WHERE").
+		ExpectQuery("SELECT base, curr, value, amount, sell, updated_at FROM payment_history WHERE").
 		WithArgs(userId).
 		WillReturnError(errors.New("error"))
 	mock.ExpectRollback()
@@ -91,17 +94,18 @@ func TestAddToPaymentHistory_Success(t *testing.T) {
 
 	mock.ExpectBegin()
 	mock.
-		ExpectExec(regexp.QuoteMeta(`INSERT INTO payment_history (user_id, from_title, to_title, value, amount, updated_at) VALUES`)).
+		ExpectExec(regexp.QuoteMeta(`INSERT INTO payment_history (user_id, base, curr, value, amount, sell, updated_at) VALUES`)).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
 
 	repo := database.NewUserDBManager(db)
 	ctx := context.Background()
 	_, err = repo.AddToPaymentHistory(ctx, &profile.AddToHistory{Id: userId, Transaction: &profile.PaymentHistory{
-		From:   from,
-		To:     to,
-		Amount: amount,
-		Value:  value,
+		Base:     base,
+		Currency: currency,
+		Amount:   amount,
+		Value:    value,
+		Sell:     sell,
 	}})
 
 	require.Equal(t, nil, err)
@@ -115,7 +119,7 @@ func TestAddToPaymentHistory_Fail(t *testing.T) {
 
 	mock.ExpectBegin()
 	mock.
-		ExpectExec(regexp.QuoteMeta(`INSERT INTO payment_history (user_id, from_title, to_title, value, amount, updated_at) VALUES`)).
+		ExpectExec(regexp.QuoteMeta(`INSERT INTO payment_history (user_id, base, curr, value, amount, sell, updated_at) VALUES`)).
 		WillReturnError(errors.New("error"))
 	mock.ExpectRollback()
 

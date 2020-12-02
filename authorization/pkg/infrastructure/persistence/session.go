@@ -8,18 +8,17 @@ import (
 	"github.com/gomodule/redigo/redis"
 	"math/rand"
 	session "server/authorization/pkg/session/gen"
-	"strconv"
 )
 
 const day = 60 * 60 * 24
 
 type SessionManager struct {
-	RedisConn redis.Conn
+	ConnPool redis.Pool
 }
 
-func NewSessionManager(conn redis.Conn) *SessionManager {
+func NewSessionManager(pool redis.Pool) *SessionManager {
 	return &SessionManager{
-		RedisConn: conn,
+		ConnPool: pool,
 	}
 }
 
@@ -29,9 +28,19 @@ func (sm *SessionManager) Create(ctx context.Context, in *session.UserID) (*sess
 		return nil, err
 	}
 
-	key := "sessions:" + hash
-	result, err := redis.String(sm.RedisConn.Do("SET", key, in.Id, "EX", day)) // Expires in 24 hours
+	conn := sm.ConnPool.Get()
+	defer conn.Close()
 
+	key := "sessions:" + hash
+	reply, err := conn.Do("SET", key, in.Id, "EX", day)
+	if err != nil {
+		return &session.Session{}, err
+	}
+	if reply == nil {
+		return &session.Session{}, errors.New("reply is nil")
+	}
+
+	result, err := redis.String(reply, err) // Expires in 24 hours
 	if err != nil {
 		return nil, err
 	}
@@ -43,26 +52,42 @@ func (sm *SessionManager) Create(ctx context.Context, in *session.UserID) (*sess
 }
 
 func (sm *SessionManager) Check(ctx context.Context, in *session.SessionID) (*session.UserID, error) {
-	key := "sessions:" + in.SessionId
-	data, err := redis.Bytes(sm.RedisConn.Do("GET", key))
+	conn := sm.ConnPool.Get()
+	defer conn.Close()
 
+	key := "sessions:" + in.SessionId
+	reply, err := conn.Do("GET", key)
+	if err != nil {
+		return &session.UserID{}, err
+	}
+	if reply == nil {
+		return &session.UserID{}, errors.New("reply is nil")
+	}
+
+	data, err := redis.Int64(reply, err)
 	if err == redis.ErrNil {
 		return nil, errors.New("no session")
 	} else if err != nil {
 		return nil, err
 	}
 
-	var id int64
-	if id, err = strconv.ParseInt(string(data), 10, 64); err != nil {
-		return nil, err
-	}
-
-	return &session.UserID{Id: id}, nil
+	return &session.UserID{Id: data}, nil
 }
 
 func (sm *SessionManager) Delete(ctx context.Context, in *session.SessionID) (*session.Empty, error) {
+	conn := sm.ConnPool.Get()
+	defer conn.Close()
+
 	key := "sessions:" + in.SessionId
-	_, err := redis.Int(sm.RedisConn.Do("DEL", key))
+	reply, err := conn.Do("DEL", key)
+	if err != nil {
+		return &session.Empty{}, err
+	}
+	if reply == nil {
+		return &session.Empty{}, errors.New("reply is nil")
+	}
+
+	_, err = redis.Int(reply, err)
 	if err != nil {
 		return &session.Empty{}, err
 	}

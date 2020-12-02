@@ -1,7 +1,7 @@
 package profile
 
 import (
-	"encoding/json"
+	json "github.com/mailru/easyjson"
 	"errors"
 	"net/http"
 	"server/canal/pkg/domain/entity"
@@ -23,10 +23,12 @@ func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
 			"userID":   id,
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		p.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 
-	res, err := json.Marshal(history.History)
+	res, err := json.Marshal(history)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
@@ -34,18 +36,21 @@ func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
 			"action":   "Marshal",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		p.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+
+	p.recordHitMetric(http.StatusOK)
+
 	if _, err = w.Write(res); err != nil {
 		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusInternalServerError,
 			"function": "GetTransactions",
 			"action":   "Write",
 		}).Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 }
@@ -54,6 +59,7 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 	id := r.Context().Value(entity.UserIdKey).(int64)
 
 	var transaction profile.PaymentHistory
+
 	err := json.NewDecoder(r.Body).Decode(&transaction)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
@@ -62,6 +68,8 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 			"action":   "Decode",
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		p.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 	defer r.Body.Close()
@@ -70,6 +78,7 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 	var code int
 	if err, code, div = p.getCurrencyDiv(r.Context(), &transaction); err != nil {
 		w.WriteHeader(code)
+		p.recordHitMetric(code)
 		return
 	}
 
@@ -97,6 +106,7 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 
 	if exist, code := p.checkWalletSell(r.Context(), &profile.ConcreteWallet{Id: id, Title: titleToCheckPayment}); !exist {
 		w.WriteHeader(code)
+		p.recordHitMetric(code)
 		return
 	}
 
@@ -104,15 +114,17 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 		if code == notEnoughPayment {
 			errs := p.createErrorJSON(errors.New("not enough payment"))
 			p.createServerError(&errs, w)
-			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 		w.WriteHeader(code)
+
+		p.recordHitMetric(code)
 		return
 	}
 
 	if exist, code := p.checkWalletBuy(r.Context(), &profile.ConcreteWallet{Id: id, Title: putTitle}); !exist {
 		w.WriteHeader(code)
+		p.recordHitMetric(code)
 		return
 	}
 
@@ -126,6 +138,8 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 			"value":    removedMoney,
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		p.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 
@@ -139,6 +153,8 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 			"value":    putMoney,
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		p.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 
@@ -152,8 +168,11 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 			"transaction": &transaction,
 		}).Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+
+		p.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
+	p.recordHitMetric(http.StatusCreated)
 }

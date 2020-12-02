@@ -61,7 +61,7 @@ func TestRateDBManager_GetRates_Success(t *testing.T) {
 
 	repo := NewRateDBManager(db, finMock)
 	ctx := context.Background()
-	currencies, err := repo.GetRates(ctx, nil)
+	currencies, err := repo.GetAllLatestRates(ctx, nil)
 	require.NoError(t, err)
 
 	timestamp, err := ptypes.TimestampProto(date)
@@ -94,7 +94,7 @@ func TestRateDBManager_GetRates_Fail(t *testing.T) {
 
 	repo := NewRateDBManager(db, finMock)
 	ctx := context.Background()
-	_, err = repo.GetRates(ctx, nil)
+	_, err = repo.GetAllLatestRates(ctx, nil)
 	require.NotEmpty(t, err)
 }
 
@@ -122,7 +122,7 @@ func TestRateDBManager_GetRate_Success(t *testing.T) {
 	ctx := context.Background()
 
 	title := currency.CurrencyTitle{Title: expected.Title}
-	currencies, err := repo.GetRate(ctx, &title)
+	currencies, err := repo.GetAllRatesByTitle(ctx, &title)
 	require.NoError(t, err)
 
 	for _, curr := range currencies.Rates {
@@ -154,7 +154,7 @@ func TestRateDBManager_GetRate_Fail(t *testing.T) {
 	ctx := context.Background()
 
 	title := currency.CurrencyTitle{Title: expected.Title}
-	_, err = repo.GetRate(ctx, &title)
+	_, err = repo.GetAllRatesByTitle(ctx, &title)
 	require.NotEmpty(t ,err)
 }
 
