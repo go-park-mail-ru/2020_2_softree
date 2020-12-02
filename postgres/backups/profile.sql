@@ -60,8 +60,6 @@ CREATE TABLE wallet_history
     updated_at timestamp with time zone
 );
 
-insert into wallet_history(user_id, value, updated_at) values (1, 800.0, '2020-11-28');
-
 truncate watchlist;
 truncate accounts;
 truncate payment_history;
