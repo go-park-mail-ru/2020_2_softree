@@ -29,8 +29,15 @@ func (sm *SessionManager) Create(ctx context.Context, in *session.UserID) (*sess
 	}
 
 	key := "sessions:" + hash
-	result, err := redis.String(sm.RedisConn.Do("SET", key, in.Id, "EX", day)) // Expires in 24 hours
+	reply, err := sm.RedisConn.Do("SET", key, in.Id, "EX", day)
+	if err != nil {
+		return &session.Session{}, err
+	}
+	if reply == nil {
+		return &session.Session{}, errors.New("reply is nil")
+	}
 
+	result, err := redis.String(reply, err) // Expires in 24 hours
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +58,7 @@ func (sm *SessionManager) Check(ctx context.Context, in *session.SessionID) (*se
 		return &session.UserID{}, errors.New("reply is nil")
 	}
 
-	data, err := redis.Int64(reply, nil)
+	data, err := redis.Int64(reply, err)
 	if err == redis.ErrNil {
 		return nil, errors.New("no session")
 	} else if err != nil {
@@ -63,7 +70,15 @@ func (sm *SessionManager) Check(ctx context.Context, in *session.SessionID) (*se
 
 func (sm *SessionManager) Delete(ctx context.Context, in *session.SessionID) (*session.Empty, error) {
 	key := "sessions:" + in.SessionId
-	_, err := redis.Int(sm.RedisConn.Do("DEL", key))
+	reply, err := sm.RedisConn.Do("DEL", key)
+	if err != nil {
+		return &session.Empty{}, err
+	}
+	if reply == nil {
+		return &session.Empty{}, errors.New("reply is nil")
+	}
+
+	_, err = redis.Int(reply, err)
 	if err != nil {
 		return &session.Empty{}, err
 	}

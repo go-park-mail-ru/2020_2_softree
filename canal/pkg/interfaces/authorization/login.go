@@ -62,7 +62,8 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 
 	cookie := CreateCookie()
 	var sess *session.Session
-	if sess, err = a.auth.Create(r.Context(), &session.UserID{Id: public.Id}); err != nil {
+	var userId = &session.UserID{Id: public.Id}
+	if sess, err = a.auth.Create(r.Context(), userId); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "Login",
