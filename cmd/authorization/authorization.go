@@ -58,18 +58,6 @@ func init() {
 }
 
 func main() {
-	/*connect, err := redis.DialURL(fmt.Sprintf("redis://%s:%s:%d",
-		viper.GetString("redis.user"),
-		viper.GetString("redis.host"),
-		viper.GetInt("redis.port"),
-	))
-	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"function": "main",
-			"action":   "connect to redis",
-		}).Fatalln(err)
-	}
-*/
 	pool := &redis.Pool{
 		MaxIdle:   80,
 		MaxActive: 12000,
