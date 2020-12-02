@@ -113,9 +113,6 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 		if code == notEnoughPayment {
 			errs := p.createErrorJSON(errors.New("not enough payment"))
 			p.createServerError(&errs, w)
-			w.WriteHeader(http.StatusBadRequest)
-
-			p.recordHitMetric(http.StatusBadRequest)
 			return
 		}
 		w.WriteHeader(code)

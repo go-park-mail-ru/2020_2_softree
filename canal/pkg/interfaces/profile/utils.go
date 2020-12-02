@@ -44,8 +44,11 @@ func (p *Profile) createServerError(errs *entity.ErrorJSON, w http.ResponseWrite
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
-	w.WriteHeader(http.StatusBadRequest)
 	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusBadRequest)
+
+	p.recordHitMetric(http.StatusBadRequest)
+
 	if _, err := w.Write(res); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"function": "createServerError",

@@ -34,11 +34,8 @@ func NewRouter(userAuthenticate *authorization.Authentication, userProfile *prof
 	r.HandleFunc("/users", userAuthenticate.Signup).
 		Methods(http.MethodPost, http.MethodOptions)
 
-	r.HandleFunc("/users", userAuthenticate.Auth(userProfile.UpdateUserAvatar)).
+	r.HandleFunc("/users/avatar", userAuthenticate.Auth(userProfile.UpdateUserAvatar)).
 		Methods(http.MethodPut, http.MethodOptions)
-
-	r.HandleFunc("/users/avatar", userAuthenticate.Auth(userProfile.GetUser)).
-		Methods(http.MethodGet, http.MethodOptions)
 
 	r.HandleFunc("/users/password", userAuthenticate.Auth(userProfile.UpdateUserPassword)).
 		Methods(http.MethodPut, http.MethodOptions)

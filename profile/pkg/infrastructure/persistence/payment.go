@@ -28,7 +28,7 @@ func (managerDB *UserDBManager) GetAllPaymentHistory(c context.Context, in *prof
 	}()
 
 	result, err := tx.Query(
-		"SELECT base, curr, value, amount, sell, updated_at FROM payment_history WHERE user_id = $1",
+		"SELECT base, curr, value, amount, sell, updated_at FROM payment_history WHERE user_id = $1 order by updated_at desc",
 		in.Id,
 	)
 	if err != nil {
