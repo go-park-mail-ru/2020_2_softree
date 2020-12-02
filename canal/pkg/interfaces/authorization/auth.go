@@ -19,6 +19,30 @@ func (a *Authentication) Auth(next http.HandlerFunc) http.HandlerFunc {
 			a.recordHitMetric(http.StatusUnauthorized)
 			return
 		}
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"status":     http.StatusBadRequest,
+				"middleware": "Auth",
+				"action":     "r.Cookie()",
+			}).Error(err)
+			w.WriteHeader(http.StatusBadRequest)
+
+			a.recordHitMetric(http.StatusBadRequest)
+			return
+		}
+
+		if cookie == nil {
+			logrus.WithFields(logrus.Fields{
+				"status":     http.StatusBadRequest,
+				"middleware": "Auth",
+				"action":     "if cookie == nil",
+				"cookie":     cookie,
+			})
+			w.WriteHeader(http.StatusBadRequest)
+
+			a.recordHitMetric(http.StatusBadRequest)
+			return
+		}
 
 		id, err := a.auth.Check(r.Context(), &session.SessionID{SessionId: cookie.Value})
 		if err != nil {
