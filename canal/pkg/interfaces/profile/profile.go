@@ -126,7 +126,7 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 		p.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
-	if !p.security.CheckPassword(user.OldPassword, user.OldPassword) {
+	if !p.security.CheckPassword(user.PasswordToCheck, user.OldPassword) {
 		p.createOldPassError(w)
 		return
 	}

@@ -43,8 +43,15 @@ func (sm *SessionManager) Create(ctx context.Context, in *session.UserID) (*sess
 
 func (sm *SessionManager) Check(ctx context.Context, in *session.SessionID) (*session.UserID, error) {
 	key := "sessions:" + in.SessionId
-	data, err := redis.Int64(sm.RedisConn.Do("GET", key))
+	reply, err := sm.RedisConn.Do("GET", key)
+	if err != nil {
+		return &session.UserID{}, err
+	}
+	if reply == nil {
+		return &session.UserID{}, errors.New("reply is nil")
+	}
 
+	data, err := redis.Int64(reply, nil)
 	if err == redis.ErrNil {
 		return nil, errors.New("no session")
 	} else if err != nil {
