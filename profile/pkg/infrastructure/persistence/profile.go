@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	profile "server/profile/pkg/profile/gen"
@@ -84,6 +85,7 @@ func (managerDB *UserDBManager) CheckExistence(ctx context.Context, in *profile.
 		return &profile.Check{}, err
 	}
 
+	fmt.Println(exists)
 	return &profile.Check{Existence: exists != 0}, nil
 }
 
@@ -265,8 +267,10 @@ func (managerDB *UserDBManager) GetUserByLogin(ctx context.Context, in *profile.
 	}
 
 	if bcrypt.CompareHashAndPassword([]byte(password), []byte(in.Password)) != nil {
+		fmt.Println(password)
 		return &profile.PublicUser{}, errors.New("wrong password")
 	}
+	fmt.Println("*")
 
 	return &profile.PublicUser{Id: in.Id, Email: in.Email, Avatar: in.Avatar}, nil
 }
