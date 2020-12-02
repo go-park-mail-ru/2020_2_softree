@@ -56,7 +56,7 @@ func (managerDB *UserDBManager) GetWallets(ctx context.Context, in *profile.User
 	return &wallets, nil
 }
 
-func (managerDB *UserDBManager) CreateInitialWallet(ctx context.Context, in *profile.UserID) (*profile.Empty, error) {
+func (managerDB *UserDBManager) CreateInitialWallet(c context.Context, in *profile.UserID) (*profile.Empty, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), managerDB.timing)
 	defer cancel()
 
