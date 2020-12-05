@@ -11,6 +11,7 @@ import (
 )
 
 type Profile struct {
+	logic     repository.ProfileLogic
 	profile   profile.ProfileServiceClient
 	rates     currency.CurrencyServiceClient
 	security  repository.Utils

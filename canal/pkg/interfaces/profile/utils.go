@@ -169,32 +169,6 @@ func (p *Profile) getPay(ctx context.Context, userWallet *profile.ConcreteWallet
 	return 0
 }
 
-func (p *Profile) validate(action string, user *profile.User) bool {
-	switch action {
-	case "Avatar":
-		if govalidator.IsNull(user.Avatar) {
-			logrus.WithFields(logrus.Fields{
-				"status":   http.StatusBadRequest,
-				"function": "UpdateUserAvatar",
-				"action":   "validation",
-			}).Error("No user avatar from json")
-			return false
-		}
-	case "Passwords":
-		if govalidator.IsNull(user.OldPassword) || govalidator.IsNull(user.NewPassword) {
-			logrus.WithFields(logrus.Fields{
-				"status":      http.StatusBadRequest,
-				"function":    "UpdateUserPassword",
-				"oldPassword": user.OldPassword,
-				"newPassword": user.NewPassword,
-			}).Error("No user passwords from json")
-			return false
-		}
-	}
-
-	return true
-}
-
 func (p *Profile) validateUpdate(u *profile.User) (errors entity.ErrorJSON) {
 	if govalidator.HasWhitespace(u.NewPassword) {
 		errors.Password = append(errors.Email, "Некорректный новый пароль")

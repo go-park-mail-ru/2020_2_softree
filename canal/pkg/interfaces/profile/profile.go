@@ -12,28 +12,20 @@ import (
 )
 
 func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
-	var user profile.User
+	var user entity.User
 	data, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusInternalServerError,
-			"function": "UpdateUserAvatar",
-			"action":   "ReadAll",
-		}).Error(err)
+		p.writeToLogger(entity.Description{Function: "UpdateUserAvatar", Action: "ReadAll", Err: err, Status: http.StatusInternalServerError})
 		w.WriteHeader(http.StatusInternalServerError)
 
 		p.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 
-	err = json.Unmarshal(data, &user)
+	err = json.Unmarshal(data, user)
 	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusInternalServerError,
-			"function": "UpdateUserAvatar",
-			"action":   "Unmarshal",
-		}).Error(err)
+		p.writeToLogger(entity.Description{Function: "UpdateUserAvatar", Action: "Unmarshal", Err: err, Status: http.StatusInternalServerError})
 		w.WriteHeader(http.StatusInternalServerError)
 
 		p.recordHitMetric(http.StatusInternalServerError)
@@ -42,45 +34,18 @@ func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 	user.Id = r.Context().Value(entity.UserIdKey).(int64)
 	defer r.Body.Close()
 
-	if !p.validate("Avatar", &user) {
-		w.WriteHeader(http.StatusBadRequest)
-		p.recordHitMetric(http.StatusBadRequest)
+	desc, public := p.logic.UpdateAvatar(r.Context(), user)
+	if desc.Err != nil {
+		p.writeToLogger(desc)
+		w.WriteHeader(desc.Status)
+
+		p.recordHitMetric(desc.Status)
 		return
 	}
 
-	if _, err = p.profile.UpdateUserAvatar(r.Context(), &profile.UpdateFields{Id: user.Id, User: &user}); err != nil {
-		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusInternalServerError,
-			"function": "UpdateUserAvatar",
-			"action":   "UpdateUserAvatar",
-		}).Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-
-		p.recordHitMetric(http.StatusInternalServerError)
-		return
-	}
-
-	public, err := p.profile.GetUserById(r.Context(), &profile.UserID{Id: user.Id})
-	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusInternalServerError,
-			"function": "UpdateUserAvatar",
-			"action":   "GetUserById",
-		}).Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-
-		p.recordHitMetric(http.StatusInternalServerError)
-		return
-	}
-
-	p.sanitizer.SanitizeBytes([]byte(public.Avatar))
 	res, err := json.Marshal(public)
 	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusInternalServerError,
-			"function": "UpdateUserAvatar",
-			"action":   "Marshal",
-		}).Error(err)
+		p.writeToLogger(entity.Description{Function: "UpdateUserAvatar", Action: "Marshal", Err: err, Status: http.StatusInternalServerError})
 		w.WriteHeader(http.StatusInternalServerError)
 
 		p.recordHitMetric(http.StatusInternalServerError)
@@ -91,13 +56,17 @@ func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	p.recordHitMetric(http.StatusOK)
-
 	if _, err := w.Write(res); err != nil {
-		logrus.WithFields(logrus.Fields{
-			"function": "UpdateUserAvatar",
-			"action":   "Write",
-		}).Error(err)
+		p.writeToLogger(entity.Description{Function: "UpdateUserAvatar", Action: "Write", Err: err})
 	}
+}
+
+func (p *Profile) writeToLogger(desc entity.Description) {
+	logrus.WithFields(logrus.Fields{
+		"status":   desc.Status,
+		"function": desc.Function,
+		"action":   desc.Action,
+	}).Error(desc.Err)
 }
 
 func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
