@@ -3,6 +3,10 @@ package entity
 import (
 	"errors"
 	"github.com/asaskevich/govalidator"
+	json "github.com/mailru/easyjson"
+	"io"
+	"io/ioutil"
+	"net/http"
 	profile "server/profile/pkg/profile/gen"
 )
 
@@ -20,6 +24,20 @@ type PublicUser struct {
 	Id     int64  `json:"id"`
 	Email  string `json:"email"`
 	Avatar string `json:"avatar"`
+}
+
+func GetUserFromBody(body io.ReadCloser) (User, Description) {
+	data, err := ioutil.ReadAll(body)
+	if err != nil {
+		return User{}, Description{Action: "ReadAll", Err: err, Status: http.StatusInternalServerError}
+	}
+
+	var user User
+	err = json.Unmarshal(data, &user)
+	if err != nil {
+		return User{}, Description{Action: "Unmarshal", Err: err, Status: http.StatusInternalServerError}
+	}
+	return user, Description{Err: nil}
 }
 
 func (user *User) Validate() error {
@@ -58,8 +76,8 @@ func ConvertToUser(profileUser *profile.User) User {
 
 func ConvertToPublic(profileUser *profile.PublicUser) PublicUser {
 	return PublicUser{
-		Id:              profileUser.Id,
-		Email:           profileUser.Email,
-		Avatar:          profileUser.Avatar,
+		Id:     profileUser.Id,
+		Email:  profileUser.Email,
+		Avatar: profileUser.Avatar,
 	}
 }

@@ -12,27 +12,17 @@ import (
 )
 
 func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
-	var user entity.User
-	data, err := ioutil.ReadAll(r.Body)
+	user, desc := entity.GetUserFromBody(r.Body)
 	defer r.Body.Close()
-	if err != nil {
-		p.writeToLogger(entity.Description{Function: "UpdateUserAvatar", Action: "ReadAll", Err: err, Status: http.StatusInternalServerError})
-		w.WriteHeader(http.StatusInternalServerError)
-
-		p.recordHitMetric(http.StatusInternalServerError)
-		return
-	}
-
-	err = json.Unmarshal(data, user)
-	if err != nil {
-		p.writeToLogger(entity.Description{Function: "UpdateUserAvatar", Action: "Unmarshal", Err: err, Status: http.StatusInternalServerError})
+	if desc.Err != nil {
+		desc.Function = "UpdateUserAvatar"
+		p.writeToLogger(desc)
 		w.WriteHeader(http.StatusInternalServerError)
 
 		p.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
 	user.Id = r.Context().Value(entity.UserIdKey).(int64)
-	defer r.Body.Close()
 
 	desc, public := p.logic.UpdateAvatar(r.Context(), user)
 	if desc.Err != nil {
