@@ -5,7 +5,6 @@ import (
 	"errors"
 	"github.com/asaskevich/govalidator"
 	"github.com/microcosm-cc/bluemonday"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"server/canal/pkg/domain/entity"
 	"server/canal/pkg/domain/repository"
@@ -19,12 +18,12 @@ type ProfileApp struct {
 }
 
 func (pfl *ProfileApp) UpdateAvatar(ctx context.Context, userEntity entity.User) (entity.Description, entity.PublicUser) {
-	if !pfl.validate("Avatar", userEntity) {
+	if err := pfl.validate("Avatar", userEntity); err != nil {
 		return entity.Description{
 			Status:   http.StatusBadRequest,
 			Function: "UpdateAvatar",
 			Action:   "validate",
-			Err:      errors.New("validation"),
+			Err:      err,
 		}, entity.PublicUser{}
 	}
 
@@ -55,12 +54,12 @@ func (pfl *ProfileApp) UpdateAvatar(ctx context.Context, userEntity entity.User)
 
 func (pfl *ProfileApp) UpdatePassword(ctx context.Context, userEntity entity.User) (entity.Description, entity.PublicUser) {
 	var err error
-	if !pfl.validate("Passwords", userEntity) {
+	if err := pfl.validate("Passwords", userEntity); err != nil {
 		return entity.Description{
 			Status:   http.StatusBadRequest,
 			Function: "UpdatePassword",
 			Action:   "validate",
-			Err:      errors.New("validation"),
+			Err:      err,
 		}, entity.PublicUser{}
 	}
 
@@ -154,30 +153,19 @@ func (pfl *ProfileApp) ReceiveWatchlist(ctx context.Context, id int64) (entity.D
 	return entity.Description{}, entity.ConvertToSlice(currencies)
 }
 
-func (pfl *ProfileApp) validate(action string, user entity.User) bool {
+func (pfl *ProfileApp) validate(action string, user entity.User) error {
 	switch action {
 	case "Avatar":
 		if govalidator.IsNull(user.Avatar) {
-			logrus.WithFields(logrus.Fields{
-				"status":   http.StatusBadRequest,
-				"function": "UpdateUserAvatar",
-				"action":   "validation",
-			}).Error("No user avatar from json")
-			return false
+			return errors.New("no user avatar from json")
 		}
 	case "Passwords":
 		if govalidator.IsNull(user.OldPassword) || govalidator.IsNull(user.NewPassword) {
-			logrus.WithFields(logrus.Fields{
-				"status":      http.StatusBadRequest,
-				"function":    "UpdateUserPassword",
-				"oldPassword": user.OldPassword,
-				"newPassword": user.NewPassword,
-			}).Error("No user passwords from json")
-			return false
+			return errors.New("no user passwords from json")
 		}
 	}
 
-	return true
+	return nil
 }
 
 func (pfl *ProfileApp) validateUpdate(u entity.User) (errors entity.ErrorJSON) {
