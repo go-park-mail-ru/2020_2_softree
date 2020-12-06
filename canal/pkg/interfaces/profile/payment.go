@@ -15,27 +15,20 @@ import (
 func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
 	id := r.Context().Value(entity.UserIdKey).(int64)
 
-	history, err := p.profile.GetAllPaymentHistory(r.Context(), &profile.UserID{Id: id})
-	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusInternalServerError,
-			"function": "GetTransactions",
-			"action":   "GetAllPaymentHistory",
-			"userID":   id,
-		}).Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
+	desc, payments := p.paymentLogic.ReceiveTransactions(r.Context(), id)
+	if desc.Err != nil {
+		p.logger.Error(desc)
+		w.WriteHeader(desc.Status)
 
-		p.recordHitMetric(http.StatusInternalServerError)
+		p.recordHitMetric(desc.Status)
 		return
 	}
 
-	res, err := json.Marshal(history)
+	res, err := json.Marshal(payments)
 	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusInternalServerError,
-			"function": "GetTransactions",
-			"action":   "Marshal",
-		}).Error(err)
+		code := http.StatusInternalServerError
+		desc := entity.Description{Function: "GetTransactions", Action: "Marshal", Err: err, Status: code}
+		p.logger.Error(desc)
 		w.WriteHeader(http.StatusInternalServerError)
 
 		p.recordHitMetric(http.StatusInternalServerError)
@@ -46,13 +39,8 @@ func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	p.recordHitMetric(http.StatusOK)
-
 	if _, err = w.Write(res); err != nil {
-		logrus.WithFields(logrus.Fields{
-			"function": "GetTransactions",
-			"action":   "Write",
-		}).Error(err)
-		return
+		p.logger.Error(entity.Description{Function: "GetTransactions", Action: "Write", Err: err})
 	}
 }
 

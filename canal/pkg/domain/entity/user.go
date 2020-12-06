@@ -28,10 +28,10 @@ type PublicUser struct {
 
 func GetUserFromBody(body io.ReadCloser) (User, Description) {
 	data, err := ioutil.ReadAll(body)
-	defer body.Close()
 	if err != nil {
 		return User{}, Description{Action: "ReadAll", Err: err, Status: http.StatusInternalServerError}
 	}
+	defer body.Close()
 
 	var user User
 	err = json.Unmarshal(data, &user)

@@ -17,6 +17,10 @@ type ProfileApp struct {
 	security  repository.Utils
 }
 
+func NewProfileApp(profile profile.ProfileServiceClient, security repository.Utils) *ProfileApp {
+	return &ProfileApp{profile: profile, security: security, sanitizer: *bluemonday.UGCPolicy()}
+}
+
 func (pfl *ProfileApp) UpdateAvatar(ctx context.Context, userEntity entity.User) (entity.Description, entity.PublicUser) {
 	if err := pfl.validate("Avatar", userEntity); err != nil {
 		return entity.Description{

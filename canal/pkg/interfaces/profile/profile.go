@@ -18,7 +18,7 @@ func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 	user.Id = r.Context().Value(entity.UserIdKey).(int64)
 
-	desc, public := p.logic.UpdateAvatar(r.Context(), user)
+	desc, public := p.profileLogic.UpdateAvatar(r.Context(), user)
 	if desc.Err != nil {
 		p.logger.Error(desc)
 		w.WriteHeader(desc.Status)
@@ -59,7 +59,7 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 	}
 	user.Id = r.Context().Value(entity.UserIdKey).(int64)
 
-	desc, public := p.logic.UpdatePassword(r.Context(), user)
+	desc, public := p.profileLogic.UpdatePassword(r.Context(), user)
 	if desc.Err != nil {
 		p.logger.Error(desc)
 		w.WriteHeader(desc.Status)
@@ -95,7 +95,7 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 func (p *Profile) GetUser(w http.ResponseWriter, r *http.Request) {
 	id := r.Context().Value(entity.UserIdKey).(int64)
 
-	desc, public := p.logic.ReceiveUser(r.Context(), id)
+	desc, public := p.profileLogic.ReceiveUser(r.Context(), id)
 	if desc.Err != nil {
 		p.logger.Error(desc)
 		w.WriteHeader(desc.Status)
@@ -127,7 +127,7 @@ func (p *Profile) GetUser(w http.ResponseWriter, r *http.Request) {
 func (p *Profile) GetUserWatchlist(w http.ResponseWriter, r *http.Request) {
 	id := r.Context().Value(entity.UserIdKey).(int64)
 
-	desc, currencies := p.logic.ReceiveWatchlist(r.Context(), id)
+	desc, currencies := p.profileLogic.ReceiveWatchlist(r.Context(), id)
 	if desc.Err != nil {
 		p.logger.Error(desc)
 		w.WriteHeader(desc.Status)

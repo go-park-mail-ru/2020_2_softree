@@ -9,10 +9,11 @@ import (
 )
 
 type Profile struct {
-	logic     repository.ProfileLogic
-	logger    logger.Logrus
-	rates     currency.CurrencyServiceClient
-	Hits      prometheus.CounterVec
+	profileLogic repository.ProfileLogic
+	paymentLogic repository.PaymentLogic
+	logger       logger.Logrus
+	rates        currency.CurrencyServiceClient
+	Hits         prometheus.CounterVec
 }
 
 func NewProfile(currency currency.CurrencyServiceClient) *Profile {
