@@ -7,11 +7,15 @@ type Currency struct {
 	Title string `json:"title"`
 }
 
-func ConvertToSlice(currenciesProfile *profile.Currencies) []Currency {
+type Currencies struct {
+	Currencies []Currency
+}
+
+func ConvertToSlice(currenciesProfile *profile.Currencies) Currencies {
 	currenciesEntity := make([]Currency, 0, len(currenciesProfile.Currencies))
 	for _, currency := range currenciesProfile.Currencies {
 		currenciesEntity = append(currenciesEntity, Currency{Base: currency.Base, Title: currency.Title})
 	}
 
-	return currenciesEntity
+	return Currencies{Currencies: currenciesEntity}
 }

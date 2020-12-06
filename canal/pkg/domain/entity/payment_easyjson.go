@@ -17,7 +17,105 @@ var (
 	_ easyjson.Marshaler
 )
 
-func easyjson377dcee4DecodeServerCanalPkgDomainEntity(in *jlexer.Lexer, out *Payment) {
+func easyjson377dcee4DecodeServerCanalPkgDomainEntity(in *jlexer.Lexer, out *Payments) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "Payments":
+			if in.IsNull() {
+				in.Skip()
+				out.Payments = nil
+			} else {
+				in.Delim('[')
+				if out.Payments == nil {
+					if !in.IsDelim(']') {
+						out.Payments = make([]Payment, 0, 0)
+					} else {
+						out.Payments = []Payment{}
+					}
+				} else {
+					out.Payments = (out.Payments)[:0]
+				}
+				for !in.IsDelim(']') {
+					var v1 Payment
+					(v1).UnmarshalEasyJSON(in)
+					out.Payments = append(out.Payments, v1)
+					in.WantComma()
+				}
+				in.Delim(']')
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson377dcee4EncodeServerCanalPkgDomainEntity(out *jwriter.Writer, in Payments) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"Payments\":"
+		out.RawString(prefix[1:])
+		if in.Payments == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+			out.RawString("null")
+		} else {
+			out.RawByte('[')
+			for v2, v3 := range in.Payments {
+				if v2 > 0 {
+					out.RawByte(',')
+				}
+				(v3).MarshalEasyJSON(out)
+			}
+			out.RawByte(']')
+		}
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v Payments) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson377dcee4EncodeServerCanalPkgDomainEntity(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v Payments) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson377dcee4EncodeServerCanalPkgDomainEntity(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *Payments) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjson377dcee4DecodeServerCanalPkgDomainEntity(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *Payments) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson377dcee4DecodeServerCanalPkgDomainEntity(l, v)
+}
+func easyjson377dcee4DecodeServerCanalPkgDomainEntity1(in *jlexer.Lexer, out *Payment) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -54,6 +152,8 @@ func easyjson377dcee4DecodeServerCanalPkgDomainEntity(in *jlexer.Lexer, out *Pay
 			if data := in.Raw(); in.Ok() {
 				in.AddError((out.UpdatedUp).UnmarshalJSON(data))
 			}
+		case "UserId":
+			out.UserId = int64(in.Int64())
 		default:
 			in.SkipRecursive()
 		}
@@ -64,7 +164,7 @@ func easyjson377dcee4DecodeServerCanalPkgDomainEntity(in *jlexer.Lexer, out *Pay
 		in.Consumed()
 	}
 }
-func easyjson377dcee4EncodeServerCanalPkgDomainEntity(out *jwriter.Writer, in Payment) {
+func easyjson377dcee4EncodeServerCanalPkgDomainEntity1(out *jwriter.Writer, in Payment) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -98,29 +198,34 @@ func easyjson377dcee4EncodeServerCanalPkgDomainEntity(out *jwriter.Writer, in Pa
 		out.RawString(prefix)
 		out.Raw((in.UpdatedUp).MarshalJSON())
 	}
+	{
+		const prefix string = ",\"UserId\":"
+		out.RawString(prefix)
+		out.Int64(int64(in.UserId))
+	}
 	out.RawByte('}')
 }
 
 // MarshalJSON supports json.Marshaler interface
 func (v Payment) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson377dcee4EncodeServerCanalPkgDomainEntity(&w, v)
+	easyjson377dcee4EncodeServerCanalPkgDomainEntity1(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v Payment) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson377dcee4EncodeServerCanalPkgDomainEntity(w, v)
+	easyjson377dcee4EncodeServerCanalPkgDomainEntity1(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Payment) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson377dcee4DecodeServerCanalPkgDomainEntity(&r, v)
+	easyjson377dcee4DecodeServerCanalPkgDomainEntity1(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Payment) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson377dcee4DecodeServerCanalPkgDomainEntity(l, v)
+	easyjson377dcee4DecodeServerCanalPkgDomainEntity1(l, v)
 }

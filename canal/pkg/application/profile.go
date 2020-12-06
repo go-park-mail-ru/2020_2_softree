@@ -142,7 +142,7 @@ func (pfl *ProfileApp) ReceiveUser(ctx context.Context, id int64) (entity.Descri
 	return entity.Description{}, entity.ConvertToPublic(public)
 }
 
-func (pfl *ProfileApp) ReceiveWatchlist(ctx context.Context, id int64) (entity.Description, []entity.Currency) {
+func (pfl *ProfileApp) ReceiveWatchlist(ctx context.Context, id int64) (entity.Description, entity.Currencies) {
 	var err error
 	var currencies *profile.Currencies
 	if currencies, err = pfl.profile.GetUserWatchlist(ctx, &profile.UserID{Id: id}); err != nil {
@@ -151,7 +151,7 @@ func (pfl *ProfileApp) ReceiveWatchlist(ctx context.Context, id int64) (entity.D
 			Function: "ReceiveUser",
 			Action:   "GetUserWatchlist",
 			Err:      err,
-		}, []entity.Currency{}
+		}, entity.Currencies{}
 	}
 
 	return entity.Description{}, entity.ConvertToSlice(currencies)
