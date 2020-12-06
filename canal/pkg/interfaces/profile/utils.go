@@ -2,8 +2,7 @@ package profile
 
 import (
 	"context"
-	"encoding/json"
-	"github.com/asaskevich/govalidator"
+	json "github.com/mailru/easyjson"
 	"net/http"
 	"server/canal/pkg/domain/entity"
 	currency "server/currency/pkg/currency/gen"
@@ -34,26 +33,21 @@ func (p *Profile) createErrorJSON(err error) (errs entity.ErrorJSON) {
 func (p *Profile) createServerError(errs *entity.ErrorJSON, w http.ResponseWriter) {
 	res, err := json.Marshal(errs)
 	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusInternalServerError,
-			"function": "createServerError",
-		}).Error(err)
+		code := http.StatusInternalServerError
+		desc := entity.Description{Function: "createServerError", Action: "Marshal", Err: err, Status: code}
+		p.logger.Error(desc)
+		w.WriteHeader(http.StatusInternalServerError)
 
 		p.recordHitMetric(http.StatusInternalServerError)
-
-		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusBadRequest)
 
 	p.recordHitMetric(http.StatusBadRequest)
-
 	if _, err := w.Write(res); err != nil {
-		logrus.WithFields(logrus.Fields{
-			"function": "createServerError",
-			"action":   "Write",
-		}).Error(err)
+		p.logger.Error(entity.Description{Function: "UpdateUserPassword", Action: "Write", Err: err})
 	}
 }
 
@@ -167,20 +161,6 @@ func (p *Profile) getPay(ctx context.Context, userWallet *profile.ConcreteWallet
 	}
 
 	return 0
-}
-
-func (p *Profile) validateUpdate(u *profile.User) (errors entity.ErrorJSON) {
-	if govalidator.HasWhitespace(u.NewPassword) {
-		errors.Password = append(errors.Email, "Некорректный новый пароль")
-		errors.NotEmpty = true
-	}
-
-	if govalidator.HasWhitespace(u.OldPassword) {
-		errors.Password = append(errors.Email, "Некорректный старый пароль")
-		errors.NotEmpty = true
-	}
-
-	return errors
 }
 
 func (p *Profile) recordHitMetric(code int) {
