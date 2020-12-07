@@ -26,19 +26,19 @@ type Payments struct {
 	Payments []Payment
 }
 
-func GetTransactionFromBody(body io.ReadCloser) (Payment, Description) {
+func GetTransactionFromBody(body io.ReadCloser) (Payment, Description, error) {
 	data, err := ioutil.ReadAll(body)
 	if err != nil {
-		return Payment{}, Description{Action: "ReadAll", Err: err, Status: http.StatusInternalServerError}
+		return Payment{}, Description{Action: "ReadAll", Status: http.StatusInternalServerError}, err
 	}
 	defer body.Close()
 
 	var pay Payment
 	err = json.Unmarshal(data, &pay)
 	if err != nil {
-		return Payment{}, Description{Action: "Unmarshal", Err: err, Status: http.StatusInternalServerError}
+		return Payment{}, Description{Action: "Unmarshal", Status: http.StatusInternalServerError}, err
 	}
-	return pay, Description{Err: nil}
+	return pay, Description{}, nil
 }
 
 func ConvertToPayment(history *profile.AllHistory) Payments {

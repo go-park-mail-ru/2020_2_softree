@@ -9,9 +9,9 @@ import (
 func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
 	id := r.Context().Value(entity.UserIdKey).(int64)
 
-	desc, payments := p.paymentLogic.ReceiveTransactions(r.Context(), id)
-	if desc.Err != nil {
-		p.logger.Error(desc)
+	desc, err, payments := p.paymentLogic.ReceiveTransactions(r.Context(), id)
+	if err != nil {
+		p.logger.Error(desc, err)
 		w.WriteHeader(desc.Status)
 
 		p.recordHitMetric(desc.Status)
@@ -21,8 +21,8 @@ func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
 	res, err := json.Marshal(payments)
 	if err != nil {
 		code := http.StatusInternalServerError
-		desc := entity.Description{Function: "GetTransactions", Action: "Marshal", Err: err, Status: code}
-		p.logger.Error(desc)
+		desc := entity.Description{Function: "GetTransactions", Action: "Marshal", Status: code}
+		p.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 
 		p.recordHitMetric(http.StatusInternalServerError)
@@ -34,15 +34,15 @@ func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
 
 	p.recordHitMetric(http.StatusOK)
 	if _, err = w.Write(res); err != nil {
-		p.logger.Error(entity.Description{Function: "GetTransactions", Action: "Write", Err: err})
+		p.logger.Error(entity.Description{Function: "GetTransactions", Action: "Write"}, err)
 	}
 }
 
 func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
-	transaction, desc := entity.GetTransactionFromBody(r.Body)
-	if desc.Err != nil {
+	transaction, desc, err := entity.GetTransactionFromBody(r.Body)
+	if err != nil {
 		desc.Function = "SetTransaction"
-		p.logger.Error(desc)
+		p.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 
 		p.recordHitMetric(http.StatusInternalServerError)
@@ -50,10 +50,10 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 	}
 	transaction.UserId = r.Context().Value(entity.UserIdKey).(int64)
 
-	if desc := p.paymentLogic.SetPayment(r.Context(), transaction); desc.Err != nil {
+	if desc, err = p.paymentLogic.SetTransaction(r.Context(), transaction); err != nil {
 		code := http.StatusInternalServerError
-		desc := entity.Description{Function: "SetTransaction", Action: "SetPayment", Err: desc.Err, Status: code}
-		p.logger.Error(desc)
+		desc = entity.Description{Function: "SetTransaction", Action: "SetPayment", Status: code}
+		p.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 
 		p.recordHitMetric(http.StatusInternalServerError)

@@ -2,40 +2,25 @@ package profile
 
 import (
 	json "github.com/mailru/easyjson"
-	"io/ioutil"
 	"net/http"
 	"server/canal/pkg/domain/entity"
-	profile "server/profile/pkg/profile/gen"
-
-	"github.com/sirupsen/logrus"
 )
 
 func (p *Profile) GetWallets(w http.ResponseWriter, r *http.Request) {
-	id := r.Context().Value(entity.UserIdKey).(int64)
-
-	wallets, err := p.profile.GetWallets(r.Context(), &profile.UserID{Id: id})
+	desc, err, wallets := p.paymentLogic.ReceiveWallets(r.Context(), r.Context().Value(entity.UserIdKey).(int64))
 	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusInternalServerError,
-			"function": "GetWallets",
-			"action":   "GetWallets",
-			"userID":   id,
-		}).Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		p.logger.Error(desc, err)
+		w.WriteHeader(desc.Status)
 
-		p.recordHitMetric(http.StatusInternalServerError)
+		p.recordHitMetric(desc.Status)
 		return
 	}
 
 	res, err := json.Marshal(wallets)
 	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusInternalServerError,
-			"function": "GetWallets",
-			"action":   "Marshal",
-			"userID":   id,
-			"wallets":  wallets,
-		}).Error(err)
+		code := http.StatusInternalServerError
+		desc := entity.Description{Function: "GetWallets", Action: "Marshal", Status: code}
+		p.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 
 		p.recordHitMetric(http.StatusInternalServerError)
@@ -46,58 +31,28 @@ func (p *Profile) GetWallets(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	p.recordHitMetric(http.StatusOK)
-
 	if _, err = w.Write(res); err != nil {
-		logrus.WithFields(logrus.Fields{
-			"function": "GetWallets",
-			"action":   "Write",
-			"userID":   id,
-			"wallet":   wallets,
-		}).Error(err)
-		return
+		p.logger.Error(entity.Description{Function: "GetTransactions", Action: "Write"}, err)
 	}
 }
 
 func (p *Profile) SetWallet(w http.ResponseWriter, r *http.Request) {
-	var wallet profile.ConcreteWallet
-	data, err := ioutil.ReadAll(r.Body)
-	defer r.Body.Close()
+	wallet, desc, err := entity.GetWalletFromBody(r.Body)
 	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusInternalServerError,
-			"function": "UpdateUserAvatar",
-			"action":   "ReadAll",
-		}).Error(err)
+		desc.Function = "UpdateUserPassword"
+		p.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 
 		p.recordHitMetric(http.StatusInternalServerError)
 		return
 	}
+	wallet.UserId = r.Context().Value(entity.UserIdKey).(int64)
 
-	err = json.Unmarshal(data, &wallet)
-	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusInternalServerError,
-			"function": "UpdateUserAvatar",
-			"action":   "Unmarshal",
-		}).Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
+	if desc, err := p.paymentLogic.SetWallet(r.Context(), wallet); err != nil {
+		p.logger.Error(desc, err)
+		w.WriteHeader(desc.Status)
 
-		p.recordHitMetric(http.StatusInternalServerError)
-		return
-	}
-	wallet.Id = r.Context().Value(entity.UserIdKey).(int64)
-
-	if _, err = p.profile.CreateWallet(r.Context(), &wallet); err != nil {
-		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusInternalServerError,
-			"function": "SetWallet",
-			"action":   "CreateWallet",
-			"wallet":   &wallet,
-		}).Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-
-		p.recordHitMetric(http.StatusInternalServerError)
+		p.recordHitMetric(desc.Status)
 		return
 	}
 

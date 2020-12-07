@@ -21,14 +21,13 @@ func NewProfileApp(profile profile.ProfileServiceClient, security repository.Uti
 	return &ProfileApp{profile: profile, security: security, sanitizer: *bluemonday.UGCPolicy()}
 }
 
-func (pfl *ProfileApp) UpdateAvatar(ctx context.Context, userEntity entity.User) (entity.Description, entity.PublicUser) {
+func (pfl *ProfileApp) UpdateAvatar(ctx context.Context, userEntity entity.User) (entity.Description, entity.PublicUser, error) {
 	if err := pfl.validate("Avatar", userEntity); err != nil {
 		return entity.Description{
 			Status:   http.StatusBadRequest,
 			Function: "UpdateAvatar",
 			Action:   "validate",
-			Err:      err,
-		}, entity.PublicUser{}
+		}, entity.PublicUser{}, err
 	}
 
 	userPfl := userEntity.ConvertToGRPC()
@@ -37,8 +36,7 @@ func (pfl *ProfileApp) UpdateAvatar(ctx context.Context, userEntity entity.User)
 			Status:   http.StatusInternalServerError,
 			Function: "UpdateAvatar",
 			Action:   "UpdateUserAvatar",
-			Err:      err,
-		}, entity.PublicUser{}
+		}, entity.PublicUser{}, err
 	}
 
 	public, err := pfl.profile.GetUserById(ctx, &profile.UserID{Id: userPfl.Id})
@@ -47,24 +45,22 @@ func (pfl *ProfileApp) UpdateAvatar(ctx context.Context, userEntity entity.User)
 			Status:   http.StatusInternalServerError,
 			Function: "UpdateAvatar",
 			Action:   "GetUserById",
-			Err:      err,
-		}, entity.PublicUser{}
+		}, entity.PublicUser{}, err
 	}
 
 	pfl.sanitizer.SanitizeBytes([]byte(public.Avatar))
 
-	return entity.Description{}, entity.ConvertToPublic(public)
+	return entity.Description{}, entity.ConvertToPublic(public), nil
 }
 
-func (pfl *ProfileApp) UpdatePassword(ctx context.Context, userEntity entity.User) (entity.Description, entity.PublicUser) {
+func (pfl *ProfileApp) UpdatePassword(ctx context.Context, userEntity entity.User) (entity.Description, entity.PublicUser, error) {
 	var err error
 	if err := pfl.validate("Passwords", userEntity); err != nil {
 		return entity.Description{
 			Status:   http.StatusBadRequest,
 			Function: "UpdatePassword",
 			Action:   "validate",
-			Err:      err,
-		}, entity.PublicUser{}
+		}, entity.PublicUser{}, err
 	}
 
 	pfl.sanitizer.Sanitize(userEntity.OldPassword)
@@ -73,8 +69,7 @@ func (pfl *ProfileApp) UpdatePassword(ctx context.Context, userEntity entity.Use
 	if errs := pfl.validateUpdate(userEntity); errs.NotEmpty {
 		return entity.Description{
 			ErrorJSON: errs,
-			Err:       nil,
-		}, entity.PublicUser{}
+		}, entity.PublicUser{}, nil
 	}
 
 	user := userEntity.ConvertToGRPC()
@@ -83,8 +78,7 @@ func (pfl *ProfileApp) UpdatePassword(ctx context.Context, userEntity entity.Use
 			Status:   http.StatusInternalServerError,
 			Function: "UpdatePassword",
 			Action:   "GetPassword",
-			Err:      err,
-		}, entity.PublicUser{}
+		}, entity.PublicUser{}, err
 	}
 	if !pfl.security.CheckPassword(user.PasswordToCheck, user.OldPassword) {
 		var errs entity.ErrorJSON
@@ -92,8 +86,7 @@ func (pfl *ProfileApp) UpdatePassword(ctx context.Context, userEntity entity.Use
 		errs.NotEmpty = true
 		return entity.Description{
 			ErrorJSON: errs,
-			Err:       nil,
-		}, entity.PublicUser{}
+		}, entity.PublicUser{}, err
 	}
 
 	if user.NewPassword, err = pfl.security.MakeShieldedPassword(user.NewPassword); err != nil {
@@ -101,8 +94,7 @@ func (pfl *ProfileApp) UpdatePassword(ctx context.Context, userEntity entity.Use
 			Status:   http.StatusInternalServerError,
 			Function: "UpdatePassword",
 			Action:   "MakeShieldedPassword",
-			Err:      err,
-		}, entity.PublicUser{}
+		}, entity.PublicUser{}, err
 	}
 
 	if _, err = pfl.profile.UpdateUserPassword(ctx, &profile.UpdateFields{Id: user.Id, User: user}); err != nil {
@@ -110,8 +102,7 @@ func (pfl *ProfileApp) UpdatePassword(ctx context.Context, userEntity entity.Use
 			Status:   http.StatusInternalServerError,
 			Function: "UpdatePassword",
 			Action:   "UpdateUserPassword",
-			Err:      err,
-		}, entity.PublicUser{}
+		}, entity.PublicUser{}, err
 	}
 
 	var public *profile.PublicUser
@@ -120,14 +111,13 @@ func (pfl *ProfileApp) UpdatePassword(ctx context.Context, userEntity entity.Use
 			Status:   http.StatusInternalServerError,
 			Function: "UpdatePassword",
 			Action:   "GetUserById",
-			Err:      err,
-		}, entity.PublicUser{}
+		}, entity.PublicUser{}, err
 	}
 
-	return entity.Description{}, entity.ConvertToPublic(public)
+	return entity.Description{}, entity.ConvertToPublic(public), nil
 }
 
-func (pfl *ProfileApp) ReceiveUser(ctx context.Context, id int64) (entity.Description, entity.PublicUser) {
+func (pfl *ProfileApp) ReceiveUser(ctx context.Context, id int64) (entity.Description, entity.PublicUser, error) {
 	var err error
 	var public *profile.PublicUser
 	if public, err = pfl.profile.GetUserById(ctx, &profile.UserID{Id: id}); err != nil {
@@ -135,14 +125,13 @@ func (pfl *ProfileApp) ReceiveUser(ctx context.Context, id int64) (entity.Descri
 			Status:   http.StatusInternalServerError,
 			Function: "ReceiveUser",
 			Action:   "GetUserById",
-			Err:      err,
-		}, entity.PublicUser{}
+		}, entity.PublicUser{}, err
 	}
 
-	return entity.Description{}, entity.ConvertToPublic(public)
+	return entity.Description{}, entity.ConvertToPublic(public), nil
 }
 
-func (pfl *ProfileApp) ReceiveWatchlist(ctx context.Context, id int64) (entity.Description, entity.Currencies) {
+func (pfl *ProfileApp) ReceiveWatchlist(ctx context.Context, id int64) (entity.Description, entity.Currencies, error) {
 	var err error
 	var currencies *profile.Currencies
 	if currencies, err = pfl.profile.GetUserWatchlist(ctx, &profile.UserID{Id: id}); err != nil {
@@ -150,11 +139,10 @@ func (pfl *ProfileApp) ReceiveWatchlist(ctx context.Context, id int64) (entity.D
 			Status:   http.StatusInternalServerError,
 			Function: "ReceiveUser",
 			Action:   "GetUserWatchlist",
-			Err:      err,
-		}, entity.Currencies{}
+		}, entity.Currencies{}, err
 	}
 
-	return entity.Description{}, entity.ConvertToSlice(currencies)
+	return entity.Description{}, entity.ConvertToSlice(currencies), nil
 }
 
 func (pfl *ProfileApp) validate(action string, user entity.User) error {

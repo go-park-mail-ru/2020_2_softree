@@ -26,19 +26,19 @@ type PublicUser struct {
 	Avatar string `json:"avatar"`
 }
 
-func GetUserFromBody(body io.ReadCloser) (User, Description) {
+func GetUserFromBody(body io.ReadCloser) (User, Description, error) {
 	data, err := ioutil.ReadAll(body)
 	if err != nil {
-		return User{}, Description{Action: "ReadAll", Err: err, Status: http.StatusInternalServerError}
+		return User{}, Description{Action: "ReadAll", Status: http.StatusInternalServerError}, err
 	}
 	defer body.Close()
 
 	var user User
 	err = json.Unmarshal(data, &user)
 	if err != nil {
-		return User{}, Description{Action: "Unmarshal", Err: err, Status: http.StatusInternalServerError}
+		return User{}, Description{Action: "Unmarshal", Status: http.StatusInternalServerError}, err
 	}
-	return user, Description{Err: nil}
+	return user, Description{}, nil
 }
 
 func (user *User) Validate() error {

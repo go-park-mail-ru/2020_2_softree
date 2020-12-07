@@ -24,16 +24,16 @@ func NewLogrus() *Logrus {
 	return l
 }
 
-func (l *Logrus) Info(desc entity.Description) {
-	l.log.WithFields(logrus.Fields{"status": desc.Status, "function": desc.Function, "action": desc.Action}).Info(desc.Err)
+func (l *Logrus) Info(desc entity.Description, err error) {
+	l.log.WithFields(logrus.Fields{"status": desc.Status, "function": desc.Function, "action": desc.Action}).Info(err)
 }
 
-func (l *Logrus) Warn(desc entity.Description) {
-	l.log.WithFields(logrus.Fields{"status": desc.Status, "function": desc.Function, "action": desc.Action}).Warn(desc.Err)
+func (l *Logrus) Warn(desc entity.Description, err error) {
+	l.log.WithFields(logrus.Fields{"status": desc.Status, "function": desc.Function, "action": desc.Action}).Warn(err)
 }
 
-func (l *Logrus) Error(desc entity.Description) {
-	l.log.WithFields(logrus.Fields{"status": desc.Status, "function": desc.Function, "action": desc.Action}).Error(desc.Err)
+func (l *Logrus) Error(desc entity.Description, err error) {
+	l.log.WithFields(logrus.Fields{"status": desc.Status, "function": desc.Function, "action": desc.Action}).Error(err)
 }
 
 func (l *Logrus) setLevel() error {
