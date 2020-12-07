@@ -7,7 +7,7 @@ import (
 )
 
 func (p *Profile) GetWallets(w http.ResponseWriter, r *http.Request) {
-	desc, err, wallets := p.paymentLogic.ReceiveWallets(r.Context(), r.Context().Value(entity.UserIdKey).(int64))
+	desc, wallets, err := p.paymentLogic.ReceiveWallets(r.Context(), r.Context().Value(entity.UserIdKey).(int64))
 	if err != nil {
 		p.logger.Error(desc, err)
 		w.WriteHeader(desc.Status)

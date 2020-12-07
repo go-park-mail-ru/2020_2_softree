@@ -9,7 +9,7 @@ import (
 func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
 	id := r.Context().Value(entity.UserIdKey).(int64)
 
-	desc, err, payments := p.paymentLogic.ReceiveTransactions(r.Context(), id)
+	desc, payments, err := p.paymentLogic.ReceiveTransactions(r.Context(), id)
 	if err != nil {
 		p.logger.Error(desc, err)
 		w.WriteHeader(desc.Status)

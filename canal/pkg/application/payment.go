@@ -23,30 +23,30 @@ func NewPaymentApp(profile profile.ProfileServiceClient, security repository.Uti
 	return &PaymentApp{profile: profile, security: security, sanitizer: *bluemonday.UGCPolicy()}
 }
 
-func (pmt *PaymentApp) ReceiveTransactions(ctx context.Context, id int64) (entity.Description, error, entity.Payments) {
+func (pmt *PaymentApp) ReceiveTransactions(ctx context.Context, id int64) (entity.Description, entity.Payments, error) {
 	history, err := pmt.profile.GetAllPaymentHistory(ctx, &profile.UserID{Id: id})
 	if err != nil {
 		return entity.Description{
 			Status:   http.StatusInternalServerError,
 			Function: "ReceiveTransactions",
 			Action:   "GetAllPaymentHistory",
-		}, err, entity.Payments{}
+		}, entity.Payments{}, err
 	}
 
-	return entity.Description{}, nil, entity.ConvertToPayment(history)
+	return entity.Description{}, entity.ConvertToPayment(history), err
 }
 
-func (pmt *PaymentApp) ReceiveWallets(ctx context.Context, id int64) (entity.Description, error, entity.Wallets) {
+func (pmt *PaymentApp) ReceiveWallets(ctx context.Context, id int64) (entity.Description, entity.Wallets, error) {
 	wallets, err := pmt.profile.GetWallets(ctx, &profile.UserID{Id: id})
 	if err != nil {
 		return entity.Description{
 			Status:   http.StatusInternalServerError,
 			Function: "ReceiveWallets",
 			Action:   "GetWallets",
-		}, err, entity.Wallets{}
+		}, entity.Wallets{}, err
 	}
 
-	return entity.Description{}, nil, entity.ConvertToWallets(wallets)
+	return entity.Description{}, entity.ConvertToWallets(wallets), nil
 }
 
 func (pmt *PaymentApp) SetWallet(ctx context.Context, wallet entity.Wallet) (entity.Description, error) {
