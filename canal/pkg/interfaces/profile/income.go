@@ -1,7 +1,6 @@
 package profile
 
 import (
-	"encoding/json"
 	"github.com/go-co-op/gocron"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -23,7 +22,7 @@ func (p *Profile) GetIncome(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	change, err := json.Marshal(result)
+	change, err := result.MarshalJSON()
 	if err != nil {
 		code := http.StatusInternalServerError
 		desc := entity.Description{Function: "GetIncome", Action: "Marshal", Status: code}

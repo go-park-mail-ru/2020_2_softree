@@ -230,7 +230,7 @@ func (pmt *PaymentApp) getPay(ctx context.Context, userWallet *profile.ConcreteW
 	return entity.Description{}, nil
 }
 
-func (pmt *PaymentApp) GetIncome(ctx context.Context, in entity.Income) (entity.Description, float64, error) {
+func (pmt *PaymentApp) GetIncome(ctx context.Context, in entity.Income) (entity.Description, decimal.Decimal, error) {
 	incomeParameters := in.ConvertToGRPC()
 	result, err := pmt.profile.GetIncome(ctx, incomeParameters)
 	if err != nil {
@@ -238,7 +238,7 @@ func (pmt *PaymentApp) GetIncome(ctx context.Context, in entity.Income) (entity.
 			Status:   http.StatusInternalServerError,
 			Function: "GetIncome",
 			Action:   "GetIncome",
-		}, 0, err
+		}, decimal.Decimal{}, err
 	}
 
 	walletUSDCash, err := pmt.transformActualUserWallets(ctx, incomeParameters.Id)
@@ -247,11 +247,10 @@ func (pmt *PaymentApp) GetIncome(ctx context.Context, in entity.Income) (entity.
 			Status:   http.StatusInternalServerError,
 			Function: "GetIncome",
 			Action:   "transformActualUserWallets",
-		}, 0, err
+		}, decimal.Decimal{}, err
 	}
 
-	result.Change, _ = walletUSDCash.Sub(decimal.NewFromFloat(result.Change)).Float64()
-	return entity.Description{}, result.Change, nil
+	return entity.Description{}, walletUSDCash.Sub(decimal.NewFromFloat(result.Change)), nil
 }
 
 func (pmt *PaymentApp) transformActualUserWallets(ctx context.Context, id int64) (decimal.Decimal, error) {
