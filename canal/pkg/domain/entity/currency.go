@@ -15,7 +15,10 @@ type (
 func ConvertToSlice(currenciesProfile *profile.Currencies) Currencies {
 	currenciesEntity := make(Currencies, 0, len(currenciesProfile.Currencies))
 	for _, currency := range currenciesProfile.Currencies {
-		currenciesEntity = append(currenciesEntity, Currency{Base: currency.Base, Title: currency.Title})
+		currenciesEntity = append(currenciesEntity, Currency{
+			Base:  currency.Base,
+			Title: currency.Title,
+		})
 	}
 
 	return currenciesEntity

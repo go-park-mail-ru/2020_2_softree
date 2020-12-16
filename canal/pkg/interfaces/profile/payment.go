@@ -20,8 +20,7 @@ func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
 
 	res, err := json.Marshal(payments)
 	if err != nil {
-		code := http.StatusInternalServerError
-		desc := entity.Description{Function: "GetTransactions", Action: "Marshal", Status: code}
+		desc := entity.Description{Function: "GetTransactions", Action: "Marshal", Status: http.StatusInternalServerError}
 		p.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 

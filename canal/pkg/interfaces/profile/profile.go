@@ -29,8 +29,7 @@ func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 
 	res, err := json.Marshal(public)
 	if err != nil {
-		code := http.StatusInternalServerError
-		desc := entity.Description{Function: "UpdateUserAvatar", Action: "Marshal", Status: code}
+		desc = entity.Description{Function: "UpdateUserAvatar", Action: "Marshal", Status: http.StatusInternalServerError}
 		p.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 
@@ -74,8 +73,7 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 
 	res, err := json.Marshal(public)
 	if err != nil {
-		code := http.StatusInternalServerError
-		desc := entity.Description{Function: "UpdateUserPassword", Action: "Marshal", Status: code}
+		desc = entity.Description{Function: "UpdateUserPassword", Action: "Marshal", Status: http.StatusInternalServerError}
 		p.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 
@@ -107,8 +105,7 @@ func (p *Profile) GetUser(w http.ResponseWriter, r *http.Request) {
 
 	res, err := json.Marshal(public)
 	if err != nil {
-		code := http.StatusInternalServerError
-		desc := entity.Description{Function: "GetUser", Action: "Marshal", Status: code}
+		desc = entity.Description{Function: "GetUser", Action: "Marshal", Status: http.StatusInternalServerError}
 		p.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 
@@ -139,8 +136,7 @@ func (p *Profile) GetUserWatchlist(w http.ResponseWriter, r *http.Request) {
 
 	res, err := json.Marshal(currencies)
 	if err != nil {
-		code := http.StatusInternalServerError
-		desc := entity.Description{Function: "GetUserWatchlist", Action: "Marshal", Status: code}
+		desc = entity.Description{Function: "GetUserWatchlist", Action: "Marshal", Status: http.StatusInternalServerError}
 		p.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 

@@ -24,8 +24,7 @@ func (p *Profile) GetIncome(w http.ResponseWriter, r *http.Request) {
 
 	change, err := result.MarshalJSON()
 	if err != nil {
-		code := http.StatusInternalServerError
-		desc := entity.Description{Function: "GetIncome", Action: "Marshal", Status: code}
+		desc = entity.Description{Function: "GetIncome", Action: "Marshal", Status: http.StatusInternalServerError}
 		p.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 

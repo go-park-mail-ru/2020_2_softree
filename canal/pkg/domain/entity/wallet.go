@@ -23,7 +23,10 @@ type (
 func ConvertToWallets(profileWallets *profile.Wallets) Wallets {
 	entityWallets := make(Wallets, 0, len(profileWallets.Wallets))
 	for _, wallet := range profileWallets.Wallets {
-		entityWallets = append(entityWallets, Wallet{Title: wallet.Title, Value: decimal.NewFromFloat(wallet.Value)})
+		entityWallets = append(entityWallets, Wallet{
+			Title: wallet.Title,
+			Value: decimal.NewFromFloat(wallet.Value),
+		})
 	}
 
 	return entityWallets

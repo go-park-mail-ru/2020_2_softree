@@ -18,8 +18,7 @@ func (p *Profile) GetWallets(w http.ResponseWriter, r *http.Request) {
 
 	res, err := json.Marshal(wallets)
 	if err != nil {
-		code := http.StatusInternalServerError
-		desc := entity.Description{Function: "GetWallets", Action: "Marshal", Status: code}
+		desc = entity.Description{Function: "GetWallets", Action: "Marshal", Status: http.StatusInternalServerError}
 		p.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 
