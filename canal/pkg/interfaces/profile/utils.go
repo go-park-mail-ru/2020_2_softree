@@ -1,16 +1,10 @@
 package profile
 
 import (
-	"context"
 	json "github.com/mailru/easyjson"
 	"net/http"
 	"server/canal/pkg/domain/entity"
-	currency "server/currency/pkg/currency/gen"
-	profile "server/profile/pkg/profile/gen"
 	"strconv"
-
-	"github.com/shopspring/decimal"
-	"github.com/sirupsen/logrus"
 )
 
 func (p *Profile) createErrorJSON(err error) (errs entity.ErrorJSON) {
@@ -34,8 +28,8 @@ func (p *Profile) createServerError(errs *entity.ErrorJSON, w http.ResponseWrite
 	res, err := json.Marshal(errs)
 	if err != nil {
 		code := http.StatusInternalServerError
-		desc := entity.Description{Function: "createServerError", Action: "Marshal", Err: err, Status: code}
-		p.logger.Error(desc)
+		desc := entity.Description{Function: "createServerError", Action: "Marshal", Status: code}
+		p.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 
 		p.recordHitMetric(http.StatusInternalServerError)
@@ -47,7 +41,7 @@ func (p *Profile) createServerError(errs *entity.ErrorJSON, w http.ResponseWrite
 
 	p.recordHitMetric(http.StatusBadRequest)
 	if _, err := w.Write(res); err != nil {
-		p.logger.Error(entity.Description{Function: "UpdateUserPassword", Action: "Write", Err: err})
+		p.logger.Error(entity.Description{Function: "UpdateUserPassword", Action: "Write"}, err)
 	}
 }
 
@@ -55,20 +49,4 @@ func (p *Profile) recordHitMetric(code int) {
 	p.Hits.WithLabelValues(strconv.Itoa(code)).Inc()
 }
 
-func (p *Profile) transformActualUserWallets(ctx context.Context, id int64) (decimal.Decimal, error) {
-	wallets, err := p.profile.GetWallets(ctx, &profile.UserID{Id: id})
-	if err != nil {
-		return decimal.Decimal{}, err
-	}
 
-	var cash decimal.Decimal
-	for _, wallet := range wallets.Wallets {
-		curr, err := p.rates.GetLastRate(ctx, &currency.CurrencyTitle{Title: wallet.Title})
-		if err != nil {
-			return decimal.Decimal{}, err
-		}
-		cash = cash.Add(decimal.NewFromFloat(wallet.Value / curr.Value))
-	}
-
-	return cash, nil
-}

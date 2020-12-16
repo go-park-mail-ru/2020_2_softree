@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/shopspring/decimal"
+	"github.com/sirupsen/logrus"
 	"net/http"
 	"server/canal/pkg/domain/entity"
 	"server/canal/pkg/domain/repository"
@@ -227,4 +228,83 @@ func (pmt *PaymentApp) getPay(ctx context.Context, userWallet *profile.ConcreteW
 	}
 
 	return entity.Description{}, nil
+}
+
+func (pmt *PaymentApp) GetIncome(ctx context.Context, in entity.Income) (entity.Description, float64, error) {
+	incomeParameters := in.ConvertToGRPC()
+	result, err := pmt.profile.GetIncome(ctx, incomeParameters)
+	if err != nil {
+		return entity.Description{
+			Status:   http.StatusInternalServerError,
+			Function: "GetIncome",
+			Action:   "GetIncome",
+		}, 0, err
+	}
+
+	walletUSDCash, err := pmt.transformActualUserWallets(ctx, incomeParameters.Id)
+	if err != nil {
+		return entity.Description{
+			Status:   http.StatusInternalServerError,
+			Function: "GetIncome",
+			Action:   "transformActualUserWallets",
+		}, 0, err
+	}
+
+	result.Change, _ = walletUSDCash.Sub(decimal.NewFromFloat(result.Change)).Float64()
+	return entity.Description{}, result.Change, nil
+}
+
+func (pmt *PaymentApp) transformActualUserWallets(ctx context.Context, id int64) (decimal.Decimal, error) {
+	wallets, err := pmt.profile.GetWallets(ctx, &profile.UserID{Id: id})
+	if err != nil {
+		return decimal.Decimal{}, err
+	}
+
+	var cash decimal.Decimal
+	for _, wallet := range wallets.Wallets {
+		curr, err := pmt.rates.GetLastRate(ctx, &currency.CurrencyTitle{Title: wallet.Title})
+		if err != nil {
+			return decimal.Decimal{}, err
+		}
+		cash = cash.Add(decimal.NewFromFloat(wallet.Value / curr.Value))
+	}
+
+	return cash, nil
+}
+
+// every day task
+func (pmt *PaymentApp) WritePortfolios() {
+	ctx := context.Background()
+
+	userNum, err := pmt.profile.GetUsers(ctx, &profile.Empty{})
+	if err != nil {
+		logrus.WithFields(logrus.Fields{"function": "WritePortfolio", "action":   "GetUsers"}).Error(err)
+		return
+	}
+
+	for i := int64(0); i < userNum.Num; i++ {
+		portfolioValue, err := pmt.transformActualUserWallets(ctx, i)
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"function": "WritePortfolio",
+				"action":   "transformActualUserWallets",
+				"user_id":  i,
+			}).Error(err)
+
+			return
+		}
+
+		value, _ := portfolioValue.Float64()
+		_, err = pmt.profile.PutPortfolio(ctx, &profile.PortfolioValue{Id: i, Value: value})
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"function": "WritePortfolio",
+				"action":   "PutPortfolio",
+				"user_id":  i,
+				"value":    value,
+			}).Error(err)
+
+			return
+		}
+	}
 }
