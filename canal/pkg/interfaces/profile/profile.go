@@ -69,6 +69,7 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 	}
 	if desc.ErrorJSON.NotEmpty {
 		p.createServerError(&desc.ErrorJSON, w)
+		return
 	}
 
 	res, err := public.MarshalJSON()

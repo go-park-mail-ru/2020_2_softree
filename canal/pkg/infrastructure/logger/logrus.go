@@ -37,11 +37,15 @@ func (l *Logrus) Error(desc entity.Description, err error) {
 }
 
 func (l *Logrus) setLevel() error {
-	level, error := logrus.ParseLevel(viper.GetString("server.logLevel"))
-	if error != nil {
-		return error
+	if viper.GetString("server.logLevel") != "" {
+		level, err := logrus.ParseLevel(viper.GetString("server.logLevel"))
+		if err != nil {
+			return err
+		}
+		logrus.SetLevel(level)
+		return nil
 	}
-	logrus.SetLevel(level)
+	logrus.SetLevel(logrus.DebugLevel)
 	return nil
 }
 

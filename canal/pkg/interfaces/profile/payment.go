@@ -1,6 +1,7 @@
 package profile
 
 import (
+	//"encoding/json"
 	"net/http"
 	"server/canal/pkg/domain/entity"
 )
@@ -50,8 +51,7 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 	transaction.UserId = r.Context().Value(entity.UserIdKey).(int64)
 
 	if desc, err = p.paymentLogic.SetTransaction(r.Context(), transaction); err != nil {
-		code := http.StatusInternalServerError
-		desc = entity.Description{Function: "SetTransaction", Action: "SetPayment", Status: code}
+		desc = entity.Description{Function: "SetTransaction", Action: "SetPayment", Status: http.StatusInternalServerError}
 		p.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 

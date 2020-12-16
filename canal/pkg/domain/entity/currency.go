@@ -2,13 +2,15 @@ package entity
 
 import profile "server/profile/pkg/profile/gen"
 
-type Currency struct {
-	Base  string `json:"base"`
-	Title string `json:"title"`
-}
-
 //easyjson:json
-type Currencies []Currency
+type (
+	Currency struct {
+		Base  string `json:"base"`
+		Title string `json:"title"`
+	}
+
+	Currencies []Currency
+)
 
 func ConvertToSlice(currenciesProfile *profile.Currencies) Currencies {
 	currenciesEntity := make(Currencies, 0, len(currenciesProfile.Currencies))

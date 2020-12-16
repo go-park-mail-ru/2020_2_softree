@@ -11,18 +11,20 @@ import (
 	"time"
 )
 
-type Payment struct {
-	Currency  string          `json:"currency"`
-	Base      string          `json:"base"`
-	Amount    decimal.Decimal `json:"amount"`
-	Value     decimal.Decimal `json:"value"`
-	Sell      bool            `json:"sell"`
-	UpdatedUp time.Time       `json:"updated_up"`
-	UserId    int64
-}
-
 //easyjson:json
-type Payments []Payment
+type (
+	Payment struct {
+		Currency  string          `json:"currency"`
+		Base      string          `json:"base"`
+		Amount    decimal.Decimal `json:"amount"`
+		Value     decimal.Decimal `json:"value"`
+		Sell      bool            `json:"sell"`
+		UpdatedUp time.Time       `json:"updated_up"`
+		UserId    int64
+	}
+
+	Payments []Payment
+)
 
 func GetTransactionFromBody(body io.ReadCloser) (Payment, Description, error) {
 	data, err := ioutil.ReadAll(body)

@@ -9,14 +9,16 @@ import (
 	profile "server/profile/pkg/profile/gen"
 )
 
-type Wallet struct {
-	Title  string          `json:"title"`
-	Value  decimal.Decimal `json:"value"`
-	UserId int64
-}
-
 //easyjson:json
-type Wallets []Wallet
+type (
+	Wallet struct {
+		Title  string          `json:"title"`
+		Value  decimal.Decimal `json:"value"`
+		UserId int64
+	}
+
+	Wallets []Wallet
+)
 
 func ConvertToWallets(profileWallets *profile.Wallets) Wallets {
 	entityWallets := make(Wallets, 0, len(profileWallets.Wallets))
