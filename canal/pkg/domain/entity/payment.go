@@ -2,7 +2,6 @@ package entity
 
 import (
 	"github.com/golang/protobuf/ptypes"
-	json "github.com/mailru/easyjson"
 	"github.com/shopspring/decimal"
 	"io"
 	"io/ioutil"
@@ -22,9 +21,8 @@ type Payment struct {
 	UserId    int64
 }
 
-type Payments struct {
-	Payments []Payment
-}
+//easyjson:json
+type Payments []Payment
 
 func GetTransactionFromBody(body io.ReadCloser) (Payment, Description, error) {
 	data, err := ioutil.ReadAll(body)
@@ -34,7 +32,7 @@ func GetTransactionFromBody(body io.ReadCloser) (Payment, Description, error) {
 	defer body.Close()
 
 	var pay Payment
-	err = json.Unmarshal(data, &pay)
+	err = pay.UnmarshalJSON(data)
 	if err != nil {
 		return Payment{}, Description{Action: "Unmarshal", Status: http.StatusInternalServerError}, err
 	}
@@ -42,7 +40,7 @@ func GetTransactionFromBody(body io.ReadCloser) (Payment, Description, error) {
 }
 
 func ConvertToPayment(history *profile.AllHistory) Payments {
-	payments := make([]Payment, 0, len(history.History))
+	payments := make(Payments, 0, len(history.History))
 	for _, pay := range history.History {
 		updated, _ := ptypes.Timestamp(pay.UpdatedAt)
 		payments = append(payments, Payment{
@@ -55,7 +53,7 @@ func ConvertToPayment(history *profile.AllHistory) Payments {
 		})
 	}
 
-	return Payments{payments}
+	return payments
 }
 
 func (pay *Payment) ConvertToGRPC() *profile.PaymentHistory {

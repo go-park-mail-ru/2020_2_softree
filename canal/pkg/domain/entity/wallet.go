@@ -15,15 +15,13 @@ type Wallet struct {
 	UserId int64
 }
 
-type Wallets struct {
-	Wallets []Wallet `json:"wallets"`
-}
+//easyjson:json
+type Wallets []Wallet
 
 func ConvertToWallets(profileWallets *profile.Wallets) Wallets {
-	var entityWallets Wallets
-	entityWallets.Wallets = make([]Wallet, 0, len(profileWallets.Wallets))
+	entityWallets := make(Wallets, 0, len(profileWallets.Wallets))
 	for _, wallet := range profileWallets.Wallets {
-		entityWallets.Wallets = append(entityWallets.Wallets, Wallet{Title: wallet.Title, Value: decimal.NewFromFloat(wallet.Value)})
+		entityWallets = append(entityWallets, Wallet{Title: wallet.Title, Value: decimal.NewFromFloat(wallet.Value)})
 	}
 
 	return entityWallets

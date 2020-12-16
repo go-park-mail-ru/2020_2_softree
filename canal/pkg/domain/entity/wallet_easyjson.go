@@ -20,76 +20,44 @@ var (
 func easyjson22b96abDecodeServerCanalPkgDomainEntity(in *jlexer.Lexer, out *Wallets) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
 		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeFieldName(false)
-		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
-		switch key {
-		case "wallets":
-			if in.IsNull() {
-				in.Skip()
-				out.Wallets = nil
+		*out = nil
+	} else {
+		in.Delim('[')
+		if *out == nil {
+			if !in.IsDelim(']') {
+				*out = make(Wallets, 0, 1)
 			} else {
-				in.Delim('[')
-				if out.Wallets == nil {
-					if !in.IsDelim(']') {
-						out.Wallets = make([]Wallet, 0, 2)
-					} else {
-						out.Wallets = []Wallet{}
-					}
-				} else {
-					out.Wallets = (out.Wallets)[:0]
-				}
-				for !in.IsDelim(']') {
-					var v1 Wallet
-					(v1).UnmarshalEasyJSON(in)
-					out.Wallets = append(out.Wallets, v1)
-					in.WantComma()
-				}
-				in.Delim(']')
+				*out = Wallets{}
 			}
-		default:
-			in.SkipRecursive()
+		} else {
+			*out = (*out)[:0]
 		}
-		in.WantComma()
+		for !in.IsDelim(']') {
+			var v1 Wallet
+			(v1).UnmarshalEasyJSON(in)
+			*out = append(*out, v1)
+			in.WantComma()
+		}
+		in.Delim(']')
 	}
-	in.Delim('}')
 	if isTopLevel {
 		in.Consumed()
 	}
 }
 func easyjson22b96abEncodeServerCanalPkgDomainEntity(out *jwriter.Writer, in Wallets) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"wallets\":"
-		out.RawString(prefix[1:])
-		if in.Wallets == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
-			out.RawString("null")
-		} else {
-			out.RawByte('[')
-			for v2, v3 := range in.Wallets {
-				if v2 > 0 {
-					out.RawByte(',')
-				}
-				(v3).MarshalEasyJSON(out)
+	if in == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+		out.RawString("null")
+	} else {
+		out.RawByte('[')
+		for v2, v3 := range in {
+			if v2 > 0 {
+				out.RawByte(',')
 			}
-			out.RawByte(']')
+			(v3).MarshalEasyJSON(out)
 		}
+		out.RawByte(']')
 	}
-	out.RawByte('}')
 }
 
 // MarshalJSON supports json.Marshaler interface
@@ -140,6 +108,8 @@ func easyjson22b96abDecodeServerCanalPkgDomainEntity1(in *jlexer.Lexer, out *Wal
 			if data := in.Raw(); in.Ok() {
 				in.AddError((out.Value).UnmarshalJSON(data))
 			}
+		case "UserId":
+			out.UserId = int64(in.Int64())
 		default:
 			in.SkipRecursive()
 		}
@@ -163,6 +133,11 @@ func easyjson22b96abEncodeServerCanalPkgDomainEntity1(out *jwriter.Writer, in Wa
 		const prefix string = ",\"value\":"
 		out.RawString(prefix)
 		out.Raw((in.Value).MarshalJSON())
+	}
+	{
+		const prefix string = ",\"UserId\":"
+		out.RawString(prefix)
+		out.Int64(int64(in.UserId))
 	}
 	out.RawByte('}')
 }

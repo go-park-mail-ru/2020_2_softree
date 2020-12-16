@@ -3,7 +3,6 @@ package entity
 import (
 	"errors"
 	"github.com/asaskevich/govalidator"
-	json "github.com/mailru/easyjson"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -34,7 +33,7 @@ func GetUserFromBody(body io.ReadCloser) (User, Description, error) {
 	defer body.Close()
 
 	var user User
-	err = json.Unmarshal(data, &user)
+	err = user.UnmarshalJSON(data)
 	if err != nil {
 		return User{}, Description{Action: "Unmarshal", Status: http.StatusInternalServerError}, err
 	}

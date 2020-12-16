@@ -27,7 +27,7 @@ func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := json.Marshal(public)
+	res, err := public.MarshalJSON()
 	if err != nil {
 		code := http.StatusInternalServerError
 		desc := entity.Description{Function: "UpdateUserAvatar", Action: "Marshal", Status: code}
@@ -71,7 +71,7 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 		p.createServerError(&desc.ErrorJSON, w)
 	}
 
-	res, err := json.Marshal(public)
+	res, err := public.MarshalJSON()
 	if err != nil {
 		code := http.StatusInternalServerError
 		desc := entity.Description{Function: "UpdateUserPassword", Action: "Marshal", Status: code}
@@ -136,7 +136,7 @@ func (p *Profile) GetUserWatchlist(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := json.Marshal(currencies)
+	res, err := currencies.MarshalJSON()
 	if err != nil {
 		code := http.StatusInternalServerError
 		desc := entity.Description{Function: "GetUserWatchlist", Action: "Marshal", Status: code}
@@ -152,6 +152,6 @@ func (p *Profile) GetUserWatchlist(w http.ResponseWriter, r *http.Request) {
 
 	p.recordHitMetric(http.StatusOK)
 	if _, err := w.Write(res); err != nil {
-		p.logger.Error(entity.Description{Function: "GetUser", Action: "Write"}, err)
+		p.logger.Error(entity.Description{Function: "GetUserWatchlist", Action: "Write"}, err)
 	}
 }
