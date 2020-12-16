@@ -27,7 +27,7 @@ func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := public.MarshalJSON()
+	res, err := json.Marshal(public)
 	if err != nil {
 		code := http.StatusInternalServerError
 		desc := entity.Description{Function: "UpdateUserAvatar", Action: "Marshal", Status: code}
@@ -72,7 +72,7 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := public.MarshalJSON()
+	res, err := json.Marshal(public)
 	if err != nil {
 		code := http.StatusInternalServerError
 		desc := entity.Description{Function: "UpdateUserPassword", Action: "Marshal", Status: code}
@@ -137,7 +137,7 @@ func (p *Profile) GetUserWatchlist(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := currencies.MarshalJSON()
+	res, err := json.Marshal(currencies)
 	if err != nil {
 		code := http.StatusInternalServerError
 		desc := entity.Description{Function: "GetUserWatchlist", Action: "Marshal", Status: code}

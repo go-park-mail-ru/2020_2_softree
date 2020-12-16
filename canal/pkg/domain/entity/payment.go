@@ -2,6 +2,7 @@ package entity
 
 import (
 	"github.com/golang/protobuf/ptypes"
+	json "github.com/mailru/easyjson"
 	"github.com/shopspring/decimal"
 	"io"
 	"io/ioutil"
@@ -34,7 +35,7 @@ func GetTransactionFromBody(body io.ReadCloser) (Payment, Description, error) {
 	defer body.Close()
 
 	var pay Payment
-	err = pay.UnmarshalJSON(data)
+	err = json.Unmarshal(data, &pay)
 	if err != nil {
 		return Payment{}, Description{Action: "Unmarshal", Status: http.StatusInternalServerError}, err
 	}

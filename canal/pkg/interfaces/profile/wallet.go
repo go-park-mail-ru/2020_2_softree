@@ -1,6 +1,7 @@
 package profile
 
 import (
+	json "github.com/mailru/easyjson"
 	"net/http"
 	"server/canal/pkg/domain/entity"
 )
@@ -15,7 +16,7 @@ func (p *Profile) GetWallets(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := wallets.MarshalJSON()
+	res, err := json.Marshal(wallets)
 	if err != nil {
 		code := http.StatusInternalServerError
 		desc := entity.Description{Function: "GetWallets", Action: "Marshal", Status: code}

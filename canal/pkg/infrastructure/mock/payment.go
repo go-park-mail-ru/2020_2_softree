@@ -7,6 +7,7 @@ package mock
 import (
 	context "context"
 	gomock "github.com/golang/mock/gomock"
+	decimal "github.com/shopspring/decimal"
 	reflect "reflect"
 	entity "server/canal/pkg/domain/entity"
 )
@@ -97,11 +98,11 @@ func (mr *MockPaymentLogicMockRecorder) SetWallet(ctx, wallet interface{}) *gomo
 }
 
 // GetIncome mocks base method
-func (m *MockPaymentLogic) GetIncome(ctx context.Context, in entity.Income) (entity.Description, float64, error) {
+func (m *MockPaymentLogic) GetIncome(ctx context.Context, in entity.Income) (entity.Description, decimal.Decimal, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetIncome", ctx, in)
 	ret0, _ := ret[0].(entity.Description)
-	ret1, _ := ret[1].(float64)
+	ret1, _ := ret[1].(decimal.Decimal)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
