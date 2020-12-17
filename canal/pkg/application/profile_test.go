@@ -21,7 +21,8 @@ const (
 	oldPassword = "old"
 	newPassword = "new"
 	avatar      = "base64"
-	value       = 79.7
+	currValue   = 79.7
+	baseValue   = 1.0
 	amount      = 1000.0
 	base        = "RUB"
 	curr        = "USD"
