@@ -3,7 +3,6 @@ package application
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/asaskevich/govalidator"
 	"github.com/microcosm-cc/bluemonday"
 	"net/http"
@@ -32,7 +31,6 @@ func (pfl *ProfileApp) UpdateAvatar(ctx context.Context, userEntity entity.User)
 	}
 
 	userPfl := userEntity.ConvertToGRPC()
-	fmt.Println(userPfl)
 	if _, err := pfl.profile.UpdateUserAvatar(ctx, &profile.UpdateFields{Id: userPfl.Id, User: userPfl}); err != nil {
 		return entity.Description{
 			Status:   http.StatusInternalServerError,
@@ -74,6 +72,7 @@ func (pfl *ProfileApp) UpdatePassword(ctx context.Context, userEntity entity.Use
 		}, entity.PublicUser{}, nil
 	}
 
+
 	user := userEntity.ConvertToGRPC()
 	if user, err = pfl.profile.GetPassword(ctx, user); err != nil {
 		return entity.Description{
@@ -86,9 +85,7 @@ func (pfl *ProfileApp) UpdatePassword(ctx context.Context, userEntity entity.Use
 		var errs entity.ErrorJSON
 		errs.Password = append(errs.Password, "введен неверно старый пароль")
 		errs.NotEmpty = true
-		return entity.Description{
-			ErrorJSON: errs,
-		}, entity.PublicUser{}, err
+		return entity.Description{ErrorJSON: errs}, entity.PublicUser{}, err
 	}
 
 	if user.NewPassword, err = pfl.security.MakeShieldedPassword(user.NewPassword); err != nil {
