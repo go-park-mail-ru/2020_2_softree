@@ -6,8 +6,8 @@ import (
 )
 
 type ProfileLogic interface {
-	UpdateAvatar(ctx context.Context, user entity.User) (entity.Description, entity.PublicUser)
-	UpdatePassword(ctx context.Context, user entity.User) (entity.Description, entity.PublicUser)
-	ReceiveUser(ctx context.Context, id int64) (entity.Description, entity.PublicUser)
-	ReceiveWatchlist(ctx context.Context, id int64) (entity.Description, entity.Currencies)
+	UpdateAvatar(ctx context.Context, user entity.User) (entity.Description, entity.PublicUser, error)
+	UpdatePassword(ctx context.Context, user entity.User) (entity.Description, entity.PublicUser, error)
+	ReceiveUser(ctx context.Context, id int64) (entity.Description, entity.PublicUser, error)
+	ReceiveWatchlist(ctx context.Context, id int64) (entity.Description, entity.Currencies, error)
 }

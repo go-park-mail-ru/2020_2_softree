@@ -5,14 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"github.com/golang/mock/gomock"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
+	"server/canal/pkg/domain/entity"
 	"server/canal/pkg/infrastructure/mock"
 	profileHTTP "server/canal/pkg/interfaces/profile"
-	currencyMock "server/currency/pkg/infrastructure/mock"
-	profileMock "server/profile/pkg/infrastructure/mock"
-	profileService "server/profile/pkg/profile/gen"
 	"strings"
 	"testing"
 )
@@ -35,16 +34,12 @@ func TestGetWallets_Success(t *testing.T) {
 func createGetWalletsSuccess(t *testing.T, ctx context.Context) (*profileHTTP.Profile, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	mockUser := profileMock.NewProfileMock(ctrl)
-	mockUser.EXPECT().
-		GetWallets(ctx, &profileService.UserID{Id: id}).
-		Return(createExpectedWallets(), nil)
+	profileLogic := mock.NewMockProfileLogic(ctrl)
 
-	mockSecurity := mock.NewSecurityMock(ctrl)
+	paymentLogic := mock.NewMockPaymentLogic(ctrl)
+	paymentLogic.EXPECT().ReceiveWallets(ctx, id).Return(entity.Description{}, createExpectedWallets(), nil)
 
-	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
-
-	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
+	return profileHTTP.NewProfile(profileLogic, paymentLogic), ctrl
 }
 
 func TestGetWallets_Fail(t *testing.T) {
@@ -65,16 +60,12 @@ func TestGetWallets_Fail(t *testing.T) {
 func createGetWalletsFail(t *testing.T, ctx context.Context) (*profileHTTP.Profile, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	mockUser := profileMock.NewProfileMock(ctrl)
-	mockUser.EXPECT().
-		GetWallets(ctx, &profileService.UserID{Id: id}).
-		Return(nil, errors.New("createGetWalletsFail"))
+	profileLogic := mock.NewMockProfileLogic(ctrl)
 
-	mockSecurity := mock.NewSecurityMock(ctrl)
+	paymentLogic := mock.NewMockPaymentLogic(ctrl)
+	paymentLogic.EXPECT().ReceiveWallets(ctx, id).Return(entity.Description{Status: 500}, entity.Wallets{}, errors.New("error"))
 
-	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
-
-	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
+	return profileHTTP.NewProfile(profileLogic, paymentLogic), ctrl
 }
 
 func TestSetWallets_Success(t *testing.T) {
@@ -97,16 +88,12 @@ func TestSetWallets_Success(t *testing.T) {
 func createSetWalletsSuccess(t *testing.T, ctx context.Context) (*profileHTTP.Profile, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	mockUser := profileMock.NewProfileMock(ctrl)
-	mockUser.EXPECT().
-		CreateWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: curr}).
-		Return(nil, nil)
+	profileLogic := mock.NewMockProfileLogic(ctrl)
 
-	mockSecurity := mock.NewSecurityMock(ctrl)
+	paymentLogic := mock.NewMockPaymentLogic(ctrl)
+	paymentLogic.EXPECT().SetWallet(ctx, entity.Wallet{UserId: id, Title: curr}).Return(entity.Description{}, nil)
 
-	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
-
-	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
+	return profileHTTP.NewProfile(profileLogic, paymentLogic), ctrl
 }
 
 func TestSetWallets_Fail(t *testing.T) {
@@ -129,16 +116,14 @@ func TestSetWallets_Fail(t *testing.T) {
 func createSetWalletsFail(t *testing.T, ctx context.Context) (*profileHTTP.Profile, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	mockUser := profileMock.NewProfileMock(ctrl)
-	mockUser.EXPECT().
-		CreateWallet(ctx, &profileService.ConcreteWallet{Id: id, Title: curr}).
-		Return(nil, errors.New("createSetWalletsFail"))
+	profileLogic := mock.NewMockProfileLogic(ctrl)
 
-	mockSecurity := mock.NewSecurityMock(ctrl)
+	paymentLogic := mock.NewMockPaymentLogic(ctrl)
+	paymentLogic.EXPECT().
+		SetWallet(ctx, entity.Wallet{UserId: id, Title: curr}).
+		Return(entity.Description{Status: 500}, errors.New("error"))
 
-	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
-
-	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
+	return profileHTTP.NewProfile(profileLogic, paymentLogic), ctrl
 }
 
 func TestSetWallets_FailDecode(t *testing.T) {
@@ -161,15 +146,13 @@ func TestSetWallets_FailDecode(t *testing.T) {
 func createSetWalletsFailDecode(t *testing.T) (*profileHTTP.Profile, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	mockUser := profileMock.NewProfileMock(ctrl)
+	profileLogic := mock.NewMockProfileLogic(ctrl)
 
-	mockSecurity := mock.NewSecurityMock(ctrl)
+	paymentLogic := mock.NewMockPaymentLogic(ctrl)
 
-	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
-
-	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
+	return profileHTTP.NewProfile(profileLogic, paymentLogic), ctrl
 }
 
-func createExpectedWallets() *profileService.Wallets {
-	return &profileService.Wallets{Wallets: []*profileService.Wallet{{Title: curr, Value: value}}}
+func createExpectedWallets() entity.Wallets {
+	return entity.Wallets{entity.Wallet{Title: curr, Value: decimal.NewFromFloat(value)}}
 }

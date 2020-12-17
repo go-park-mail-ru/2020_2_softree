@@ -4,154 +4,160 @@ import (
 	json "github.com/mailru/easyjson"
 	"net/http"
 	"server/canal/pkg/domain/entity"
+	"server/canal/pkg/infrastructure/metric"
+	"time"
 )
 
 func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
-	user, desc := entity.GetUserFromBody(r.Body)
-	if desc.Err != nil {
+	defer metric.RecordTimeMetric(time.Now(), "UpdateUserAvatar")
+
+	user, desc, err := entity.GetUserFromBody(r.Body)
+	if err != nil {
 		desc.Function = "UpdateUserAvatar"
-		p.logger.Error(desc)
+		p.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 
-		p.recordHitMetric(http.StatusInternalServerError)
+		metric.RecordHitMetric(http.StatusInternalServerError, r.URL.Path)
 		return
 	}
 	user.Id = r.Context().Value(entity.UserIdKey).(int64)
 
-	desc, public := p.profileLogic.UpdateAvatar(r.Context(), user)
-	if desc.Err != nil {
-		p.logger.Error(desc)
+	desc, public, err := p.profileLogic.UpdateAvatar(r.Context(), user)
+	if err != nil {
+		p.logger.Error(desc, err)
 		w.WriteHeader(desc.Status)
 
-		p.recordHitMetric(desc.Status)
+		metric.RecordHitMetric(desc.Status, r.URL.Path)
 		return
 	}
 
 	res, err := json.Marshal(public)
 	if err != nil {
-		code := http.StatusInternalServerError
-		desc := entity.Description{Function: "UpdateUserAvatar", Action: "Marshal", Err: err, Status: code}
-		p.logger.Error(desc)
+		desc = entity.Description{Function: "UpdateUserAvatar", Action: "Marshal", Status: http.StatusInternalServerError}
+		p.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 
-		p.recordHitMetric(http.StatusInternalServerError)
+		metric.RecordHitMetric(http.StatusInternalServerError, r.URL.Path)
 		return
 	}
 
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	p.recordHitMetric(http.StatusOK)
+	metric.RecordHitMetric(http.StatusOK, r.URL.Path)
 	if _, err := w.Write(res); err != nil {
-		p.logger.Error(entity.Description{Function: "UpdateUserAvatar", Action: "Write", Err: err})
+		p.logger.Error(entity.Description{Function: "UpdateUserAvatar", Action: "Write"}, err)
 	}
 }
 
 func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
-	user, desc := entity.GetUserFromBody(r.Body)
-	if desc.Err != nil {
+	defer metric.RecordTimeMetric(time.Now(), "UpdateUserPassword")
+
+	user, desc, err := entity.GetUserFromBody(r.Body)
+	if err != nil {
 		desc.Function = "UpdateUserPassword"
-		p.logger.Error(desc)
+		p.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 
-		p.recordHitMetric(http.StatusInternalServerError)
+		metric.RecordHitMetric(http.StatusInternalServerError, r.URL.Path)
 		return
 	}
 	user.Id = r.Context().Value(entity.UserIdKey).(int64)
 
-	desc, public := p.profileLogic.UpdatePassword(r.Context(), user)
-	if desc.Err != nil {
-		p.logger.Error(desc)
+	desc, public, err := p.profileLogic.UpdatePassword(r.Context(), user)
+	if err != nil {
+		p.logger.Error(desc, err)
 		w.WriteHeader(desc.Status)
 
-		p.recordHitMetric(desc.Status)
+		metric.RecordHitMetric(desc.Status, r.URL.Path)
 		return
 	}
 	if desc.ErrorJSON.NotEmpty {
-		p.createServerError(&desc.ErrorJSON, w)
+		metric.RecordHitMetric(p.createServerError(&desc.ErrorJSON, w), r.URL.Path)
+		return
 	}
 
 	res, err := json.Marshal(public)
 	if err != nil {
-		code := http.StatusInternalServerError
-		desc := entity.Description{Function: "UpdateUserPassword", Action: "Marshal", Err: err, Status: code}
-		p.logger.Error(desc)
+		desc = entity.Description{Function: "UpdateUserPassword", Action: "Marshal", Status: http.StatusInternalServerError}
+		p.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 
-		p.recordHitMetric(http.StatusInternalServerError)
+		metric.RecordHitMetric(http.StatusInternalServerError, r.URL.Path)
 		return
 	}
 
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	p.recordHitMetric(http.StatusOK)
-
+	metric.RecordHitMetric(http.StatusOK, r.URL.Path)
 	if _, err := w.Write(res); err != nil {
-		p.logger.Error(entity.Description{Function: "UpdateUserPassword", Action: "Write", Err: err})
+		p.logger.Error(entity.Description{Function: "UpdateUserPassword", Action: "Write"}, err)
 	}
 }
 
 func (p *Profile) GetUser(w http.ResponseWriter, r *http.Request) {
+	defer metric.RecordTimeMetric(time.Now(), "GetUser")
+
 	id := r.Context().Value(entity.UserIdKey).(int64)
 
-	desc, public := p.profileLogic.ReceiveUser(r.Context(), id)
-	if desc.Err != nil {
-		p.logger.Error(desc)
+	desc, public, err := p.profileLogic.ReceiveUser(r.Context(), id)
+	if err != nil {
+		p.logger.Error(desc, err)
 		w.WriteHeader(desc.Status)
 
-		p.recordHitMetric(desc.Status)
+		metric.RecordHitMetric(desc.Status, r.URL.Path)
 		return
 	}
 
 	res, err := json.Marshal(public)
 	if err != nil {
-		code := http.StatusInternalServerError
-		desc := entity.Description{Function: "GetUser", Action: "Marshal", Err: err, Status: code}
-		p.logger.Error(desc)
+		desc = entity.Description{Function: "GetUser", Action: "Marshal", Status: http.StatusInternalServerError}
+		p.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 
-		p.recordHitMetric(http.StatusInternalServerError)
+		metric.RecordHitMetric(http.StatusInternalServerError, r.URL.Path)
 		return
 	}
 
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	p.recordHitMetric(http.StatusOK)
+	metric.RecordHitMetric(http.StatusOK, r.URL.Path)
 	if _, err := w.Write(res); err != nil {
-		p.logger.Error(entity.Description{Function: "GetUser", Action: "Write", Err: err})
+		p.logger.Error(entity.Description{Function: "GetUser", Action: "Write"}, err)
 	}
 }
 
 func (p *Profile) GetUserWatchlist(w http.ResponseWriter, r *http.Request) {
+	defer metric.RecordTimeMetric(time.Now(), "GetUserWatchlist")
+
 	id := r.Context().Value(entity.UserIdKey).(int64)
 
-	desc, currencies := p.profileLogic.ReceiveWatchlist(r.Context(), id)
-	if desc.Err != nil {
-		p.logger.Error(desc)
+	desc, currencies, err := p.profileLogic.ReceiveWatchlist(r.Context(), id)
+	if err != nil {
+		p.logger.Error(desc, err)
 		w.WriteHeader(desc.Status)
 
-		p.recordHitMetric(desc.Status)
+		metric.RecordHitMetric(desc.Status, r.URL.Path)
 		return
 	}
 
 	res, err := json.Marshal(currencies)
 	if err != nil {
-		code := http.StatusInternalServerError
-		desc := entity.Description{Function: "GetUserWatchlist", Action: "Marshal", Err: err, Status: code}
-		p.logger.Error(desc)
+		desc = entity.Description{Function: "GetUserWatchlist", Action: "Marshal", Status: http.StatusInternalServerError}
+		p.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 
-		p.recordHitMetric(http.StatusInternalServerError)
+		metric.RecordHitMetric(http.StatusInternalServerError, r.URL.Path)
 		return
 	}
 
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	p.recordHitMetric(http.StatusOK)
+	metric.RecordHitMetric(http.StatusOK, r.URL.Path)
 	if _, err := w.Write(res); err != nil {
-		p.logger.Error(entity.Description{Function: "GetUser", Action: "Write", Err: err})
+		p.logger.Error(entity.Description{Function: "GetUserWatchlist", Action: "Write"}, err)
 	}
 }

@@ -4,23 +4,19 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"server/canal/pkg/domain/entity"
 	"server/canal/pkg/infrastructure/mock"
 	profileHTTP "server/canal/pkg/interfaces/profile"
-	currencyMock "server/currency/pkg/infrastructure/mock"
-	profileMock "server/profile/pkg/infrastructure/mock"
-	profileService "server/profile/pkg/profile/gen"
 	"strings"
 	"testing"
-
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/require"
 )
 
 const (
-	id          = 1
+	id          = int64(1)
 	email       = "hound@psina.ru"
 	oldPassword = "old"
 	newPassword = "new"
@@ -31,7 +27,7 @@ const (
 	amount     = 1000.0
 	base       = "RUB"
 	curr       = "USD"
-	sell       = "false"
+	sell       = false
 )
 
 func TestUpdateUserAvatar_Success(t *testing.T) {
@@ -54,19 +50,14 @@ func TestUpdateUserAvatar_Success(t *testing.T) {
 func createUpdateAvatarSuccess(t *testing.T, ctx context.Context) (*profileHTTP.Profile, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	mockUser := profileMock.NewProfileMock(ctrl)
-	mockUser.EXPECT().
-		UpdateUserAvatar(ctx, &profileService.UpdateFields{Id: id, User: &profileService.User{Id: id, Avatar: avatar}}).
-		Return(&profileService.Empty{}, nil)
-	mockUser.EXPECT().
-		GetUserById(ctx, &profileService.UserID{Id: id}).
-		Return(createExpectedUser(), nil)
+	profileLogic := mock.NewMockProfileLogic(ctrl)
+	profileLogic.EXPECT().
+		UpdateAvatar(ctx, entity.User{Id: id, Avatar: avatar}).
+		Return(entity.Description{}, createExpectedPublicUser(), nil)
 
-	mockSecurity := mock.NewSecurityMock(ctrl)
+	paymentLogic := mock.NewMockPaymentLogic(ctrl)
 
-	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
-
-	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
+	return profileHTTP.NewProfile(profileLogic, paymentLogic), ctrl
 }
 
 func TestUpdateUserAvatar_Fail(t *testing.T) {
@@ -89,16 +80,41 @@ func TestUpdateUserAvatar_Fail(t *testing.T) {
 func createUpdateAvatarFail(t *testing.T, ctx context.Context) (*profileHTTP.Profile, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	mockUser := profileMock.NewProfileMock(ctrl)
-	mockUser.EXPECT().
-		UpdateUserAvatar(ctx, &profileService.UpdateFields{Id: id, User: &profileService.User{Id: id, Avatar: avatar}}).
-		Return(&profileService.Empty{}, errors.New("createUpdateAvatarFail"))
+	profileLogic := mock.NewMockProfileLogic(ctrl)
+	profileLogic.EXPECT().
+		UpdateAvatar(ctx, entity.User{Id: id, Avatar: avatar}).
+		Return(entity.Description{Status: 500}, entity.PublicUser{}, errors.New("error"))
 
-	mockSecurity := mock.NewSecurityMock(ctrl)
+	paymentLogic := mock.NewMockPaymentLogic(ctrl)
 
-	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
+	return profileHTTP.NewProfile(profileLogic, paymentLogic), ctrl
+}
 
-	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
+func TestUpdateUserAvatar_FailGetBody(t *testing.T) {
+	url := "http://127.0.0.1:8000/api/users"
+	body := strings.NewReader(fmt.Sprintf(`{"avatar": %d}`, id))
+
+	req := httptest.NewRequest(http.MethodPut, url, body)
+	w := httptest.NewRecorder()
+
+	testAuth, ctrl := createUpdateAvatarFailGetBody(t, createContext(&req))
+	defer ctrl.Finish()
+
+	testAuth.UpdateUserAvatar(w, req)
+
+	require.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
+	require.Empty(t, w.Header().Get("Content-Type"))
+	require.Empty(t, w.Body)
+}
+
+func createUpdateAvatarFailGetBody(t *testing.T, ctx context.Context) (*profileHTTP.Profile, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	profileLogic := mock.NewMockProfileLogic(ctrl)
+
+	paymentLogic := mock.NewMockPaymentLogic(ctrl)
+
+	return profileHTTP.NewProfile(profileLogic, paymentLogic), ctrl
 }
 
 func TestUpdateUserPassword_Success(t *testing.T) {
@@ -121,28 +137,14 @@ func TestUpdateUserPassword_Success(t *testing.T) {
 func createUpdatePasswordSuccess(t *testing.T, ctx context.Context) (*profileHTTP.Profile, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	mockUser := profileMock.NewProfileMock(ctrl)
-	mockUser.EXPECT().
-		GetPassword(ctx, &profileService.User{Id: id, OldPassword: oldPassword, NewPassword: newPassword}).
-		Return(&profileService.User{Id: id, OldPassword: oldPassword, NewPassword: newPassword, PasswordToCheck: oldPassword}, nil)
-	mockUser.EXPECT().
-		UpdateUserPassword(
-			ctx,
-			&profileService.UpdateFields{Id: id, User:
-			&profileService.User{Id: id, OldPassword: oldPassword, NewPassword: newPassword, PasswordToCheck: oldPassword}},
-		).
-		Return(&profileService.Empty{}, nil)
-	mockUser.EXPECT().
-		GetUserById(ctx, &profileService.UserID{Id: id}).
-		Return(createExpectedUser(), nil)
+	profileLogic := mock.NewMockProfileLogic(ctrl)
+	profileLogic.EXPECT().
+		UpdatePassword(ctx, entity.User{Id: id, OldPassword: oldPassword, NewPassword: newPassword}).
+		Return(entity.Description{}, createExpectedPublicUser(), nil)
 
-	mockSecurity := mock.NewSecurityMock(ctrl)
-	mockSecurity.EXPECT().MakeShieldedPassword(newPassword).Return(newPassword, nil)
-	mockSecurity.EXPECT().CheckPassword(oldPassword, oldPassword).Return(true)
+	paymentLogic := mock.NewMockPaymentLogic(ctrl)
 
-	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
-
-	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
+	return profileHTTP.NewProfile(profileLogic, paymentLogic), ctrl
 }
 
 func TestUpdateUserPassword_Fail(t *testing.T) {
@@ -163,16 +165,69 @@ func TestUpdateUserPassword_Fail(t *testing.T) {
 func createUpdatePasswordFail(t *testing.T, ctx context.Context) (*profileHTTP.Profile, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	mockUser := profileMock.NewProfileMock(ctrl)
-	mockUser.EXPECT().
-		GetPassword(ctx, &profileService.User{Id: id, OldPassword: oldPassword, NewPassword: newPassword}).
-		Return(&profileService.User{}, errors.New("createUpdatePasswordFail"))
+	profileLogic := mock.NewMockProfileLogic(ctrl)
+	profileLogic.EXPECT().
+		UpdatePassword(ctx, entity.User{Id: id, OldPassword: oldPassword, NewPassword: newPassword}).
+		Return(entity.Description{Status: 500}, entity.PublicUser{}, errors.New("error"))
 
-	mockSecurity := mock.NewSecurityMock(ctrl)
+	paymentLogic := mock.NewMockPaymentLogic(ctrl)
 
-	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
+	return profileHTTP.NewProfile(profileLogic, paymentLogic), ctrl
+}
 
-	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
+func TestUpdateUserPassword_FailGetBody(t *testing.T) {
+	url := "http://127.0.0.1:8000/api/users/change-password"
+	body := strings.NewReader(fmt.Sprintf(`{"old_password": %d, "new_password": "%s"}`, id, newPassword))
+
+	req := httptest.NewRequest(http.MethodPut, url, body)
+	w := httptest.NewRecorder()
+
+	testAuth, ctrl := createUpdatePasswordFailGetBody(t, createContext(&req))
+	defer ctrl.Finish()
+
+	testAuth.UpdateUserPassword(w, req)
+
+	require.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
+}
+
+func createUpdatePasswordFailGetBody(t *testing.T, ctx context.Context) (*profileHTTP.Profile, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	profileLogic := mock.NewMockProfileLogic(ctrl)
+
+	paymentLogic := mock.NewMockPaymentLogic(ctrl)
+
+	return profileHTTP.NewProfile(profileLogic, paymentLogic), ctrl
+}
+
+func TestUpdateUserPassword_FailErrorJson(t *testing.T) {
+	url := "http://127.0.0.1:8000/api/users/change-password"
+	body := strings.NewReader(fmt.Sprintf(`{"old_password": "%s", "new_password": "%s"}`, oldPassword, newPassword))
+
+	req := httptest.NewRequest(http.MethodPut, url, body)
+	w := httptest.NewRecorder()
+
+	testAuth, ctrl := createUpdatePasswordFailErrorJson(t, createContext(&req))
+	defer ctrl.Finish()
+
+	testAuth.UpdateUserPassword(w, req)
+
+	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+	require.NotEmpty(t, w.Header().Get("Content-Type"))
+	require.NotEmpty(t, w.Body)
+}
+
+func createUpdatePasswordFailErrorJson(t *testing.T, ctx context.Context) (*profileHTTP.Profile, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	profileLogic := mock.NewMockProfileLogic(ctrl)
+	profileLogic.EXPECT().
+		UpdatePassword(ctx, entity.User{Id: id, OldPassword: oldPassword, NewPassword: newPassword}).
+		Return(entity.Description{ErrorJSON: entity.ErrorJSON{NotEmpty: true, NonFieldError: []string{"error"}}}, entity.PublicUser{}, nil)
+
+	paymentLogic := mock.NewMockPaymentLogic(ctrl)
+
+	return profileHTTP.NewProfile(profileLogic, paymentLogic), ctrl
 }
 
 func TestGetUser_Success(t *testing.T) {
@@ -193,16 +248,13 @@ func TestGetUser_Success(t *testing.T) {
 
 func createGetUserSuccess(t *testing.T, ctx context.Context) (*profileHTTP.Profile, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
-	mockUser := profileMock.NewProfileMock(ctrl)
-	mockUser.EXPECT().
-		GetUserById(ctx, &profileService.UserID{Id: id}).
-		Return(createExpectedUser(), nil)
 
-	mockSecurity := mock.NewSecurityMock(ctrl)
+	profileLogic := mock.NewMockProfileLogic(ctrl)
+	profileLogic.EXPECT().ReceiveUser(ctx, id).Return(entity.Description{}, createExpectedPublicUser(), nil)
 
-	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
+	paymentLogic := mock.NewMockPaymentLogic(ctrl)
 
-	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
+	return profileHTTP.NewProfile(profileLogic, paymentLogic), ctrl
 }
 
 func TestGetUser_Fail(t *testing.T) {
@@ -224,16 +276,13 @@ func TestGetUser_Fail(t *testing.T) {
 
 func createGetUserFail(t *testing.T, ctx context.Context) (*profileHTTP.Profile, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
-	mockUser := profileMock.NewProfileMock(ctrl)
-	mockUser.EXPECT().
-		GetUserById(ctx, &profileService.UserID{Id: id}).
-		Return(&profileService.PublicUser{}, errors.New("createGetUserFail"))
 
-	mockSecurity := mock.NewSecurityMock(ctrl)
+	profileLogic := mock.NewMockProfileLogic(ctrl)
+	profileLogic.EXPECT().ReceiveUser(ctx, id).Return(entity.Description{Status: 500}, entity.PublicUser{}, errors.New("error"))
 
-	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
+	paymentLogic := mock.NewMockPaymentLogic(ctrl)
 
-	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
+	return profileHTTP.NewProfile(profileLogic, paymentLogic), ctrl
 }
 
 func TestGetUserWatchlist_Success(t *testing.T) {
@@ -254,16 +303,13 @@ func TestGetUserWatchlist_Success(t *testing.T) {
 
 func createGetUserWatchlistSuccess(t *testing.T, ctx context.Context) (*profileHTTP.Profile, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
-	mockUser := profileMock.NewProfileMock(ctrl)
-	mockUser.EXPECT().
-		GetUserWatchlist(ctx, &profileService.UserID{Id: id}).
-		Return(createExpectedCurrencies(), nil)
 
-	mockSecurity := mock.NewSecurityMock(ctrl)
+	profileLogic := mock.NewMockProfileLogic(ctrl)
+	profileLogic.EXPECT().ReceiveWatchlist(ctx, id).Return(entity.Description{}, createExpectedCurrencies(), nil)
 
-	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
+	paymentLogic := mock.NewMockPaymentLogic(ctrl)
 
-	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
+	return profileHTTP.NewProfile(profileLogic, paymentLogic), ctrl
 }
 
 func TestGetUserWatchlist_Fail(t *testing.T) {
@@ -278,27 +324,24 @@ func TestGetUserWatchlist_Fail(t *testing.T) {
 
 	testAuth.GetUserWatchlist(w, req)
 
-	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+	require.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
 	require.Empty(t, w.Header().Get("Content-Type"))
 	require.Empty(t, w.Body)
 }
 
 func createGetUserWatchlistFail(t *testing.T, ctx context.Context) (*profileHTTP.Profile, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
-	mockUser := profileMock.NewProfileMock(ctrl)
-	mockUser.EXPECT().
-		GetUserWatchlist(ctx, &profileService.UserID{Id: id}).
-		Return(nil, errors.New("createGetUserWatchlistFail"))
 
-	mockSecurity := mock.NewSecurityMock(ctrl)
+	profileLogic := mock.NewMockProfileLogic(ctrl)
+	profileLogic.EXPECT().ReceiveWatchlist(ctx, id).Return(entity.Description{Status: 500}, entity.Currencies{}, errors.New("error"))
 
-	mockRates := currencyMock.NewRateRepositoryForMock(ctrl)
+	paymentLogic := mock.NewMockPaymentLogic(ctrl)
 
-	return profileHTTP.NewProfile(mockUser, mockSecurity, mockRates), ctrl
+	return profileHTTP.NewProfile(profileLogic, paymentLogic), ctrl
 }
 
-func createExpectedUser() *profileService.PublicUser {
-	return &profileService.PublicUser{Id: id, Email: email, Avatar: avatar}
+func createExpectedPublicUser() entity.PublicUser {
+	return entity.PublicUser{Id: id, Email: email, Avatar: avatar}
 }
 
 func createContext(req **http.Request) context.Context {
@@ -307,6 +350,6 @@ func createContext(req **http.Request) context.Context {
 	return ctx
 }
 
-func createExpectedCurrencies() *profileService.Currencies {
-	return &profileService.Currencies{Currencies: []*profileService.Currency{{Base: curr, Title: base}}}
+func createExpectedCurrencies() entity.Currencies {
+	return entity.Currencies{entity.Currency{Base: curr, Title: base}}
 }
