@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/asaskevich/govalidator"
 	"github.com/microcosm-cc/bluemonday"
 	"net/http"
@@ -31,6 +32,7 @@ func (pfl *ProfileApp) UpdateAvatar(ctx context.Context, userEntity entity.User)
 	}
 
 	userPfl := userEntity.ConvertToGRPC()
+	fmt.Println(userPfl)
 	if _, err := pfl.profile.UpdateUserAvatar(ctx, &profile.UpdateFields{Id: userPfl.Id, User: userPfl}); err != nil {
 		return entity.Description{
 			Status:   http.StatusInternalServerError,
