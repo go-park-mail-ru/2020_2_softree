@@ -2,7 +2,6 @@ package router
 
 import (
 	"github.com/gorilla/mux"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
 	"server/canal/pkg/infrastructure/CORS"
@@ -61,7 +60,7 @@ func NewRouter(userAuthenticate *authorization.Authentication, userProfile *prof
 	r.HandleFunc("/income/{period}", userAuthenticate.Auth(userProfile.GetIncome)).
 		Methods(http.MethodGet, http.MethodOptions)
 
-	prometheus.MustRegister(metric.Metric)
+	metric.Initialize()
 	r.Handle("/metrics", promhttp.Handler())
 
 	r.Use(CORS.CORSMiddleware())

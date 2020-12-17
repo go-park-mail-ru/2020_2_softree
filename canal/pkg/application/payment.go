@@ -11,6 +11,7 @@ import (
 	"server/canal/pkg/domain/repository"
 	currency "server/currency/pkg/currency/gen"
 	profile "server/profile/pkg/profile/gen"
+	"time"
 )
 
 type PaymentApp struct {
@@ -273,7 +274,8 @@ func (pmt *PaymentApp) transformActualUserWallets(ctx context.Context, id int64)
 
 // every day task
 func (pmt *PaymentApp) WritePortfolios() {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
 	userNum, err := pmt.profile.GetUsers(ctx, &profile.Empty{})
 	if err != nil {

@@ -4,9 +4,13 @@ import (
 	json "github.com/mailru/easyjson"
 	"net/http"
 	"server/canal/pkg/domain/entity"
+	"server/canal/pkg/infrastructure/metric"
+	"time"
 )
 
 func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
+	defer metric.RecordTimeMetric(time.Now(), "GetTransactions")
+
 	id := r.Context().Value(entity.UserIdKey).(int64)
 
 	desc, payments, err := p.paymentLogic.ReceiveTransactions(r.Context(), id)
@@ -14,7 +18,7 @@ func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
 		p.logger.Error(desc, err)
 		w.WriteHeader(desc.Status)
 
-		p.recordHitMetric(desc.Status)
+		metric.RecordHitMetric(desc.Status, r.URL.Path)
 		return
 	}
 
@@ -24,27 +28,29 @@ func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
 		p.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 
-		p.recordHitMetric(http.StatusInternalServerError)
+		metric.RecordHitMetric(http.StatusInternalServerError, r.URL.Path)
 		return
 	}
 
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	p.recordHitMetric(http.StatusOK)
+	metric.RecordHitMetric(http.StatusOK, r.URL.Path)
 	if _, err = w.Write(res); err != nil {
 		p.logger.Error(entity.Description{Function: "GetTransactions", Action: "Write"}, err)
 	}
 }
 
 func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
+	defer metric.RecordTimeMetric(time.Now(), "SetTransaction")
+
 	transaction, desc, err := entity.GetTransactionFromBody(r.Body)
 	if err != nil {
 		desc.Function = "SetTransaction"
 		p.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 
-		p.recordHitMetric(http.StatusInternalServerError)
+		metric.RecordHitMetric(http.StatusInternalServerError, r.URL.Path)
 		return
 	}
 	transaction.UserId = r.Context().Value(entity.UserIdKey).(int64)
@@ -54,10 +60,10 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 		p.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 
-		p.recordHitMetric(http.StatusInternalServerError)
+		metric.RecordHitMetric(http.StatusInternalServerError, r.URL.Path)
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	p.recordHitMetric(http.StatusCreated)
+	metric.RecordHitMetric(http.StatusCreated, r.URL.Path)
 }

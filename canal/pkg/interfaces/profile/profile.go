@@ -4,16 +4,20 @@ import (
 	json "github.com/mailru/easyjson"
 	"net/http"
 	"server/canal/pkg/domain/entity"
+	"server/canal/pkg/infrastructure/metric"
+	"time"
 )
 
 func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
+	defer metric.RecordTimeMetric(time.Now(), "UpdateUserAvatar")
+
 	user, desc, err := entity.GetUserFromBody(r.Body)
 	if err != nil {
 		desc.Function = "UpdateUserAvatar"
 		p.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 
-		p.recordHitMetric(http.StatusInternalServerError)
+		metric.RecordHitMetric(http.StatusInternalServerError, r.URL.Path)
 		return
 	}
 	user.Id = r.Context().Value(entity.UserIdKey).(int64)
@@ -23,7 +27,7 @@ func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 		p.logger.Error(desc, err)
 		w.WriteHeader(desc.Status)
 
-		p.recordHitMetric(desc.Status)
+		metric.RecordHitMetric(desc.Status, r.URL.Path)
 		return
 	}
 
@@ -33,27 +37,29 @@ func (p *Profile) UpdateUserAvatar(w http.ResponseWriter, r *http.Request) {
 		p.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 
-		p.recordHitMetric(http.StatusInternalServerError)
+		metric.RecordHitMetric(http.StatusInternalServerError, r.URL.Path)
 		return
 	}
 
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	p.recordHitMetric(http.StatusOK)
+	metric.RecordHitMetric(http.StatusOK, r.URL.Path)
 	if _, err := w.Write(res); err != nil {
 		p.logger.Error(entity.Description{Function: "UpdateUserAvatar", Action: "Write"}, err)
 	}
 }
 
 func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
+	defer metric.RecordTimeMetric(time.Now(), "UpdateUserPassword")
+
 	user, desc, err := entity.GetUserFromBody(r.Body)
 	if err != nil {
 		desc.Function = "UpdateUserPassword"
 		p.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 
-		p.recordHitMetric(http.StatusInternalServerError)
+		metric.RecordHitMetric(http.StatusInternalServerError, r.URL.Path)
 		return
 	}
 	user.Id = r.Context().Value(entity.UserIdKey).(int64)
@@ -63,11 +69,11 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 		p.logger.Error(desc, err)
 		w.WriteHeader(desc.Status)
 
-		p.recordHitMetric(desc.Status)
+		metric.RecordHitMetric(desc.Status, r.URL.Path)
 		return
 	}
 	if desc.ErrorJSON.NotEmpty {
-		p.createServerError(&desc.ErrorJSON, w)
+		metric.RecordHitMetric(p.createServerError(&desc.ErrorJSON, w), r.URL.Path)
 		return
 	}
 
@@ -77,21 +83,22 @@ func (p *Profile) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
 		p.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 
-		p.recordHitMetric(http.StatusInternalServerError)
+		metric.RecordHitMetric(http.StatusInternalServerError, r.URL.Path)
 		return
 	}
 
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	p.recordHitMetric(http.StatusOK)
-
+	metric.RecordHitMetric(http.StatusOK, r.URL.Path)
 	if _, err := w.Write(res); err != nil {
 		p.logger.Error(entity.Description{Function: "UpdateUserPassword", Action: "Write"}, err)
 	}
 }
 
 func (p *Profile) GetUser(w http.ResponseWriter, r *http.Request) {
+	defer metric.RecordTimeMetric(time.Now(), "GetUser")
+
 	id := r.Context().Value(entity.UserIdKey).(int64)
 
 	desc, public, err := p.profileLogic.ReceiveUser(r.Context(), id)
@@ -99,7 +106,7 @@ func (p *Profile) GetUser(w http.ResponseWriter, r *http.Request) {
 		p.logger.Error(desc, err)
 		w.WriteHeader(desc.Status)
 
-		p.recordHitMetric(desc.Status)
+		metric.RecordHitMetric(desc.Status, r.URL.Path)
 		return
 	}
 
@@ -109,20 +116,22 @@ func (p *Profile) GetUser(w http.ResponseWriter, r *http.Request) {
 		p.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 
-		p.recordHitMetric(http.StatusInternalServerError)
+		metric.RecordHitMetric(http.StatusInternalServerError, r.URL.Path)
 		return
 	}
 
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	p.recordHitMetric(http.StatusOK)
+	metric.RecordHitMetric(http.StatusOK, r.URL.Path)
 	if _, err := w.Write(res); err != nil {
 		p.logger.Error(entity.Description{Function: "GetUser", Action: "Write"}, err)
 	}
 }
 
 func (p *Profile) GetUserWatchlist(w http.ResponseWriter, r *http.Request) {
+	defer metric.RecordTimeMetric(time.Now(), "GetUserWatchlist")
+
 	id := r.Context().Value(entity.UserIdKey).(int64)
 
 	desc, currencies, err := p.profileLogic.ReceiveWatchlist(r.Context(), id)
@@ -130,7 +139,7 @@ func (p *Profile) GetUserWatchlist(w http.ResponseWriter, r *http.Request) {
 		p.logger.Error(desc, err)
 		w.WriteHeader(desc.Status)
 
-		p.recordHitMetric(desc.Status)
+		metric.RecordHitMetric(desc.Status, r.URL.Path)
 		return
 	}
 
@@ -140,14 +149,14 @@ func (p *Profile) GetUserWatchlist(w http.ResponseWriter, r *http.Request) {
 		p.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 
-		p.recordHitMetric(http.StatusInternalServerError)
+		metric.RecordHitMetric(http.StatusInternalServerError, r.URL.Path)
 		return
 	}
 
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	p.recordHitMetric(http.StatusOK)
+	metric.RecordHitMetric(http.StatusOK, r.URL.Path)
 	if _, err := w.Write(res); err != nil {
 		p.logger.Error(entity.Description{Function: "GetUserWatchlist", Action: "Write"}, err)
 	}
