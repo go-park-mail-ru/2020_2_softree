@@ -141,7 +141,7 @@ func (pfl *ProfileApp) ReceiveWatchlist(ctx context.Context, id int64) (entity.D
 		}, entity.Currencies{}, err
 	}
 
-	return entity.Description{}, entity.ConvertToSlice(currencies), nil
+	return entity.Description{}, entity.ConvertFromProfileCurrencies(currencies), nil
 }
 
 func (pfl *ProfileApp) validate(action string, user entity.User) error {

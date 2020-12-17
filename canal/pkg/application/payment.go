@@ -16,7 +16,7 @@ import (
 
 type PaymentApp struct {
 	profile   profile.ProfileServiceClient
-	rates     currency.CurrencyServiceClient
+	currency  currency.CurrencyServiceClient
 	sanitizer bluemonday.Policy
 	security  repository.Utils
 }
@@ -188,7 +188,7 @@ func (pmt *PaymentApp) checkWalletBuy(ctx context.Context, wallet *profile.Concr
 func (pmt *PaymentApp) getCurrencyDiv(ctx context.Context, transaction *profile.PaymentHistory) (entity.Description, decimal.Decimal, error) {
 	var currencyBase *currency.Currency
 	var err error
-	if currencyBase, err = pmt.rates.GetLastRate(ctx, &currency.CurrencyTitle{Title: transaction.Base}); err != nil {
+	if currencyBase, err = pmt.currency.GetLastRate(ctx, &currency.CurrencyTitle{Title: transaction.Base}); err != nil {
 		return entity.Description{
 			Status:   http.StatusInternalServerError,
 			Function: "getCurrencyDiv",
@@ -197,7 +197,7 @@ func (pmt *PaymentApp) getCurrencyDiv(ctx context.Context, transaction *profile.
 	}
 
 	var currencyCurr *currency.Currency
-	if currencyCurr, err = pmt.rates.GetLastRate(ctx, &currency.CurrencyTitle{Title: transaction.Currency}); err != nil {
+	if currencyCurr, err = pmt.currency.GetLastRate(ctx, &currency.CurrencyTitle{Title: transaction.Currency}); err != nil {
 		return entity.Description{
 			Status:   http.StatusInternalServerError,
 			Function: "getCurrencyDiv",
@@ -262,7 +262,7 @@ func (pmt *PaymentApp) transformActualUserWallets(ctx context.Context, id int64)
 
 	var cash decimal.Decimal
 	for _, wallet := range wallets.Wallets {
-		curr, err := pmt.rates.GetLastRate(ctx, &currency.CurrencyTitle{Title: wallet.Title})
+		curr, err := pmt.currency.GetLastRate(ctx, &currency.CurrencyTitle{Title: wallet.Title})
 		if err != nil {
 			return decimal.Decimal{}, err
 		}
