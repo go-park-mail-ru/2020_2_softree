@@ -60,6 +60,7 @@ func (user *User) ConvertToGRPC() *profile.User {
 		PasswordToCheck: user.PasswordToCheck,
 		OldPassword:     user.OldPassword,
 		NewPassword:     user.NewPassword,
+		Avatar:          user.Avatar,
 	}
 }
 

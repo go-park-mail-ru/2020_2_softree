@@ -72,6 +72,7 @@ func (pfl *ProfileApp) UpdatePassword(ctx context.Context, userEntity entity.Use
 		}, entity.PublicUser{}, nil
 	}
 
+
 	user := userEntity.ConvertToGRPC()
 	if user, err = pfl.profile.GetPassword(ctx, user); err != nil {
 		return entity.Description{
@@ -84,9 +85,7 @@ func (pfl *ProfileApp) UpdatePassword(ctx context.Context, userEntity entity.Use
 		var errs entity.ErrorJSON
 		errs.Password = append(errs.Password, "введен неверно старый пароль")
 		errs.NotEmpty = true
-		return entity.Description{
-			ErrorJSON: errs,
-		}, entity.PublicUser{}, err
+		return entity.Description{ErrorJSON: errs}, entity.PublicUser{}, err
 	}
 
 	if user.NewPassword, err = pfl.security.MakeShieldedPassword(user.NewPassword); err != nil {

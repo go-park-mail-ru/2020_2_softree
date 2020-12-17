@@ -21,8 +21,8 @@ type PaymentApp struct {
 	security  repository.Utils
 }
 
-func NewPaymentApp(profile profile.ProfileServiceClient, security repository.Utils) *PaymentApp {
-	return &PaymentApp{profile: profile, security: security, sanitizer: *bluemonday.UGCPolicy()}
+func NewPaymentApp(profile profile.ProfileServiceClient, rates currency.CurrencyServiceClient, security repository.Utils) *PaymentApp {
+	return &PaymentApp{profile, rates, *bluemonday.UGCPolicy(), security}
 }
 
 func (pmt *PaymentApp) ReceiveTransactions(ctx context.Context, id int64) (entity.Description, entity.Payments, error) {
