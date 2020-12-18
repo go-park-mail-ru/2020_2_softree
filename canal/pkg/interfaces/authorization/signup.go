@@ -53,7 +53,7 @@ func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user.Password, err = a.security.MakeShieldedPassword(user.Password); err != nil {
+	if user.Password, err = a.auth.MakeShieldedPassword(user.Password); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"status":   http.StatusInternalServerError,
 			"function": "Signup",
