@@ -14,6 +14,10 @@ type CurrencyApp struct {
 	currency currency.CurrencyServiceClient
 }
 
+func NewCurrencyApp(currency currency.CurrencyServiceClient) *CurrencyApp {
+	return &CurrencyApp{currency}
+}
+
 func (currencyApp *CurrencyApp) GetAllLatestCurrencies(ctx context.Context) (entity.Description, entity.Currencies, error) {
 	out, err := currencyApp.currency.GetAllLatestRates(ctx, &currency.Empty{})
 	if err != nil {
