@@ -30,7 +30,10 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if desc.ErrorJSON.NotEmpty {
-		a.handleErrorJSON(desc, w, r)
+		code := a.handleErrorJSON(desc, w)
+		w.WriteHeader(code)
+
+		metric.RecordHitMetric(desc.Status, r.URL.Path)
 		return
 	}
 
