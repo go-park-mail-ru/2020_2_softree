@@ -14,3 +14,4 @@ type Profile struct {
 func NewProfile(profileLogic repository.ProfileLogic, paymentLogic repository.PaymentLogic) *Profile {
 	return &Profile{profileLogic, paymentLogic, *logger.NewLogrus()}
 }
+

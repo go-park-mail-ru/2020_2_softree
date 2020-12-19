@@ -2,38 +2,33 @@ package authorization
 
 import (
 	"net/http"
-	session "server/authorization/pkg/session/gen"
+	"server/canal/pkg/infrastructure/metric"
 	"time"
-
-	"github.com/sirupsen/logrus"
 )
 
 func (a *Authentication) Logout(w http.ResponseWriter, r *http.Request) {
+	defer metric.RecordTimeMetric(time.Now(), "Logout")
+
 	cookie, err := r.Cookie("session_id")
 	if err == http.ErrNoCookie {
 		w.WriteHeader(http.StatusUnauthorized)
-		a.recordHitMetric(http.StatusUnauthorized)
+		metric.RecordHitMetric(http.StatusUnauthorized, r.URL.Path)
 		return
 	}
 
-	if _, err = a.auth.Delete(r.Context(), &session.SessionID{SessionId: cookie.Value}); err != nil {
-		logrus.WithFields(logrus.Fields{
-			"status":     http.StatusInternalServerError,
-			"function":   "Logout",
-			"action":     "Delete auth",
-			"session_id": session.SessionID{SessionId: cookie.Value},
-		}).Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
+	desc, newCookie, err := a.authLogic.Logout(r.Context(), cookie)
+	if err != nil {
+		a.logger.Error(desc, err)
+		w.WriteHeader(desc.Status)
 
-		a.recordHitMetric(http.StatusInternalServerError)
+		metric.RecordHitMetric(desc.Status, r.URL.Path)
 		return
 	}
 
-	newCookie := CreateCookie()
-	newCookie.Expires = time.Date(1973, 1, 1, 0, 0, 0, 0, time.UTC)
-	newCookie.Value = ""
 	http.SetCookie(w, &newCookie)
+
+	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	a.recordHitMetric(http.StatusOK)
+	metric.RecordHitMetric(http.StatusOK, r.URL.Path)
 }

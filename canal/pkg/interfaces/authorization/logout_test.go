@@ -2,21 +2,64 @@ package authorization
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	authMock "server/authorization/pkg/infrastructure/mock"
-	session "server/authorization/pkg/session/gen"
 	"server/canal/pkg/infrastructure/mock"
 	profileMock "server/profile/pkg/infrastructure/mock"
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/require"
 )
+
+/*func Test_Logout_Success(t *testing.T) {
+	url := "http://127.0.0.1:8000/api/sessions"
+	body := strings.NewReader(fmt.Sprintf(`{"avatar": "%s"}`, avatar))
+
+	req := httptest.NewRequest(http.MethodDelete, url, body)
+	w := httptest.NewRecorder()
+
+	cookie := authHTTP.CreateCookie()
+	cookie.Value = value
+	req.AddCookie(&cookie)
+
+	testAuth, ctrl := createLogoutSuccess(t, createContext(&req))
+	defer ctrl.Finish()
+
+	testAuth.UpdateUserAvatar(w, req)
+
+	require.Equal(t, http.StatusOK, w.Result().StatusCode)
+	require.NotEmpty(t, w.Header().Get("Content-Type"))
+	require.NotEmpty(t, w.Body)
+}
+
+func createExpiredCookie() http.Cookie {
+	newCookie := utils.CreateCookie()
+	newCookie.Expires = time.Date(1973, 1, 1, 0, 0, 0, 0, time.UTC)
+	newCookie.Value = ""
+
+	return newCookie
+}
+
+func createLogoutSuccess(t *testing.T, ctx context.Context) (*authHTTP.Authentication, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	expiredCookie := createExpiredCookie()
+
+	authLogic := mock.NewMockAuthLogic(ctrl)
+	authLogic.EXPECT().
+		Logout(ctx, &authorization.SessionID{SessionId: cookie.Value}).
+		Return(entity.Description{}, expiredCookie, nil)
+
+	profileLogic := mock.NewMockProfileLogic(ctrl)
+
+	return authHTTP.NewAuthentication(profileLogic, authLogic), ctrl
+}*/
+
+
 
 func TestLogout_Success(t *testing.T) {
 	url := "http://127.0.0.1:8000/logout"
@@ -78,6 +121,8 @@ func TestLogout_FailDeleteAuth(t *testing.T) {
 
 	require.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
 }
+
+
 
 func createLogoutSuccess(t *testing.T, ctx context.Context) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)

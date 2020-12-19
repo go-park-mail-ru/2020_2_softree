@@ -2,13 +2,11 @@ package authorization
 
 import (
 	"context"
-	"encoding/json"
+	json "github.com/mailru/easyjson"
 	"net/http"
-	session "server/authorization/pkg/session/gen"
 	"server/canal/pkg/domain/entity"
-	profile "server/profile/pkg/profile/gen"
-
-	"github.com/sirupsen/logrus"
+	"server/canal/pkg/infrastructure/metric"
+	"time"
 )
 
 func (a *Authentication) Auth(next http.HandlerFunc) http.HandlerFunc {
@@ -16,48 +14,43 @@ func (a *Authentication) Auth(next http.HandlerFunc) http.HandlerFunc {
 		cookie, err := r.Cookie("session_id")
 		if err == http.ErrNoCookie {
 			w.WriteHeader(http.StatusUnauthorized)
-			a.recordHitMetric(http.StatusUnauthorized)
+			metric.RecordHitMetric(http.StatusUnauthorized, r.URL.Path)
 			return
 		}
 		if err != nil {
-			logrus.WithFields(logrus.Fields{
-				"status":     http.StatusBadRequest,
-				"middleware": "Auth",
-				"action":     "r.Cookie()",
-			}).Error(err)
+			desc := entity.Description{
+				Function: "AuthMiddleware",
+				Action:   "r.Cookie()",
+				Status:   http.StatusBadRequest}
+			a.logger.Error(desc, err)
 			w.WriteHeader(http.StatusBadRequest)
 
-			a.recordHitMetric(http.StatusBadRequest)
+			metric.RecordHitMetric(http.StatusBadRequest, r.URL.Path)
 			return
 		}
 
 		if cookie == nil {
-			logrus.WithFields(logrus.Fields{
-				"status":     http.StatusBadRequest,
-				"middleware": "Auth",
-				"action":     "if cookie == nil",
-				"cookie":     cookie,
-			})
+			desc := entity.Description{
+				Function: "AuthMiddleware",
+				Action:   "if cookie == nil",
+				Status:   http.StatusBadRequest}
+			a.logger.Error(desc, err)
 			w.WriteHeader(http.StatusBadRequest)
 
-			a.recordHitMetric(http.StatusBadRequest)
+			metric.RecordHitMetric(http.StatusBadRequest, r.URL.Path)
 			return
 		}
 
-		id, err := a.auth.Check(r.Context(), &session.SessionID{SessionId: cookie.Value})
+		desc, id, err := a.authLogic.Auth(r.Context(), cookie)
 		if err != nil {
-			logrus.WithFields(logrus.Fields{
-				"status":     http.StatusBadRequest,
-				"middleware": "Auth",
-				"action":     "Check",
-			}).Error(err)
-			w.WriteHeader(http.StatusBadRequest)
+			a.logger.Error(desc, err)
+			w.WriteHeader(desc.Status)
 
-			a.recordHitMetric(http.StatusBadRequest)
+			metric.RecordHitMetric(desc.Status, r.URL.Path)
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), entity.UserIdKey, id.Id)
+		ctx := context.WithValue(r.Context(), entity.UserIdKey, id)
 		r = r.Clone(ctx)
 
 		next.ServeHTTP(w, r)
@@ -65,47 +58,37 @@ func (a *Authentication) Auth(next http.HandlerFunc) http.HandlerFunc {
 }
 
 func (a *Authentication) Authenticate(w http.ResponseWriter, r *http.Request) {
+	defer metric.RecordTimeMetric(time.Now(), "Authenticate")
+
 	id := r.Context().Value(entity.UserIdKey).(int64)
 
-	var user *profile.PublicUser
-	var err error
-	if user, err = a.profile.GetUserById(r.Context(), &profile.UserID{Id: id}); err != nil {
-		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusBadRequest,
-			"function": "Authenticate",
-			"UserID":   id,
-			"action":   "GetUserById",
-		}).Error(err)
-		w.WriteHeader(http.StatusBadRequest)
+	desc, public, err := a.authLogic.Authenticate(r.Context(), id)
+	if err != nil {
+		a.logger.Error(desc, err)
+		w.WriteHeader(desc.Status)
 
-		a.recordHitMetric(http.StatusBadRequest)
+		metric.RecordHitMetric(desc.Status, r.URL.Path)
 		return
 	}
 
-	res, err := json.Marshal(user)
+	res, err := json.Marshal(public)
 	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusInternalServerError,
-			"function": "Authenticate",
-			"UserID":   id,
-			"action":   "Marshal",
-		}).Error(err)
+		desc = entity.Description{
+			Function: "Authenticate",
+			Action:   "Marshal",
+			Status:   http.StatusInternalServerError}
+		a.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 
-		a.recordHitMetric(http.StatusInternalServerError)
+		metric.RecordHitMetric(http.StatusInternalServerError, r.URL.Path)
 		return
 	}
 
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	a.recordHitMetric(http.StatusOK)
-
+	metric.RecordHitMetric(http.StatusOK, r.URL.Path)
 	if _, err := w.Write(res); err != nil {
-		logrus.WithFields(logrus.Fields{
-			"function": "Authenticate",
-			"UserID":   id,
-			"action":   "Write",
-		}).Error(err)
+		a.logger.Error(entity.Description{Function: "Authenticate", Action: "Write"}, err)
 	}
 }

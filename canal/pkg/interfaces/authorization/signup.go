@@ -1,126 +1,62 @@
 package authorization
 
 import (
-	"encoding/json"
+	json "github.com/mailru/easyjson"
 	"net/http"
-	session "server/authorization/pkg/session/gen"
 	"server/canal/pkg/domain/entity"
-	profile "server/profile/pkg/profile/gen"
-
-	"github.com/sirupsen/logrus"
+	"server/canal/pkg/infrastructure/metric"
+	"time"
 )
 
 func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
-	var user *profile.User
-	var err error
-	if err = json.NewDecoder(r.Body).Decode(&user); err != nil {
-		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusInternalServerError,
-			"function": "Signup",
-			"action":   "Decode",
-		}).Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
+	defer metric.RecordTimeMetric(time.Now(), "Signup")
 
-		a.recordHitMetric(http.StatusInternalServerError)
-		return
-	}
-
-	a.sanitizer.Sanitize(user.Email)
-	a.sanitizer.Sanitize(user.Password)
-
-	var errs entity.ErrorJSON
-	if errs = a.validate(user); errs.NotEmpty {
-		a.createServerError(&errs, w)
-		return
-	}
-
-	var check *profile.Check
-	if check, err = a.profile.CheckExistence(r.Context(), user); err != nil {
-		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusInternalServerError,
-			"function": "Signup",
-			"action":   "CheckExistence",
-			"user":     user,
-		}).Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-
-		a.recordHitMetric(http.StatusInternalServerError)
-		return
-	}
-	if check.Existence {
-		errs.NonFieldError = append(errs.NonFieldError, "пользователь с таким email'ом уже существует")
-		a.createServerError(&errs, w)
-		return
-	}
-
-	if user.Password, err = a.security.MakeShieldedPassword(user.Password); err != nil {
-		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusInternalServerError,
-			"function": "Signup",
-			"action":   "MakeShieldedPassword",
-			"user":     user,
-		}).Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-
-		a.recordHitMetric(http.StatusInternalServerError)
-		return
-	}
-
-	public, err := a.profile.SaveUser(r.Context(), user)
+	user, desc, err := entity.GetUserFromBody(r.Body)
 	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusInternalServerError,
-			"function": "Signup",
-			"action":   "SaveUser",
-			"user":     user,
-		}).Error(err)
+		desc.Function = "Signup"
+		a.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 
-		a.recordHitMetric(http.StatusInternalServerError)
+		metric.RecordHitMetric(http.StatusInternalServerError, r.URL.Path)
 		return
 	}
 
-	if _, err := a.profile.CreateInitialWallet(r.Context(), &profile.UserID{Id: public.Id}); err != nil {
-		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusInternalServerError,
-			"function": "Signup",
-			"action":   "CreateInitialWallet",
-		}).Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
+	desc, public, cookie, err := a.authLogic.Signup(r.Context(), user)
+	if err != nil {
+		a.logger.Error(desc, err)
+		w.WriteHeader(desc.Status)
 
-		a.recordHitMetric(http.StatusInternalServerError)
+		metric.RecordHitMetric(desc.Status, r.URL.Path)
+		return
+	}
+	if desc.ErrorJSON.NotEmpty {
+		code := a.handleErrorJSON(desc, w)
+		w.WriteHeader(code)
+
+		metric.RecordHitMetric(desc.Status, r.URL.Path)
 		return
 	}
 
-	if _, err := a.profile.PutPortfolio(r.Context(), &profile.PortfolioValue{Id: public.Id, Value: 1000}); err != nil {
-		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusInternalServerError,
-			"function": "Signup",
-			"action":   "PutPortfolio",
-		}).Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-
-		a.recordHitMetric(http.StatusInternalServerError)
-		return
-	}
-
-	cookie := CreateCookie()
-	var sess *session.Session
-	if sess, err = a.auth.Create(r.Context(), &session.UserID{Id: public.Id}); err != nil {
-		logrus.WithFields(logrus.Fields{
-			"status":   http.StatusInternalServerError,
-			"function": "Signup",
-			"action":   "Create auth",
-			"session":  &session.UserID{Id: public.Id},
-		}).Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-
-		a.recordHitMetric(http.StatusInternalServerError)
-		return
-	}
-	cookie.Value = sess.SessionId
 	http.SetCookie(w, &cookie)
-	w.WriteHeader(http.StatusCreated)
 
-	a.recordHitMetric(http.StatusCreated)
+	res, err := json.Marshal(public)
+	if err != nil {
+		desc = entity.Description{
+			Function: "Signup",
+			Action:   "Marshal",
+			Status:   http.StatusInternalServerError}
+		a.logger.Error(desc, err)
+		w.WriteHeader(http.StatusInternalServerError)
+
+		metric.RecordHitMetric(http.StatusInternalServerError, r.URL.Path)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	metric.RecordHitMetric(http.StatusOK, r.URL.Path)
+	if _, err := w.Write(res); err != nil {
+		a.logger.Error(entity.Description{Function: "Signup", Action: "Write"}, err)
+	}
 }
