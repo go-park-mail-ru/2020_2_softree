@@ -89,6 +89,54 @@ func createGetURLCurrenciesSuccess(t *testing.T, ctx context.Context) (*applicat
 	return application.NewCurrencyApp(currencyService), ctrl
 }
 
+func TestGetAllLatestCurrenciesInitial_Success(t *testing.T) {
+	req := createRequest()
+	testAuth, ctrl := createGetAllLatestCurrenciesInitialSuccess(t, req.Context())
+	defer ctrl.Finish()
+
+	desc, out, err := testAuth.GetAllLatestCurrencies(req)
+
+	require.NoError(t, err)
+	require.Empty(t, desc)
+	require.NotEmpty(t, out)
+	require.Equal(t, reflect.TypeOf(entity.Currencies{}), reflect.TypeOf(out))
+}
+
+func createGetAllLatestCurrenciesInitialSuccess(t *testing.T, ctx context.Context) (*application.CurrencyApp, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
+	currencyService.EXPECT().
+		GetInitialDayCurrency(ctx, &gen.Empty{}).
+		Return(createInitialCurrencies(), nil)
+
+	return application.NewCurrencyApp(currencyService), ctrl
+}
+
+func TestGetAllLatestCurrenciesInitial_Fail(t *testing.T) {
+	req := createRequest()
+	testAuth, ctrl := createGetAllLatestCurrenciesInitialFail(t, req.Context())
+	defer ctrl.Finish()
+
+	desc, out, err := testAuth.GetAllLatestCurrencies(req)
+
+	require.Error(t, err)
+	require.NotEmpty(t, desc)
+	require.Empty(t, out)
+	require.Equal(t, reflect.TypeOf(entity.Currencies{}), reflect.TypeOf(out))
+}
+
+func createGetAllLatestCurrenciesInitialFail(t *testing.T, ctx context.Context) (*application.CurrencyApp, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
+	currencyService.EXPECT().
+		GetInitialDayCurrency(ctx, &gen.Empty{}).
+		Return(&gen.InitialDayCurrencies{}, errors.New("error"))
+
+	return application.NewCurrencyApp(currencyService), ctrl
+}
+
 func TestGetURLCurrencies_Fail(t *testing.T) {
 	ctx := createRequest()
 	testAuth, ctrl := createGetURLCurrenciesFail(t, ctx.Context())
@@ -159,8 +207,12 @@ func createCurrencies() *gen.Currencies {
 	return &gen.Currencies{Rates: []*gen.Currency{{Base: "USD", Title: "RUB", Value: 0.23, UpdatedAt: ptypes.TimestampNow()}}}
 }
 
+func createInitialCurrencies() *gen.InitialDayCurrencies {
+	return &gen.InitialDayCurrencies{Currencies: []*gen.InitialDayCurrency{{Title: "RUB", Value: 0.23}}}
+}
+
 func createRequest() *http.Request {
-	req := httptest.NewRequest(http.MethodGet, "http://127.0.0.1:8000/api/rates/USD", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://127.0.0.1:8000/api/rates/USD?initial=true", nil)
 	req = mux.SetURLVars(req, map[string]string{"title": curr})
 	return req
 }
