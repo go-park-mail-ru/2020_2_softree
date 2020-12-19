@@ -73,7 +73,7 @@ func (rm *RateDBManager) saveRates(table string, financial domain.FinancialRepos
 
 	for _, name := range ListOfCurrencies {
 		quote := financial.GetQuote()[name]
-		_, err := tx.Exec(
+		_, err = tx.Exec(
 			query,
 			name,
 			quote.(float64),
@@ -159,7 +159,7 @@ func (rm *RateDBManager) GetAllRatesByTitle(ctx context.Context, in *currency.Cu
 				"infrastructure": "currency",
 				"function":       "GetRate",
 				"action":         "Rollback",
-			}).Error(err)
+			}).Debug(err)
 		}
 	}()
 

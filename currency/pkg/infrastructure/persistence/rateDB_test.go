@@ -38,7 +38,7 @@ var testData = map[string]interface{}{
 	"ILS": 21.0,
 }
 
-func TestRateDBManager_GetRates_Success(t *testing.T) {
+func TestGetAllLatestRates_Success(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.Equal(t, nil, err)
 	defer db.Close()
@@ -72,7 +72,7 @@ func TestRateDBManager_GetRates_Success(t *testing.T) {
 	}
 }
 
-func TestRateDBManager_GetRates_Fail(t *testing.T) {
+func TestGetAllLatestRates_Fail(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.Equal(t, nil, err)
 	defer db.Close()
@@ -98,7 +98,7 @@ func TestRateDBManager_GetRates_Fail(t *testing.T) {
 	require.NotEmpty(t, err)
 }
 
-func TestRateDBManager_GetRate_Success(t *testing.T) {
+func TestGetAllRatesByTitle_DaySuccess(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.Equal(t, nil, err)
 	defer db.Close()
@@ -131,7 +131,75 @@ func TestRateDBManager_GetRate_Success(t *testing.T) {
 	}
 }
 
-func TestRateDBManager_GetRate_Fail(t *testing.T) {
+func TestGetAllRatesByTitle_WeekSuccess(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	require.Equal(t, nil, err)
+	defer db.Close()
+
+	date := ptypes.TimestampNow()
+	expected := currency.Currency{Title: "USD", Value: 1.0, UpdatedAt: date}
+	rows := sqlmock.NewRows([]string{"value", "updated_at"})
+	rows = rows.AddRow(expected.Value, date.AsTime())
+
+	mock.ExpectBegin()
+	mock.
+		ExpectQuery(regexp.QuoteMeta(`SELECT value, updated_at FROM history_currency_by_day 
+			WHERE title = $1 and (updated_at between current_date() - interval '1 week' and current_date())`)).
+		WithArgs(expected.Title).
+		WillReturnRows(rows)
+	mock.ExpectCommit()
+
+	ctrl := gomock.NewController(t)
+	finMock := mocks.NewApiMock(ctrl)
+
+	repo := NewRateDBManager(db, finMock)
+	ctx := context.Background()
+
+	title := currency.CurrencyTitle{Title: expected.Title, Period: "week"}
+	currencies, err := repo.GetAllRatesByTitle(ctx, &title)
+	require.NoError(t, err)
+
+	for _, curr := range currencies.Rates {
+		require.EqualValues(t, expected.Value, curr.Value)
+		require.EqualValues(t, date, curr.UpdatedAt)
+	}
+}
+
+func TestGetAllRatesByTitle_MonthSuccess(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	require.Equal(t, nil, err)
+	defer db.Close()
+
+	date := ptypes.TimestampNow()
+	expected := currency.Currency{Title: "USD", Value: 1.0, UpdatedAt: date}
+	rows := sqlmock.NewRows([]string{"value", "updated_at"})
+	rows = rows.AddRow(expected.Value, date.AsTime())
+
+	mock.ExpectBegin()
+	mock.
+		ExpectQuery(regexp.QuoteMeta(`SELECT value, updated_at FROM history_currency_by_day 
+			WHERE title = $1 and (updated_at between current_date() - interval '1 month' and current_date())`)).
+		WithArgs(expected.Title).
+		WillReturnRows(rows)
+	mock.ExpectCommit()
+
+	ctrl := gomock.NewController(t)
+	finMock := mocks.NewApiMock(ctrl)
+
+	repo := NewRateDBManager(db, finMock)
+	ctx := context.Background()
+
+	title := currency.CurrencyTitle{Title: expected.Title, Period: "month"}
+	currencies, err := repo.GetAllRatesByTitle(ctx, &title)
+	require.NoError(t, err)
+
+	for _, curr := range currencies.Rates {
+		require.EqualValues(t, expected.Value, curr.Value)
+		require.EqualValues(t, date, curr.UpdatedAt)
+	}
+}
+
+func TestGetAllRatesByTitle_Fail(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.Equal(t, nil, err)
 	defer db.Close()
