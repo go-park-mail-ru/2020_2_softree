@@ -2,52 +2,48 @@ package router
 
 import (
 	"google.golang.org/grpc"
-	sessionService "server/authorization/pkg/session/gen"
+	serviceSession "server/authorization/pkg/session/gen"
 	"server/canal/pkg/application"
 	"server/canal/pkg/infrastructure/security"
 	"server/canal/pkg/interfaces/authorization"
 	"server/canal/pkg/interfaces/profile"
 	"server/canal/pkg/interfaces/rates"
-	currencyService "server/currency/pkg/currency/gen"
-	profileService "server/profile/pkg/profile/gen"
+	serviceCurrency "server/currency/pkg/currency/gen"
+	serviceProfile "server/profile/pkg/profile/gen"
 )
 
-func createAuthenticate(profileConn, sessionConn *grpc.ClientConn) *authorization.Authentication {
-	authService := sessionService.NewAuthorizationServiceClient(sessionConn)
-	profileService := profileService.NewProfileServiceClient(profileConn)
-	securityManager := security.CreateNewSecurityUtils()
-
-	authApp := application.NewAuthApp(profileService, authService, securityManager)
-	profileApp := application.NewProfileApp(profileService, securityManager)
-
+func createAuthenticate(profileApp *application.ProfileApp, authApp *application.AuthApp) *authorization.Authentication {
 	return authorization.NewAuthentication(profileApp, authApp)
 }
 
-func createProfile(profileConn, currencyConn *grpc.ClientConn) *profile.Profile {
-	profileManager := profileService.NewProfileServiceClient(profileConn)
-	currencyManager := currencyService.NewCurrencyServiceClient(currencyConn)
-	securityManager := security.CreateNewSecurityUtils()
-
-	profileApp := application.NewProfileApp(profileManager, securityManager)
-	paymentApp := application.NewPaymentApp(profileManager, currencyManager, securityManager)
-
+func createProfile(profileApp *application.ProfileApp, paymentApp *application.PaymentApp) *profile.Profile {
 	return profile.NewProfile(profileApp, paymentApp)
 }
 
-func createRates(currencyConn *grpc.ClientConn) *rates.Rates {
-	currencyManager := currencyService.NewCurrencyServiceClient(currencyConn)
-
-	currencyApp := application.NewCurrencyApp(currencyManager)
-
+func createRates(currencyApp *application.CurrencyApp) *rates.Rates {
 	return rates.NewRates(currencyApp)
 }
 
-func CreateAppStructs(
-	profileConn, sessionConn, currencyConn *grpc.ClientConn) (
-	*authorization.Authentication, *profile.Profile, *rates.Rates) {
-	userAuthenticate := createAuthenticate(profileConn, sessionConn)
-	userProfile := createProfile(profileConn, currencyConn)
-	rateRates := createRates(currencyConn)
+func createApps(profileConn, sessionConn, currencyConn *grpc.ClientConn) (*application.CurrencyApp, *application.PaymentApp, *application.ProfileApp, *application.AuthApp) {
+	profileManager := serviceProfile.NewProfileServiceClient(profileConn)
+	currencyManager := serviceCurrency.NewCurrencyServiceClient(currencyConn)
+	securityManager := security.CreateNewSecurityUtils()
+	authManager := serviceSession.NewAuthorizationServiceClient(sessionConn)
+
+	profileApp := application.NewProfileApp(profileManager, securityManager)
+	paymentApp := application.NewPaymentApp(profileManager, currencyManager, securityManager)
+	currencyApp := application.NewCurrencyApp(currencyManager)
+	authApp := application.NewAuthApp(profileManager, authManager, securityManager)
+
+	return currencyApp, paymentApp, profileApp, authApp
+}
+
+func CreateAppStructs(profileConn, sessionConn, currencyConn *grpc.ClientConn) (*authorization.Authentication, *profile.Profile, *rates.Rates) {
+	currencyApp, paymentApp, profileApp, authApp := createApps(profileConn, sessionConn, currencyConn)
+
+	userAuthenticate := createAuthenticate(profileApp, authApp)
+	userProfile := createProfile(profileApp, paymentApp)
+	rateRates := createRates(currencyApp)
 
 	return userAuthenticate, userProfile, rateRates
 }
