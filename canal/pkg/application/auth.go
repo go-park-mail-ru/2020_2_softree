@@ -54,7 +54,7 @@ func (authApp *AuthApp) Login(ctx context.Context, user entity.User) (entity.Des
 		return entity.Description{
 			Status:    http.StatusBadRequest,
 			Function:  "Login",
-			Action:    "checkExistence",
+			Action:    "CheckExistence",
 			ErrorJSON: errs,
 		}, entity.PublicUser{}, http.Cookie{}, nil
 	}
@@ -109,7 +109,7 @@ func (authApp *AuthApp) Signup(ctx context.Context, user entity.User) (entity.De
 	if errs = authApp.validate(user); errs.NotEmpty {
 		return entity.Description{
 			Status:    http.StatusBadRequest,
-			Function:  "Logout",
+			Function:  "Signup",
 			Action:    "validate",
 			ErrorJSON: errs,
 		}, entity.PublicUser{}, http.Cookie{}, nil
@@ -121,25 +121,25 @@ func (authApp *AuthApp) Signup(ctx context.Context, user entity.User) (entity.De
 	if err != nil {
 		return entity.Description{
 			Status:   http.StatusInternalServerError,
-			Function: "Login",
+			Function: "Signup",
 			Action:   "CheckExistence",
 		}, entity.PublicUser{}, http.Cookie{}, err
 	}
-	if !check.Existence {
+	if check.Existence {
 		errs.NotEmpty = true
-		errs.NonFieldError = append(errs.NonFieldError, "Неправильный email или пароль")
+		errs.NonFieldError = append(errs.NonFieldError, "Пользователь с таким email'ом уже существует")
 		return entity.Description{
 			Status:    http.StatusBadRequest,
-			Function:  "Login",
-			Action:    "checkExistence",
+			Function:  "Signup",
+			Action:    "CheckExistence",
 			ErrorJSON: errs,
 		}, entity.PublicUser{}, http.Cookie{}, nil
 	}
 
 	if user.Password, err = authApp.security.MakeShieldedPassword(user.Password); err != nil {
 		return entity.Description{
-			Status:   http.StatusBadRequest,
-			Function: "Logout",
+			Status:   http.StatusInternalServerError,
+			Function: "Signup",
 			Action:   "MakeShieldedPassword",
 		}, entity.PublicUser{}, http.Cookie{}, err
 	}
@@ -147,24 +147,24 @@ func (authApp *AuthApp) Signup(ctx context.Context, user entity.User) (entity.De
 	public, err := authApp.profile.SaveUser(ctx, userGRPC)
 	if err != nil {
 		return entity.Description{
-			Status:   http.StatusBadRequest,
-			Function: "Logout",
+			Status:   http.StatusInternalServerError,
+			Function: "Signup",
 			Action:   "SaveUser",
 		}, entity.PublicUser{}, http.Cookie{}, err
 	}
 
-	if _, err := authApp.profile.CreateInitialWallet(ctx, &profile.UserID{Id: public.Id}); err != nil {
+	if _, err = authApp.profile.CreateInitialWallet(ctx, &profile.UserID{Id: public.Id}); err != nil {
 		return entity.Description{
-			Status:   http.StatusBadRequest,
-			Function: "Logout",
+			Status:   http.StatusInternalServerError,
+			Function: "Signup",
 			Action:   "CreateInitialWallet",
 		}, entity.PublicUser{}, http.Cookie{}, err
 	}
 
-	if _, err := authApp.profile.PutPortfolio(ctx, &profile.PortfolioValue{Id: public.Id, Value: 1000}); err != nil {
+	if _, err = authApp.profile.PutPortfolio(ctx, &profile.PortfolioValue{Id: public.Id, Value: 1000}); err != nil {
 		return entity.Description{
-			Status:   http.StatusBadRequest,
-			Function: "Logout",
+			Status:   http.StatusInternalServerError,
+			Function: "Signup",
 			Action:   "PutPortfolio",
 		}, entity.PublicUser{}, http.Cookie{}, err
 	}
@@ -173,8 +173,8 @@ func (authApp *AuthApp) Signup(ctx context.Context, user entity.User) (entity.De
 	var sess *authorization.Session
 	if sess, err = authApp.auth.Create(ctx, &authorization.UserID{Id: public.Id}); err != nil {
 		return entity.Description{
-			Status:   http.StatusBadRequest,
-			Function: "Logout",
+			Status:   http.StatusInternalServerError,
+			Function: "Signup",
 			Action:   "Create",
 		}, entity.PublicUser{}, http.Cookie{}, err
 	}

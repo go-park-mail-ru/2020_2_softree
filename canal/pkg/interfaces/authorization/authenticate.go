@@ -11,6 +11,6 @@ type Authentication struct {
 	logger       logger.Logrus
 }
 
-func NewAuthenticate(profileLogic repository.ProfileLogic, authLogic repository.AuthLogic) *Authentication {
+func NewAuthentication(profileLogic repository.ProfileLogic, authLogic repository.AuthLogic) *Authentication {
 	return &Authentication{profileLogic, authLogic, *logger.NewLogrus()}
 }

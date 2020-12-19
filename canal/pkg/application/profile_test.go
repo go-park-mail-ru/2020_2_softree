@@ -18,6 +18,7 @@ import (
 const (
 	id          = int64(1)
 	email       = "hound@psina.ru"
+	password    = "password"
 	oldPassword = "old"
 	newPassword = "new"
 	avatar      = "base64"
@@ -27,6 +28,8 @@ const (
 	base        = "RUB"
 	curr        = "USD"
 	sell        = false
+
+	sessionId = "sessionId"
 )
 
 func TestReceiveUser_Success(t *testing.T) {
