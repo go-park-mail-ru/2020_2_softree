@@ -10,6 +10,7 @@ import (
 	"server/canal/pkg/domain/repository"
 	utils "server/canal/pkg/interfaces/authorization"
 	profile "server/profile/pkg/profile/gen"
+	"time"
 )
 
 type AuthApp struct {
@@ -84,12 +85,127 @@ func (authApp *AuthApp) Login(ctx context.Context, user entity.User) (entity.Des
 	return entity.Description{}, entity.ConvertToPublic(public), cookie, nil
 }
 
-func (authApp *AuthApp) Logout(ctx context.Context, session authorization.Session) (entity.Description, error) {
+func (authApp *AuthApp) Logout(ctx context.Context, cookie *http.Cookie) (entity.Description, http.Cookie, error) {
+	if _, err := authApp.auth.Delete(ctx, &authorization.SessionID{SessionId: cookie.Value}); err != nil {
+		return entity.Description{
+			Status:   http.StatusInternalServerError,
+			Function: "Logout",
+			Action:   "Delete",
+		}, http.Cookie{}, err
+	}
 
+	newCookie := utils.CreateCookie()
+	newCookie.Expires = time.Date(1973, 1, 1, 0, 0, 0, 0, time.UTC)
+	newCookie.Value = ""
+
+	return entity.Description{}, newCookie, nil
 }
 
-func (authApp *AuthApp) Authenticate(ctx context.Context, userId authorization.UserID) (entity.Description, error) {
+func (authApp *AuthApp) Signup(ctx context.Context, user entity.User) (entity.Description, entity.PublicUser, http.Cookie, error) {
+	authApp.sanitizer.Sanitize(user.Email)
+	authApp.sanitizer.Sanitize(user.Password)
 
+	var errs entity.ErrorJSON
+	if errs = authApp.validate(user); errs.NotEmpty {
+		return entity.Description{
+			Status:    http.StatusBadRequest,
+			Function:  "Logout",
+			Action:    "validate",
+			ErrorJSON: errs,
+		}, entity.PublicUser{}, http.Cookie{}, nil
+	}
+
+	userGRPC := user.ConvertToGRPC()
+
+	check, err := authApp.profile.CheckExistence(ctx, userGRPC)
+	if err != nil {
+		return entity.Description{
+			Status:   http.StatusInternalServerError,
+			Function: "Login",
+			Action:   "CheckExistence",
+		}, entity.PublicUser{}, http.Cookie{}, err
+	}
+	if !check.Existence {
+		errs.NonFieldError = append(errs.NonFieldError, "Неправильный email или пароль")
+		return entity.Description{
+			Status:    http.StatusBadRequest,
+			Function:  "Login",
+			Action:    "checkExistence",
+			ErrorJSON: errs,
+		}, entity.PublicUser{}, http.Cookie{}, nil
+	}
+
+	if user.Password, err = authApp.security.MakeShieldedPassword(user.Password); err != nil {
+		return entity.Description{
+			Status:   http.StatusBadRequest,
+			Function: "Logout",
+			Action:   "MakeShieldedPassword",
+		}, entity.PublicUser{}, http.Cookie{}, err
+	}
+
+	public, err := authApp.profile.SaveUser(ctx, userGRPC)
+	if err != nil {
+		return entity.Description{
+			Status:   http.StatusBadRequest,
+			Function: "Logout",
+			Action:   "SaveUser",
+		}, entity.PublicUser{}, http.Cookie{}, err
+	}
+
+	if _, err := authApp.profile.CreateInitialWallet(ctx, &profile.UserID{Id: public.Id}); err != nil {
+		return entity.Description{
+			Status:   http.StatusBadRequest,
+			Function: "Logout",
+			Action:   "SaveUser",
+		}, entity.PublicUser{}, http.Cookie{}, err
+	}
+
+	if _, err := authApp.profile.PutPortfolio(ctx, &profile.PortfolioValue{Id: public.Id, Value: 1000}); err != nil {
+		return entity.Description{
+			Status:   http.StatusBadRequest,
+			Function: "Logout",
+			Action:   "PutPortfolio",
+		}, entity.PublicUser{}, http.Cookie{}, err
+	}
+
+	cookie := utils.CreateCookie()
+	var sess *authorization.Session
+	if sess, err = authApp.auth.Create(ctx, &authorization.UserID{Id: public.Id}); err != nil {
+		return entity.Description{
+			Status:   http.StatusBadRequest,
+			Function: "Logout",
+			Action:   "Create",
+		}, entity.PublicUser{}, http.Cookie{}, err
+	}
+	cookie.Value = sess.SessionId
+
+	return entity.Description{}, entity.ConvertToPublic(public), cookie, nil
+}
+
+func (authApp *AuthApp) Authenticate(ctx context.Context, userId int64) (entity.Description, entity.PublicUser, error) {
+	user, err := authApp.profile.GetUserById(ctx, &profile.UserID{Id: userId})
+	if err != nil {
+		return entity.Description{
+			Status:   http.StatusBadRequest,
+			Function: "Authenticate",
+			Action:   "GetUserById",
+		}, entity.PublicUser{}, err
+	}
+
+	return entity.Description{}, entity.ConvertToPublic(user), nil
+}
+
+func (authApp *AuthApp) Auth(ctx context.Context, cookie *http.Cookie) (entity.Description, int64, error) {
+	id, err := authApp.auth.Check(ctx, &authorization.SessionID{SessionId: cookie.Value})
+	if err != nil {
+		return entity.Description{
+			Status:   http.StatusBadRequest,
+			Function: "Auth",
+			Action:   "Check",
+		}, 0, err
+	}
+
+	return entity.Description{}, id.Id, nil
 }
 
 func (authApp *AuthApp) validate(user entity.User) (errs entity.ErrorJSON) {
