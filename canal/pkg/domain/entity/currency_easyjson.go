@@ -7,6 +7,7 @@ import (
 	easyjson "github.com/mailru/easyjson"
 	jlexer "github.com/mailru/easyjson/jlexer"
 	jwriter "github.com/mailru/easyjson/jwriter"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // suppress unused package warning
@@ -40,6 +41,20 @@ func easyjsonE5a98965DecodeServerCanalPkgDomainEntity(in *jlexer.Lexer, out *Cur
 			out.Base = string(in.String())
 		case "title":
 			out.Title = string(in.String())
+		case "value":
+			if data := in.Raw(); in.Ok() {
+				in.AddError((out.Value).UnmarshalJSON(data))
+			}
+		case "updated_at":
+			if in.IsNull() {
+				in.Skip()
+				out.UpdatedAt = nil
+			} else {
+				if out.UpdatedAt == nil {
+					out.UpdatedAt = new(timestamppb.Timestamp)
+				}
+				easyjsonE5a98965DecodeGoogleGolangOrgProtobufTypesKnownTimestamppb(in, out.UpdatedAt)
+			}
 		default:
 			in.SkipRecursive()
 		}
@@ -63,6 +78,20 @@ func easyjsonE5a98965EncodeServerCanalPkgDomainEntity(out *jwriter.Writer, in Cu
 		const prefix string = ",\"title\":"
 		out.RawString(prefix)
 		out.String(string(in.Title))
+	}
+	{
+		const prefix string = ",\"value\":"
+		out.RawString(prefix)
+		out.Raw((in.Value).MarshalJSON())
+	}
+	{
+		const prefix string = ",\"updated_at\":"
+		out.RawString(prefix)
+		if in.UpdatedAt == nil {
+			out.RawString("null")
+		} else {
+			easyjsonE5a98965EncodeGoogleGolangOrgProtobufTypesKnownTimestamppb(out, *in.UpdatedAt)
+		}
 	}
 	out.RawByte('}')
 }
@@ -90,6 +119,61 @@ func (v *Currency) UnmarshalJSON(data []byte) error {
 func (v *Currency) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjsonE5a98965DecodeServerCanalPkgDomainEntity(l, v)
 }
+func easyjsonE5a98965DecodeGoogleGolangOrgProtobufTypesKnownTimestamppb(in *jlexer.Lexer, out *timestamppb.Timestamp) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "seconds":
+			out.Seconds = int64(in.Int64())
+		case "nanos":
+			out.Nanos = int32(in.Int32())
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjsonE5a98965EncodeGoogleGolangOrgProtobufTypesKnownTimestamppb(out *jwriter.Writer, in timestamppb.Timestamp) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	if in.Seconds != 0 {
+		const prefix string = ",\"seconds\":"
+		first = false
+		out.RawString(prefix[1:])
+		out.Int64(int64(in.Seconds))
+	}
+	if in.Nanos != 0 {
+		const prefix string = ",\"nanos\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Int32(int32(in.Nanos))
+	}
+	out.RawByte('}')
+}
 func easyjsonE5a98965DecodeServerCanalPkgDomainEntity1(in *jlexer.Lexer, out *Currencies) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
@@ -99,7 +183,7 @@ func easyjsonE5a98965DecodeServerCanalPkgDomainEntity1(in *jlexer.Lexer, out *Cu
 		in.Delim('[')
 		if *out == nil {
 			if !in.IsDelim(']') {
-				*out = make(Currencies, 0, 2)
+				*out = make(Currencies, 0, 1)
 			} else {
 				*out = Currencies{}
 			}

@@ -7,6 +7,7 @@ import (
 	easyjson "github.com/mailru/easyjson"
 	jlexer "github.com/mailru/easyjson/jlexer"
 	jwriter "github.com/mailru/easyjson/jwriter"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // suppress unused package warning
@@ -117,8 +118,14 @@ func easyjson377dcee4DecodeServerCanalPkgDomainEntity1(in *jlexer.Lexer, out *Pa
 		case "sell":
 			out.Sell = bool(in.Bool())
 		case "updated_up":
-			if data := in.Raw(); in.Ok() {
-				in.AddError((out.UpdatedUp).UnmarshalJSON(data))
+			if in.IsNull() {
+				in.Skip()
+				out.UpdatedUp = nil
+			} else {
+				if out.UpdatedUp == nil {
+					out.UpdatedUp = new(timestamppb.Timestamp)
+				}
+				easyjson377dcee4DecodeGoogleGolangOrgProtobufTypesKnownTimestamppb(in, out.UpdatedUp)
 			}
 		case "UserId":
 			out.UserId = int64(in.Int64())
@@ -164,7 +171,11 @@ func easyjson377dcee4EncodeServerCanalPkgDomainEntity1(out *jwriter.Writer, in P
 	{
 		const prefix string = ",\"updated_up\":"
 		out.RawString(prefix)
-		out.Raw((in.UpdatedUp).MarshalJSON())
+		if in.UpdatedUp == nil {
+			out.RawString("null")
+		} else {
+			easyjson377dcee4EncodeGoogleGolangOrgProtobufTypesKnownTimestamppb(out, *in.UpdatedUp)
+		}
 	}
 	{
 		const prefix string = ",\"UserId\":"
@@ -196,4 +207,59 @@ func (v *Payment) UnmarshalJSON(data []byte) error {
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Payment) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson377dcee4DecodeServerCanalPkgDomainEntity1(l, v)
+}
+func easyjson377dcee4DecodeGoogleGolangOrgProtobufTypesKnownTimestamppb(in *jlexer.Lexer, out *timestamppb.Timestamp) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "seconds":
+			out.Seconds = int64(in.Int64())
+		case "nanos":
+			out.Nanos = int32(in.Int32())
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson377dcee4EncodeGoogleGolangOrgProtobufTypesKnownTimestamppb(out *jwriter.Writer, in timestamppb.Timestamp) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	if in.Seconds != 0 {
+		const prefix string = ",\"seconds\":"
+		first = false
+		out.RawString(prefix[1:])
+		out.Int64(int64(in.Seconds))
+	}
+	if in.Nanos != 0 {
+		const prefix string = ",\"nanos\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Int32(int32(in.Nanos))
+	}
+	out.RawByte('}')
 }
