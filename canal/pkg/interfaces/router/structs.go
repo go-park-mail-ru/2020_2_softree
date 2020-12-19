@@ -3,6 +3,7 @@ package router
 import (
 	"google.golang.org/grpc"
 	sessionService "server/authorization/pkg/session/gen"
+	"server/canal/pkg/application"
 	"server/canal/pkg/infrastructure/security"
 	"server/canal/pkg/interfaces/authorization"
 	"server/canal/pkg/interfaces/profile"
@@ -23,13 +24,18 @@ func createProfile(profileConn, currencyConn *grpc.ClientConn) *profile.Profile 
 	currencyManager := currencyService.NewCurrencyServiceClient(currencyConn)
 	securityManager := security.CreateNewSecurityUtils()
 
-	return profile.NewProfile(profileManager, securityManager, currencyManager)
+	profileApp := application.NewProfileApp(profileManager, securityManager)
+	paymentApp := application.NewPaymentApp(profileManager, currencyManager, securityManager)
+
+	return profile.NewProfile(profileApp, paymentApp)
 }
 
 func createRates(currencyConn *grpc.ClientConn) *rates.Rates {
 	currencyManager := currencyService.NewCurrencyServiceClient(currencyConn)
 
-	return rates.NewRates(currencyManager)
+	currencyApp := application.NewCurrencyApp(currencyManager)
+
+	return rates.NewRates(currencyApp)
 }
 
 func CreateAppStructs(
