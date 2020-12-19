@@ -62,13 +62,11 @@ func ConvertToPayment(history *profile.AllHistory) Payments {
 func (pay *Payment) ConvertToGRPC() *profile.PaymentHistory {
 	amount, _ := pay.Amount.Float64()
 	value, _ := pay.Value.Float64()
-	updated, _ := ptypes.TimestampProto(pay.UpdatedUp)
 	return &profile.PaymentHistory{
 		Currency:  pay.Currency,
 		Base:      pay.Base,
 		Amount:    amount,
 		Value:     value,
 		Sell:      strconv.FormatBool(pay.Sell),
-		UpdatedAt: updated,
 	}
 }

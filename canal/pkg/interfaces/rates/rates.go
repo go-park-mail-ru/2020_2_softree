@@ -1,19 +1,15 @@
 package rates
 
 import (
-	"github.com/prometheus/client_golang/prometheus"
-	"server/canal/pkg/infrastructure/metric"
-	currency "server/currency/pkg/currency/gen"
+	"server/canal/pkg/domain/repository"
+	"server/canal/pkg/infrastructure/logger"
 )
 
 type Rates struct {
-	currencyService currency.CurrencyServiceClient
-	Hits            prometheus.CounterVec
+	currencyApp repository.CurrencyLogic
+	logger      logger.Logrus
 }
 
-func NewRates(currencyService currency.CurrencyServiceClient) *Rates {
-	return &Rates{
-		currencyService: currencyService,
-		Hits:            *metric.Metric,
-	}
+func NewRates(currencyApp repository.CurrencyLogic) *Rates {
+	return &Rates{currencyApp, *logger.NewLogrus()}
 }

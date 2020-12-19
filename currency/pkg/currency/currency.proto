@@ -18,6 +18,7 @@ message Currencies {
 
 message CurrencyTitle {
   string title = 1;
+  string period = 2;
 }
 
 message InitialDayCurrency {

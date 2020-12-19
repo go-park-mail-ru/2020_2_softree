@@ -73,7 +73,7 @@ func (rm *RateDBManager) saveRates(table string, financial domain.FinancialRepos
 
 	for _, name := range ListOfCurrencies {
 		quote := financial.GetQuote()[name]
-		_, err := tx.Exec(
+		_, err = tx.Exec(
 			query,
 			name,
 			quote.(float64),
@@ -159,11 +159,12 @@ func (rm *RateDBManager) GetAllRatesByTitle(ctx context.Context, in *currency.Cu
 				"infrastructure": "currency",
 				"function":       "GetRate",
 				"action":         "Rollback",
-			}).Error(err)
+			}).Debug(err)
 		}
 	}()
 
-	result, err := tx.Query("SELECT value, updated_at FROM history_currency_by_minutes WHERE title = $1 ", in.Title)
+	query := chooseSql(in.Period)
+	result, err := tx.Query(query, in.Title)
 	if err != nil {
 		return &currency.Currencies{}, err
 	}
@@ -193,6 +194,22 @@ func (rm *RateDBManager) GetAllRatesByTitle(ctx context.Context, in *currency.Cu
 	}
 
 	return &currencies, nil
+}
+
+func chooseSql(period string) string {
+	switch period {
+	case "week":
+		return "SELECT value, updated_at FROM history_currency_by_day " +
+			"WHERE title = $1 and (updated_at between current_date() - interval '1 week' and current_date())"
+	case "month":
+		return "SELECT value, updated_at FROM history_currency_by_day " +
+			"WHERE title = $1 and (updated_at between current_date() - interval '1 month' and current_date())"
+	case "year":
+		return "SELECT value, updated_at FROM history_currency_by_day " +
+			"WHERE title = $1 and updated_at between current_date() - interval '1 year' and current_date()"
+	}
+
+	return "SELECT value, updated_at FROM history_currency_by_minutes WHERE title = $1 "
 }
 
 func (rm *RateDBManager) GetLastRate(ctx context.Context, in *currency.CurrencyTitle) (*currency.Currency, error) {
