@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
@@ -94,7 +95,8 @@ func (pmt *PaymentApp) SetTransaction(ctx context.Context, payment entity.Paymen
 		putTitle = transaction.Currency
 	}
 
-	if exist, desc, err := pmt.checkWalletSell(ctx, &profile.ConcreteWallet{Id: payment.UserId, Title: titleToCheckPayment}); !exist {
+	var exist bool
+	if exist, desc, err = pmt.checkWalletSell(ctx, &profile.ConcreteWallet{Id: payment.UserId, Title: titleToCheckPayment}); !exist {
 		return desc, err
 	}
 
@@ -107,7 +109,7 @@ func (pmt *PaymentApp) SetTransaction(ctx context.Context, payment entity.Paymen
 		return desc, err
 	}
 
-	if exist, desc, err := pmt.checkWalletBuy(ctx, &profile.ConcreteWallet{Id: payment.UserId, Title: putTitle}); !exist {
+	if exist, desc, err = pmt.checkWalletBuy(ctx, &profile.ConcreteWallet{Id: payment.UserId, Title: putTitle}); !exist {
 		return desc, err
 	}
 
@@ -130,7 +132,7 @@ func (pmt *PaymentApp) SetTransaction(ctx context.Context, payment entity.Paymen
 	}
 
 	transaction.Value, _ = div.Float64()
-	if _, err := pmt.profile.AddToPaymentHistory(ctx, &profile.AddToHistory{Id: payment.UserId, Transaction: transaction}); err != nil {
+	if _, err = pmt.profile.AddToPaymentHistory(ctx, &profile.AddToHistory{Id: payment.UserId, Transaction: transaction}); err != nil {
 		return entity.Description{
 			Status:   http.StatusInternalServerError,
 			Function: "SetTransactions",
@@ -225,7 +227,7 @@ func (pmt *PaymentApp) getPay(ctx context.Context, userWallet *profile.ConcreteW
 	if needToPay.GreaterThan(decimal.NewFromFloat(wallet.Value)) {
 		return entity.Description{
 			Status: notEnoughPayment,
-		}, nil
+		}, errors.New(fmt.Sprintf("%d notEnoughPayment", userWallet.Id))
 	}
 
 	return entity.Description{}, nil

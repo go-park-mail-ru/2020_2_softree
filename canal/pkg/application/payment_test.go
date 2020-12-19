@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/golang/mock/gomock"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
 	"reflect"
 	"server/canal/pkg/application"
@@ -37,7 +38,7 @@ func createReceiveTransactionsSuccess(t *testing.T, ctx context.Context) (*appli
 		GetAllPaymentHistory(ctx, &profileGen.UserID{Id: id}).
 		Return(createHistory(), nil)
 
-	currencyService := currency.NewRateRepositoryForMock(ctrl)
+	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
 
 	securityService := mock.NewSecurityMock(ctrl)
 
@@ -65,7 +66,7 @@ func createReceiveTransactionsFail(t *testing.T, ctx context.Context) (*applicat
 		GetAllPaymentHistory(ctx, &profileGen.UserID{Id: id}).
 		Return(&profileGen.AllHistory{}, errors.New("error"))
 
-	currencyService := currency.NewRateRepositoryForMock(ctrl)
+	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
 
 	securityService := mock.NewSecurityMock(ctrl)
 
@@ -93,7 +94,7 @@ func createReceiveWalletsSuccess(t *testing.T, ctx context.Context) (*applicatio
 		GetWallets(ctx, &profileGen.UserID{Id: id}).
 		Return(createWallets(), nil)
 
-	currencyService := currency.NewRateRepositoryForMock(ctrl)
+	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
 
 	securityService := mock.NewSecurityMock(ctrl)
 
@@ -121,7 +122,7 @@ func createReceiveWalletsFail(t *testing.T, ctx context.Context) (*application.P
 		GetWallets(ctx, &profileGen.UserID{Id: id}).
 		Return(&profileGen.Wallets{}, errors.New("error"))
 
-	currencyService := currency.NewRateRepositoryForMock(ctrl)
+	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
 
 	securityService := mock.NewSecurityMock(ctrl)
 
@@ -147,7 +148,7 @@ func createSetWalletsSuccess(t *testing.T, ctx context.Context) (*application.Pa
 		CreateWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
 		Return(&profileGen.Empty{}, nil)
 
-	currencyService := currency.NewRateRepositoryForMock(ctrl)
+	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
 
 	securityService := mock.NewSecurityMock(ctrl)
 
@@ -173,7 +174,7 @@ func createSetWalletsFail(t *testing.T, ctx context.Context) (*application.Payme
 		CreateWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
 		Return(&profileGen.Empty{}, errors.New("error"))
 
-	currencyService := currency.NewRateRepositoryForMock(ctrl)
+	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
 
 	securityService := mock.NewSecurityMock(ctrl)
 
@@ -185,7 +186,13 @@ func TestSetTransaction_Success(t *testing.T) {
 	testAuth, ctrl := createSetTransactionSuccess(t, ctx)
 	defer ctrl.Finish()
 
-	desc, err := testAuth.SetWallet(ctx, entity.Wallet{Title: curr, UserId: id})
+	desc, err := testAuth.SetTransaction(ctx, entity.Payment{
+		UserId:   id,
+		Base:     curr,
+		Currency: base,
+		Amount:   decimal.NewFromFloat(amount),
+		Sell:     false,
+	})
 
 	require.NoError(t, err)
 	require.Empty(t, desc)
@@ -195,14 +202,517 @@ func createSetTransactionSuccess(t *testing.T, ctx context.Context) (*applicatio
 	ctrl := gomock.NewController(t)
 
 	profileService := profile.NewProfileMock(ctrl)
+	profileService.EXPECT().
+		CheckWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
+		Return(&profileGen.Check{Existence: true}, nil)
+	profileService.EXPECT().
+		GetWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
+		Return(&profileGen.Wallet{Title: base, Value: 100 * amount}, nil)
+	profileService.EXPECT().
+		CheckWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: base}).
+		Return(&profileGen.Check{Existence: true}, nil)
+	profileService.EXPECT().
+		UpdateWallet(ctx, &profileGen.ToSetWallet{Id: id, NewWallet: &profileGen.Wallet{Title: curr, Value: -amount * currValue}}).
+		Return(&profileGen.Empty{}, nil)
+	profileService.EXPECT().
+		UpdateWallet(ctx, &profileGen.ToSetWallet{Id: id, NewWallet: &profileGen.Wallet{Title: base, Value: amount}}).
+		Return(&profileGen.Empty{}, nil)
+	profileService.EXPECT().
+		AddToPaymentHistory(ctx, &profileGen.AddToHistory{
+			Id:          id,
+			Transaction: &profileGen.PaymentHistory{
+				Currency: base,
+				Base: curr,
+				Value: currValue,
+				Amount: amount,
+				Sell: "false",
+			},
+		}).Return(&profileGen.Empty{}, nil)
 
-	currencyService := currency.NewRateRepositoryForMock(ctrl)
+	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
 	currencyService.EXPECT().
-		GetLastRate(ctx, currencyGen.CurrencyTitle{Title: base}).
-		Return(baseValue, nil)
+		GetLastRate(ctx, &currencyGen.CurrencyTitle{Title: curr}).Return(&currencyGen.Currency{Value: currValue}, nil)
 	currencyService.EXPECT().
-		GetLastRate(ctx, currencyGen.CurrencyTitle{Title: curr}).
-		Return(currValue, nil)
+		GetLastRate(ctx, &currencyGen.CurrencyTitle{Title: base}).Return(&currencyGen.Currency{Value: baseValue}, nil)
+
+	securityService := mock.NewSecurityMock(ctrl)
+
+	return application.NewPaymentApp(profileService, currencyService, securityService), ctrl
+}
+
+func TestSetTransaction_FailAddToHistory(t *testing.T) {
+	ctx := createContext()
+	testAuth, ctrl := createSetTransactionFailAddToHistory(t, ctx)
+	defer ctrl.Finish()
+
+	desc, err := testAuth.SetTransaction(ctx, entity.Payment{
+		UserId:   id,
+		Base:     curr,
+		Currency: base,
+		Amount:   decimal.NewFromFloat(amount),
+		Sell:     false,
+	})
+
+	require.Error(t, err)
+	require.NotEmpty(t, desc)
+}
+
+func createSetTransactionFailAddToHistory(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	profileService := profile.NewProfileMock(ctrl)
+	profileService.EXPECT().
+		CheckWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
+		Return(&profileGen.Check{Existence: true}, nil)
+	profileService.EXPECT().
+		GetWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
+		Return(&profileGen.Wallet{Title: base, Value: 100 * amount}, nil)
+	profileService.EXPECT().
+		CheckWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: base}).
+		Return(&profileGen.Check{Existence: true}, nil)
+	profileService.EXPECT().
+		UpdateWallet(ctx, &profileGen.ToSetWallet{Id: id, NewWallet: &profileGen.Wallet{Title: curr, Value: -amount * currValue}}).
+		Return(&profileGen.Empty{}, nil)
+	profileService.EXPECT().
+		UpdateWallet(ctx, &profileGen.ToSetWallet{Id: id, NewWallet: &profileGen.Wallet{Title: base, Value: amount}}).
+		Return(&profileGen.Empty{}, nil)
+	profileService.EXPECT().
+		AddToPaymentHistory(ctx, &profileGen.AddToHistory{
+			Id:          id,
+			Transaction: &profileGen.PaymentHistory{
+				Currency: base,
+				Base: curr,
+				Value: currValue,
+				Amount: amount,
+				Sell: "false",
+			},
+		}).Return(&profileGen.Empty{}, errors.New("error"))
+
+	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
+	currencyService.EXPECT().
+		GetLastRate(ctx, &currencyGen.CurrencyTitle{Title: curr}).Return(&currencyGen.Currency{Value: currValue}, nil)
+	currencyService.EXPECT().
+		GetLastRate(ctx, &currencyGen.CurrencyTitle{Title: base}).Return(&currencyGen.Currency{Value: baseValue}, nil)
+
+	securityService := mock.NewSecurityMock(ctrl)
+
+	return application.NewPaymentApp(profileService, currencyService, securityService), ctrl
+}
+
+func TestSetTransaction_FailUpdatePutWallet(t *testing.T) {
+	ctx := createContext()
+	testAuth, ctrl := createSetTransactionFailUpdatePutWallet(t, ctx)
+	defer ctrl.Finish()
+
+	desc, err := testAuth.SetTransaction(ctx, entity.Payment{
+		UserId:   id,
+		Base:     curr,
+		Currency: base,
+		Amount:   decimal.NewFromFloat(amount),
+		Sell:     false,
+	})
+
+	require.Error(t, err)
+	require.NotEmpty(t, desc)
+}
+
+func createSetTransactionFailUpdatePutWallet(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	profileService := profile.NewProfileMock(ctrl)
+	profileService.EXPECT().
+		CheckWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
+		Return(&profileGen.Check{Existence: true}, nil)
+	profileService.EXPECT().
+		GetWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
+		Return(&profileGen.Wallet{Title: base, Value: 100 * amount}, nil)
+	profileService.EXPECT().
+		CheckWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: base}).
+		Return(&profileGen.Check{Existence: true}, nil)
+	profileService.EXPECT().
+		UpdateWallet(ctx, &profileGen.ToSetWallet{Id: id, NewWallet: &profileGen.Wallet{Title: curr, Value: -amount * currValue}}).
+		Return(&profileGen.Empty{}, nil)
+	profileService.EXPECT().
+		UpdateWallet(ctx, &profileGen.ToSetWallet{Id: id, NewWallet: &profileGen.Wallet{Title: base, Value: amount}}).
+		Return(&profileGen.Empty{}, errors.New("error"))
+
+	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
+	currencyService.EXPECT().
+		GetLastRate(ctx, &currencyGen.CurrencyTitle{Title: curr}).Return(&currencyGen.Currency{Value: currValue}, nil)
+	currencyService.EXPECT().
+		GetLastRate(ctx, &currencyGen.CurrencyTitle{Title: base}).Return(&currencyGen.Currency{Value: baseValue}, nil)
+
+	securityService := mock.NewSecurityMock(ctrl)
+
+	return application.NewPaymentApp(profileService, currencyService, securityService), ctrl
+}
+
+func TestSetTransaction_FailUpdateRemoveWallet(t *testing.T) {
+	ctx := createContext()
+	testAuth, ctrl := createSetTransactionFailUpdateRemoveWallet(t, ctx)
+	defer ctrl.Finish()
+
+	desc, err := testAuth.SetTransaction(ctx, entity.Payment{
+		UserId:   id,
+		Base:     curr,
+		Currency: base,
+		Amount:   decimal.NewFromFloat(amount),
+		Sell:     false,
+	})
+
+	require.Error(t, err)
+	require.NotEmpty(t, desc)
+}
+
+func createSetTransactionFailUpdateRemoveWallet(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	profileService := profile.NewProfileMock(ctrl)
+	profileService.EXPECT().
+		CheckWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
+		Return(&profileGen.Check{Existence: true}, nil)
+	profileService.EXPECT().
+		GetWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
+		Return(&profileGen.Wallet{Title: base, Value: 100 * amount}, nil)
+	profileService.EXPECT().
+		CheckWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: base}).
+		Return(&profileGen.Check{Existence: true}, nil)
+	profileService.EXPECT().
+		UpdateWallet(ctx, &profileGen.ToSetWallet{Id: id, NewWallet: &profileGen.Wallet{Title: curr, Value: -amount * currValue}}).
+		Return(&profileGen.Empty{}, errors.New("error"))
+
+	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
+	currencyService.EXPECT().
+		GetLastRate(ctx, &currencyGen.CurrencyTitle{Title: curr}).Return(&currencyGen.Currency{Value: currValue}, nil)
+	currencyService.EXPECT().
+		GetLastRate(ctx, &currencyGen.CurrencyTitle{Title: base}).Return(&currencyGen.Currency{Value: baseValue}, nil)
+
+	securityService := mock.NewSecurityMock(ctrl)
+
+	return application.NewPaymentApp(profileService, currencyService, securityService), ctrl
+}
+
+func TestSetTransaction_FailCheckWalletBuy(t *testing.T) {
+	ctx := createContext()
+	testAuth, ctrl := createSetTransactionFailCheckWalletBuy(t, ctx)
+	defer ctrl.Finish()
+
+	desc, err := testAuth.SetTransaction(ctx, entity.Payment{
+		UserId:   id,
+		Base:     curr,
+		Currency: base,
+		Amount:   decimal.NewFromFloat(amount),
+		Sell:     false,
+	})
+
+	require.Error(t, err)
+	require.NotEmpty(t, desc)
+}
+
+func createSetTransactionFailCheckWalletBuy(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	profileService := profile.NewProfileMock(ctrl)
+	profileService.EXPECT().
+		CheckWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
+		Return(&profileGen.Check{Existence: true}, nil)
+	profileService.EXPECT().
+		GetWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
+		Return(&profileGen.Wallet{Title: base, Value: 100 * amount}, nil)
+	profileService.EXPECT().
+		CheckWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: base}).
+		Return(&profileGen.Check{Existence: true}, errors.New("error"))
+
+	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
+	currencyService.EXPECT().
+		GetLastRate(ctx, &currencyGen.CurrencyTitle{Title: curr}).Return(&currencyGen.Currency{Value: currValue}, nil)
+	currencyService.EXPECT().
+		GetLastRate(ctx, &currencyGen.CurrencyTitle{Title: base}).Return(&currencyGen.Currency{Value: baseValue}, nil)
+
+	securityService := mock.NewSecurityMock(ctrl)
+
+	return application.NewPaymentApp(profileService, currencyService, securityService), ctrl
+}
+
+func TestSetTransaction_SuccessCreateWallet(t *testing.T) {
+	ctx := createContext()
+	testAuth, ctrl := createSetTransactionSuccessCreateWallet(t, ctx)
+	defer ctrl.Finish()
+
+	desc, err := testAuth.SetTransaction(ctx, entity.Payment{
+		UserId:   id,
+		Base:     curr,
+		Currency: base,
+		Amount:   decimal.NewFromFloat(amount),
+		Sell:     false,
+	})
+
+	require.NoError(t, err)
+	require.Empty(t, desc)
+}
+
+func createSetTransactionSuccessCreateWallet(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	profileService := profile.NewProfileMock(ctrl)
+	profileService.EXPECT().
+		CheckWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
+		Return(&profileGen.Check{Existence: true}, nil)
+	profileService.EXPECT().
+		GetWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
+		Return(&profileGen.Wallet{Title: base, Value: 100 * amount}, nil)
+	profileService.EXPECT().
+		CheckWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: base}).
+		Return(&profileGen.Check{Existence: false}, nil)
+	profileService.EXPECT().
+		CreateWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: base}).
+		Return(&profileGen.Empty{}, nil)
+	profileService.EXPECT().
+		UpdateWallet(ctx, &profileGen.ToSetWallet{Id: id, NewWallet: &profileGen.Wallet{Title: curr, Value: -amount * currValue}}).
+		Return(&profileGen.Empty{}, nil)
+	profileService.EXPECT().
+		UpdateWallet(ctx, &profileGen.ToSetWallet{Id: id, NewWallet: &profileGen.Wallet{Title: base, Value: amount}}).
+		Return(&profileGen.Empty{}, nil)
+	profileService.EXPECT().
+		AddToPaymentHistory(ctx, &profileGen.AddToHistory{
+			Id:          id,
+			Transaction: &profileGen.PaymentHistory{
+				Currency: base,
+				Base: curr,
+				Value: currValue,
+				Amount: amount,
+				Sell: "false",
+			},
+		}).Return(&profileGen.Empty{}, nil)
+
+	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
+	currencyService.EXPECT().
+		GetLastRate(ctx, &currencyGen.CurrencyTitle{Title: curr}).Return(&currencyGen.Currency{Value: currValue}, nil)
+	currencyService.EXPECT().
+		GetLastRate(ctx, &currencyGen.CurrencyTitle{Title: base}).Return(&currencyGen.Currency{Value: baseValue}, nil)
+
+	securityService := mock.NewSecurityMock(ctrl)
+
+	return application.NewPaymentApp(profileService, currencyService, securityService), ctrl
+}
+
+func TestSetTransaction_FailCreateWallet(t *testing.T) {
+	ctx := createContext()
+	testAuth, ctrl := createSetTransactionFailCreateWallet(t, ctx)
+	defer ctrl.Finish()
+
+	desc, err := testAuth.SetTransaction(ctx, entity.Payment{
+		UserId:   id,
+		Base:     curr,
+		Currency: base,
+		Amount:   decimal.NewFromFloat(amount),
+		Sell:     false,
+	})
+
+	require.Error(t, err)
+	require.NotEmpty(t, desc)
+}
+
+func createSetTransactionFailCreateWallet(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	profileService := profile.NewProfileMock(ctrl)
+	profileService.EXPECT().
+		CheckWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
+		Return(&profileGen.Check{Existence: true}, nil)
+	profileService.EXPECT().
+		GetWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
+		Return(&profileGen.Wallet{Title: base, Value: 100 * amount}, nil)
+	profileService.EXPECT().
+		CheckWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: base}).
+		Return(&profileGen.Check{Existence: false}, nil)
+	profileService.EXPECT().
+		CreateWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: base}).
+		Return(&profileGen.Empty{}, errors.New("error"))
+
+	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
+	currencyService.EXPECT().
+		GetLastRate(ctx, &currencyGen.CurrencyTitle{Title: curr}).Return(&currencyGen.Currency{Value: currValue}, nil)
+	currencyService.EXPECT().
+		GetLastRate(ctx, &currencyGen.CurrencyTitle{Title: base}).Return(&currencyGen.Currency{Value: baseValue}, nil)
+
+	securityService := mock.NewSecurityMock(ctrl)
+
+	return application.NewPaymentApp(profileService, currencyService, securityService), ctrl
+}
+
+func TestSetTransaction_FailGetWallet(t *testing.T) {
+	ctx := createContext()
+	testAuth, ctrl := createSetTransactionFailGetWallet(t, ctx)
+	defer ctrl.Finish()
+
+	desc, err := testAuth.SetTransaction(ctx, entity.Payment{
+		UserId:   id,
+		Base:     curr,
+		Currency: base,
+		Amount:   decimal.NewFromFloat(amount),
+		Sell:     false,
+	})
+
+	require.Error(t, err)
+	require.NotEmpty(t, desc)
+}
+
+func createSetTransactionFailGetWallet(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	profileService := profile.NewProfileMock(ctrl)
+	profileService.EXPECT().
+		CheckWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
+		Return(&profileGen.Check{Existence: true}, nil)
+	profileService.EXPECT().
+		GetWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
+		Return(&profileGen.Wallet{}, errors.New("error"))
+
+	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
+	currencyService.EXPECT().
+		GetLastRate(ctx, &currencyGen.CurrencyTitle{Title: curr}).Return(&currencyGen.Currency{Value: currValue}, nil)
+	currencyService.EXPECT().
+		GetLastRate(ctx, &currencyGen.CurrencyTitle{Title: base}).Return(&currencyGen.Currency{Value: baseValue}, nil)
+
+	securityService := mock.NewSecurityMock(ctrl)
+
+	return application.NewPaymentApp(profileService, currencyService, securityService), ctrl
+}
+
+func TestSetTransaction_FailNoPayment(t *testing.T) {
+	ctx := createContext()
+	testAuth, ctrl := createSetTransactionFailNoPayment(t, ctx)
+	defer ctrl.Finish()
+
+	desc, err := testAuth.SetTransaction(ctx, entity.Payment{
+		UserId:   id,
+		Base:     curr,
+		Currency: base,
+		Amount:   decimal.NewFromFloat(amount),
+		Sell:     false,
+	})
+
+	require.Error(t, err)
+	require.NotEmpty(t, desc)
+}
+
+func createSetTransactionFailNoPayment(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	profileService := profile.NewProfileMock(ctrl)
+	profileService.EXPECT().
+		CheckWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
+		Return(&profileGen.Check{Existence: true}, nil)
+	profileService.EXPECT().
+		GetWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
+		Return(&profileGen.Wallet{Title: base, Value: amount}, nil)
+
+	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
+	currencyService.EXPECT().
+		GetLastRate(ctx, &currencyGen.CurrencyTitle{Title: curr}).Return(&currencyGen.Currency{Value: currValue}, nil)
+	currencyService.EXPECT().
+		GetLastRate(ctx, &currencyGen.CurrencyTitle{Title: base}).Return(&currencyGen.Currency{Value: baseValue}, nil)
+
+	securityService := mock.NewSecurityMock(ctrl)
+
+	return application.NewPaymentApp(profileService, currencyService, securityService), ctrl
+}
+
+func TestSetTransaction_FailCheckWalletSell(t *testing.T) {
+	ctx := createContext()
+	testAuth, ctrl := createSetTransactionFailCheckWalletSell(t, ctx)
+	defer ctrl.Finish()
+
+	desc, err := testAuth.SetTransaction(ctx, entity.Payment{
+		UserId:   id,
+		Base:     curr,
+		Currency: base,
+		Amount:   decimal.NewFromFloat(amount),
+		Sell:     false,
+	})
+
+	require.Error(t, err)
+	require.NotEmpty(t, desc)
+}
+
+func createSetTransactionFailCheckWalletSell(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	profileService := profile.NewProfileMock(ctrl)
+	profileService.EXPECT().
+		CheckWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
+		Return(&profileGen.Check{Existence: true}, errors.New("error"))
+
+	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
+	currencyService.EXPECT().
+		GetLastRate(ctx, &currencyGen.CurrencyTitle{Title: curr}).Return(&currencyGen.Currency{Value: currValue}, nil)
+	currencyService.EXPECT().
+		GetLastRate(ctx, &currencyGen.CurrencyTitle{Title: base}).Return(&currencyGen.Currency{Value: baseValue}, nil)
+
+	securityService := mock.NewSecurityMock(ctrl)
+
+	return application.NewPaymentApp(profileService, currencyService, securityService), ctrl
+}
+
+func TestSetTransaction_FailGetLastRateBase(t *testing.T) {
+	ctx := createContext()
+	testAuth, ctrl := createSetTransactionFailGetLastRateBase(t, ctx)
+	defer ctrl.Finish()
+
+	desc, err := testAuth.SetTransaction(ctx, entity.Payment{
+		UserId:   id,
+		Base:     curr,
+		Currency: base,
+		Amount:   decimal.NewFromFloat(amount),
+		Sell:     false,
+	})
+
+	require.Error(t, err)
+	require.NotEmpty(t, desc)
+}
+
+func createSetTransactionFailGetLastRateBase(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	profileService := profile.NewProfileMock(ctrl)
+
+	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
+	currencyService.EXPECT().
+		GetLastRate(ctx, &currencyGen.CurrencyTitle{Title: curr}).Return(&currencyGen.Currency{Value: currValue}, nil)
+	currencyService.EXPECT().
+		GetLastRate(ctx, &currencyGen.CurrencyTitle{Title: base}).Return(&currencyGen.Currency{}, errors.New("error"))
+
+	securityService := mock.NewSecurityMock(ctrl)
+
+	return application.NewPaymentApp(profileService, currencyService, securityService), ctrl
+}
+
+func TestSetTransaction_FailGetLastRateCurr(t *testing.T) {
+	ctx := createContext()
+	testAuth, ctrl := createSetTransactionFailGetLastRateCurr(t, ctx)
+	defer ctrl.Finish()
+
+	desc, err := testAuth.SetTransaction(ctx, entity.Payment{
+		UserId:   id,
+		Base:     curr,
+		Currency: base,
+		Amount:   decimal.NewFromFloat(amount),
+		Sell:     false,
+	})
+
+	require.Error(t, err)
+	require.NotEmpty(t, desc)
+}
+
+func createSetTransactionFailGetLastRateCurr(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	profileService := profile.NewProfileMock(ctrl)
+
+	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
+	currencyService.EXPECT().
+		GetLastRate(ctx, &currencyGen.CurrencyTitle{Title: curr}).Return(&currencyGen.Currency{}, errors.New("error"))
 
 	securityService := mock.NewSecurityMock(ctrl)
 

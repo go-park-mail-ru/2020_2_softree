@@ -18,11 +18,11 @@ import (
 )
 
 func TestGetAllLatestCurrencies_Success(t *testing.T) {
-	ctx := createContext()
-	testAuth, ctrl := createGetAllLatestCurrenciesSuccess(t, ctx)
+	req := createRequest()
+	testAuth, ctrl := createGetAllLatestCurrenciesSuccess(t, req.Context())
 	defer ctrl.Finish()
 
-	desc, out, err := testAuth.GetAllLatestCurrencies(ctx)
+	desc, out, err := testAuth.GetAllLatestCurrencies(req)
 
 	require.NoError(t, err)
 	require.Empty(t, desc)
@@ -33,7 +33,7 @@ func TestGetAllLatestCurrencies_Success(t *testing.T) {
 func createGetAllLatestCurrenciesSuccess(t *testing.T, ctx context.Context) (*application.CurrencyApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	currencyService := currency.NewRateRepositoryForMock(ctrl)
+	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
 	currencyService.EXPECT().
 		GetAllLatestRates(ctx, &gen.Empty{}).
 		Return(createCurrencies(), nil)
@@ -42,11 +42,11 @@ func createGetAllLatestCurrenciesSuccess(t *testing.T, ctx context.Context) (*ap
 }
 
 func TestGetAllLatestCurrencies_Fail(t *testing.T) {
-	ctx := createContext()
-	testAuth, ctrl := createGetAllLatestCurrenciesFail(t, ctx)
+	req := createRequest()
+	testAuth, ctrl := createGetAllLatestCurrenciesFail(t, req.Context())
 	defer ctrl.Finish()
 
-	desc, out, err := testAuth.GetAllLatestCurrencies(ctx)
+	desc, out, err := testAuth.GetAllLatestCurrencies(req)
 
 	require.Error(t, err)
 	require.NotEmpty(t, desc)
@@ -57,7 +57,7 @@ func TestGetAllLatestCurrencies_Fail(t *testing.T) {
 func createGetAllLatestCurrenciesFail(t *testing.T, ctx context.Context) (*application.CurrencyApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	currencyService := currency.NewRateRepositoryForMock(ctrl)
+	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
 	currencyService.EXPECT().
 		GetAllLatestRates(ctx, &gen.Empty{}).
 		Return(&gen.Currencies{}, errors.New("error"))
@@ -81,7 +81,7 @@ func TestGetURLCurrencies_Success(t *testing.T) {
 func createGetURLCurrenciesSuccess(t *testing.T, ctx context.Context) (*application.CurrencyApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	currencyService := currency.NewRateRepositoryForMock(ctrl)
+	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
 	currencyService.EXPECT().
 		GetAllRatesByTitle(ctx, &gen.CurrencyTitle{Title: curr}).
 		Return(createCurrencies(), nil)
@@ -105,7 +105,7 @@ func TestGetURLCurrencies_Fail(t *testing.T) {
 func createGetURLCurrenciesFail(t *testing.T, ctx context.Context) (*application.CurrencyApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	currencyService := currency.NewRateRepositoryForMock(ctrl)
+	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
 	currencyService.EXPECT().
 		GetAllRatesByTitle(ctx, &gen.CurrencyTitle{Title: curr}).
 		Return(&gen.Currencies{}, errors.New("error"))
@@ -129,7 +129,7 @@ func TestGetURLCurrencies_FailValidate(t *testing.T) {
 func createGetURLCurrenciesFailValidate(t *testing.T, ctx context.Context) (*application.CurrencyApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	currencyService := currency.NewRateRepositoryForMock(ctrl)
+	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
 
 	return application.NewCurrencyApp(currencyService), ctrl
 }
@@ -150,7 +150,7 @@ func TestGetMarkets_Success(t *testing.T) {
 func createGetMarketsSuccess(t *testing.T, ctx context.Context) (*application.CurrencyApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	currencyService := currency.NewRateRepositoryForMock(ctrl)
+	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
 
 	return application.NewCurrencyApp(currencyService), ctrl
 }
