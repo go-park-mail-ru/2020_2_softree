@@ -51,3 +51,15 @@ func ConvertFromCurrencyCurrencies(currenciesCurrency *currency.Currencies) Curr
 
 	return currenciesEntity
 }
+
+func ConvertFromInitialDayCurrencies(currenciesCurrency *currency.InitialDayCurrencies) Currencies {
+	currenciesEntity := make(Currencies, 0, len(currenciesCurrency.Currencies))
+	for _, currency := range currenciesCurrency.Currencies {
+		currenciesEntity = append(currenciesEntity, Currency{
+			Title: currency.Title,
+			Value: decimal.NewFromFloat(currency.Value),
+		})
+	}
+
+	return currenciesEntity
+}

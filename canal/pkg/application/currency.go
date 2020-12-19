@@ -1,7 +1,6 @@
 package application
 
 import (
-	"context"
 	"errors"
 	"github.com/gorilla/mux"
 	"net/http"
@@ -18,8 +17,22 @@ func NewCurrencyApp(currency currency.CurrencyServiceClient) *CurrencyApp {
 	return &CurrencyApp{currency}
 }
 
-func (currencyApp *CurrencyApp) GetAllLatestCurrencies(ctx context.Context) (entity.Description, entity.Currencies, error) {
-	out, err := currencyApp.currency.GetAllLatestRates(ctx, &currency.Empty{})
+func (currencyApp *CurrencyApp) GetAllLatestCurrencies(r *http.Request) (entity.Description, entity.Currencies, error) {
+	if r.URL.Query().Get("initial") == "true"{
+		out, err := currencyApp.currency.GetInitialDayCurrency(r.Context(), &currency.Empty{})
+		if err != nil {
+			return entity.Description{
+				Status:   http.StatusInternalServerError,
+				Function: "GetAllLatestCurrencies",
+				Action:   "GetInitialDayCurrency",
+			}, entity.Currencies{}, err
+		}
+
+		return entity.Description{}, entity.ConvertFromInitialDayCurrencies(out), nil
+	}
+
+
+	out, err := currencyApp.currency.GetAllLatestRates(r.Context(), &currency.Empty{})
 	if err != nil {
 		return entity.Description{
 			Status:   http.StatusInternalServerError,
@@ -42,7 +55,7 @@ func (currencyApp *CurrencyApp) GetURLCurrencies(r *http.Request) (entity.Descri
 		}, entity.Currencies{}, errors.New("validateTitle from GetURLCurrencies")
 	}
 
-	out, err := currencyApp.currency.GetAllRatesByTitle(r.Context(), &currency.CurrencyTitle{Title: title})
+	out, err := currencyApp.currency.GetAllRatesByTitle(r.Context(), &currency.CurrencyTitle{Title: title, Period: r.URL.Query().Get("period")})
 	if err != nil {
 		return entity.Description{
 			Status:   http.StatusInternalServerError,

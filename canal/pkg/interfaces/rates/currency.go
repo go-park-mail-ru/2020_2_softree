@@ -11,7 +11,7 @@ import (
 func (rates *Rates) GetAllLatestRates(w http.ResponseWriter, r *http.Request) {
 	defer metric.RecordTimeMetric(time.Now(), "GetAllLatestRates")
 
-	desc, out, err := rates.currencyApp.GetAllLatestCurrencies(r.Context())
+	desc, out, err := rates.currencyApp.GetAllLatestCurrencies(r)
 	if err != nil {
 		rates.logger.Error(desc, err)
 		w.WriteHeader(desc.Status)
