@@ -1,7 +1,7 @@
 package authorization
 
 import (
-	"encoding/json"
+	json "github.com/mailru/easyjson"
 	"net/http"
 	"server/canal/pkg/domain/entity"
 	"server/canal/pkg/infrastructure/metric"
@@ -27,6 +27,10 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(desc.Status)
 
 		metric.RecordHitMetric(desc.Status, r.URL.Path)
+		return
+	}
+	if desc.ErrorJSON.NotEmpty {
+		a.handleErrorJSON(desc, w, r)
 		return
 	}
 

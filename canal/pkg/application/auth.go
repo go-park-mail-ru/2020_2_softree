@@ -49,6 +49,7 @@ func (authApp *AuthApp) Login(ctx context.Context, user entity.User) (entity.Des
 		}, entity.PublicUser{}, http.Cookie{}, err
 	}
 	if !check.Existence {
+		errs.NotEmpty = true
 		errs.NonFieldError = append(errs.NonFieldError, "Неправильный email или пароль")
 		return entity.Description{
 			Status:    http.StatusBadRequest,
@@ -72,8 +73,7 @@ func (authApp *AuthApp) Login(ctx context.Context, user entity.User) (entity.Des
 
 	cookie := utils.CreateCookie()
 	var sess *authorization.Session
-	var userId = &authorization.UserID{Id: public.Id}
-	if sess, err = authApp.auth.Create(ctx, userId); err != nil {
+	if sess, err = authApp.auth.Create(ctx, &authorization.UserID{Id: public.Id}); err != nil {
 		return entity.Description{
 			Status:   http.StatusInternalServerError,
 			Function: "Login",
@@ -126,6 +126,7 @@ func (authApp *AuthApp) Signup(ctx context.Context, user entity.User) (entity.De
 		}, entity.PublicUser{}, http.Cookie{}, err
 	}
 	if !check.Existence {
+		errs.NotEmpty = true
 		errs.NonFieldError = append(errs.NonFieldError, "Неправильный email или пароль")
 		return entity.Description{
 			Status:    http.StatusBadRequest,
@@ -156,7 +157,7 @@ func (authApp *AuthApp) Signup(ctx context.Context, user entity.User) (entity.De
 		return entity.Description{
 			Status:   http.StatusBadRequest,
 			Function: "Logout",
-			Action:   "SaveUser",
+			Action:   "CreateInitialWallet",
 		}, entity.PublicUser{}, http.Cookie{}, err
 	}
 

@@ -2,7 +2,7 @@ package authorization
 
 import (
 	"context"
-	"encoding/json"
+	json "github.com/mailru/easyjson"
 	"net/http"
 	"server/canal/pkg/domain/entity"
 	"server/canal/pkg/infrastructure/metric"
@@ -20,8 +20,8 @@ func (a *Authentication) Auth(next http.HandlerFunc) http.HandlerFunc {
 		if err != nil {
 			desc := entity.Description{
 				Function: "AuthMiddleware",
-				Action: "r.Cookie()",
-				Status: http.StatusBadRequest}
+				Action:   "r.Cookie()",
+				Status:   http.StatusBadRequest}
 			a.logger.Error(desc, err)
 			w.WriteHeader(http.StatusBadRequest)
 
@@ -32,8 +32,8 @@ func (a *Authentication) Auth(next http.HandlerFunc) http.HandlerFunc {
 		if cookie == nil {
 			desc := entity.Description{
 				Function: "AuthMiddleware",
-				Action: "if cookie == nil",
-				Status: http.StatusBadRequest}
+				Action:   "if cookie == nil",
+				Status:   http.StatusBadRequest}
 			a.logger.Error(desc, err)
 			w.WriteHeader(http.StatusBadRequest)
 
@@ -50,7 +50,7 @@ func (a *Authentication) Auth(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), entity.UserIdKey, id.Id)
+		ctx := context.WithValue(r.Context(), entity.UserIdKey, id)
 		r = r.Clone(ctx)
 
 		next.ServeHTTP(w, r)
@@ -75,8 +75,8 @@ func (a *Authentication) Authenticate(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		desc = entity.Description{
 			Function: "Authenticate",
-			Action: "Marshal",
-			Status: http.StatusInternalServerError}
+			Action:   "Marshal",
+			Status:   http.StatusInternalServerError}
 		a.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 

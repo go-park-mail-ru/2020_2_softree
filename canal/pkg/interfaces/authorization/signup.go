@@ -1,7 +1,7 @@
 package authorization
 
 import (
-	"encoding/json"
+	json "github.com/mailru/easyjson"
 	"net/http"
 	"server/canal/pkg/domain/entity"
 	"server/canal/pkg/infrastructure/metric"
@@ -29,6 +29,10 @@ func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
 		metric.RecordHitMetric(desc.Status, r.URL.Path)
 		return
 	}
+	if desc.ErrorJSON.NotEmpty {
+		a.handleErrorJSON(desc, w, r)
+		return
+	}
 
 	http.SetCookie(w, &cookie)
 
@@ -36,8 +40,8 @@ func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		desc = entity.Description{
 			Function: "Signup",
-			Action: "Marshal",
-			Status: http.StatusInternalServerError}
+			Action:   "Marshal",
+			Status:   http.StatusInternalServerError}
 		a.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 
