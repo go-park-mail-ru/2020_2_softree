@@ -345,7 +345,7 @@ func createExpectedPublicUser() entity.PublicUser {
 }
 
 func createContext(req **http.Request) context.Context {
-	ctx := context.WithValue((*req).Context(), entity.UserIdKey, int64(id))
+	ctx := context.WithValue((*req).Context(), entity.UserIdKey, id)
 	*req = (*req).Clone(ctx)
 	return ctx
 }
