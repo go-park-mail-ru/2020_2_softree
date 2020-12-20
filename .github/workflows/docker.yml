@@ -30,7 +30,7 @@ jobs:
           file: ./canal/Dockerfile
           platforms: linux/amd64,linux/arm64,linux/386
           push: true
-          tags: softree/canal:${GITHUB_SHA::8}
+          tags: softree/canal:latest
       -
         name: Canal digest
         run: echo canal ${{ steps.docker_build.outputs.digest }}
@@ -62,7 +62,7 @@ jobs:
           file: ./authorization/Dockerfile
           platforms: linux/amd64,linux/arm64,linux/386
           push: true
-          tags: softree/authorization:${GITHUB_SHA::8}
+          tags: softree/authorization:latest
       -
         name: Authorization digest
         run: echo authorization ${{ steps.docker_build.outputs.digest }}
@@ -94,7 +94,7 @@ jobs:
         file: ./currency/Dockerfile
         platforms: linux/amd64,linux/arm64,linux/386
         push: true
-        tags: softree/currency:${{ GITHUB_SHA::8 }}
+        tags: softree/currency:latest
     -
       name: Currency digest
       run: echo currency ${{ steps.docker_build.outputs.digest }}
@@ -126,7 +126,7 @@ jobs:
         file: ./profile/Dockerfile
         platforms: linux/amd64,linux/arm64,linux/386
         push: true
-        tags: softree/profile:${{ GITHUB_SHA::8 }}
+        tags: softree/profile:latest
     -
       name: Profile digest
       run: echo profile ${{ steps.docker_build.outputs.digest }}
