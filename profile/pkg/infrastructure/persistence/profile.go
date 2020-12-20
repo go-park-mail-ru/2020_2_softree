@@ -35,12 +35,12 @@ func (managerDB *UserDBManager) GetUserById(c context.Context, in *profile.UserI
 		return &profile.PublicUser{}, err
 	}
 	defer func() {
-		if err := tx.Rollback(); err != nil {
+		if err = tx.Rollback(); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"infrastructure": "profile",
 				"function":       "GetUserById",
 				"action":         "Rollback",
-			}).Error(err)
+			}).Debug(err)
 		}
 	}()
 
@@ -66,12 +66,12 @@ func (managerDB *UserDBManager) CheckExistence(ctx context.Context, in *profile.
 		return &profile.Check{}, err
 	}
 	defer func() {
-		if err := tx.Rollback(); err != nil {
+		if err = tx.Rollback(); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"infrastructure": "profile",
 				"function":       "CheckExistence",
 				"action":         "Rollback",
-			}).Error(err)
+			}).Debug(err)
 		}
 	}()
 
@@ -98,12 +98,12 @@ func (managerDB *UserDBManager) GetPassword(ctx context.Context, in *profile.Use
 		return &profile.User{}, err
 	}
 	defer func() {
-		if err := tx.Rollback(); err != nil {
+		if err = tx.Rollback(); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"infrastructure": "profile",
 				"function":       "CheckPassword",
 				"action":         "Rollback",
-			}).Error(err)
+			}).Debug(err)
 		}
 	}()
 
@@ -127,12 +127,12 @@ func (managerDB *UserDBManager) SaveUser(ctx context.Context, in *profile.User) 
 		return &profile.PublicUser{}, err
 	}
 	defer func() {
-		if err := tx.Rollback(); err != nil {
+		if err = tx.Rollback(); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"infrastructure": "profile",
 				"function":       "SaveUser",
 				"action":         "Rollback",
-			}).Error(err)
+			}).Debug(err)
 		}
 	}()
 
@@ -159,12 +159,12 @@ func (managerDB *UserDBManager) UpdateUserAvatar(ctx context.Context, in *profil
 		return &profile.Empty{}, err
 	}
 	defer func() {
-		if err := tx.Rollback(); err != nil {
+		if err = tx.Rollback(); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"infrastructure": "profile",
 				"function":       "UpdateUserAvatar",
 				"action":         "Rollback",
-			}).Error(err)
+			}).Debug(err)
 		}
 	}()
 
@@ -188,12 +188,12 @@ func (managerDB *UserDBManager) UpdateUserPassword(ctx context.Context, in *prof
 		return &profile.Empty{}, err
 	}
 	defer func() {
-		if err := tx.Rollback(); err != nil {
+		if err = tx.Rollback(); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"infrastructure": "profile",
 				"function":       "UpdateUserPassword",
 				"action":         "Rollback",
-			}).Error(err)
+			}).Debug(err)
 		}
 	}()
 
@@ -217,12 +217,12 @@ func (managerDB *UserDBManager) DeleteUser(ctx context.Context, in *profile.User
 		return &profile.Empty{}, err
 	}
 	defer func() {
-		if err := tx.Rollback(); err != nil {
+		if err = tx.Rollback(); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"infrastructure": "profile",
 				"function":       "DeleteUser",
 				"action":         "Rollback",
-			}).Error(err)
+			}).Debug(err)
 		}
 	}()
 
@@ -247,12 +247,12 @@ func (managerDB *UserDBManager) GetUserByLogin(ctx context.Context, in *profile.
 		return &profile.PublicUser{}, err
 	}
 	defer func() {
-		if err := tx.Rollback(); err != nil {
+		if err = tx.Rollback(); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"infrastructure": "profile",
 				"function":       "GetUserByLogin",
 				"action":         "Rollback",
-			}).Error(err)
+			}).Debug(err)
 		}
 	}()
 
@@ -270,7 +270,6 @@ func (managerDB *UserDBManager) GetUserByLogin(ctx context.Context, in *profile.
 		fmt.Println(password)
 		return &profile.PublicUser{}, errors.New("wrong password")
 	}
-	fmt.Println("*")
 
 	return &profile.PublicUser{Id: in.Id, Email: in.Email, Avatar: in.Avatar}, nil
 }
@@ -284,12 +283,12 @@ func (managerDB *UserDBManager) GetUserWatchlist(ctx context.Context, in *profil
 		return &profile.Currencies{}, err
 	}
 	defer func() {
-		if err := tx.Rollback(); err != nil {
+		if err = tx.Rollback(); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"infrastructure": "profile",
 				"function":       "GetUserWatchlist",
 				"action":         "Rollback",
-			}).Error(err)
+			}).Debug(err)
 		}
 	}()
 
@@ -332,12 +331,12 @@ func (managerDB *UserDBManager) GetUsers(ctx context.Context, in *profile.Empty)
 		return &profile.UsersCount{}, err
 	}
 	defer func() {
-		if err := tx.Rollback(); err != nil {
+		if err = tx.Rollback(); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"infrastructure": "profile",
 				"function":       "GetUsers",
 				"action":         "Rollback",
-			}).Error(err)
+			}).Debug(err)
 		}
 	}()
 

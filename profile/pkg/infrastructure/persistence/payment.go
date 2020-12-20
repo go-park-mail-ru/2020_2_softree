@@ -23,7 +23,7 @@ func (managerDB *UserDBManager) GetAllPaymentHistory(c context.Context, in *prof
 				"infrastructure": "profile",
 				"function":       "GetAllPaymentHistory",
 				"action":         "Rollback",
-			}).Error(err)
+			}).Debug(err)
 		}
 	}()
 
@@ -51,7 +51,7 @@ func (managerDB *UserDBManager) GetAllPaymentHistory(c context.Context, in *prof
 		history.History = append(history.History, &pay)
 	}
 
-	if err := result.Err(); err != nil {
+	if err = result.Err(); err != nil {
 		return &profile.AllHistory{}, err
 	}
 	if err = tx.Commit(); err != nil {
@@ -75,7 +75,7 @@ func (managerDB *UserDBManager) AddToPaymentHistory(c context.Context, in *profi
 				"infrastructure": "profile",
 				"function":       "AddToPaymentHistory",
 				"action":         "Rollback",
-			}).Error(err)
+			}).Debug(err)
 		}
 	}()
 

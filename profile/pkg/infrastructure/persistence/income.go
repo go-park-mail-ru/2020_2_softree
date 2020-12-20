@@ -3,6 +3,7 @@ package persistence
 import (
 	"context"
 	"database/sql"
+	"github.com/golang/protobuf/ptypes"
 	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
 	profile "server/profile/pkg/profile/gen"
@@ -18,12 +19,12 @@ func (managerDB *UserDBManager) GetIncome(c context.Context, in *profile.IncomeP
 		return &profile.Income{}, err
 	}
 	defer func() {
-		if err := tx.Rollback(); err != nil {
+		if err = tx.Rollback(); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"infrastructure": "profile",
 				"function":       "GetIncome",
 				"action":         "Rollback",
-			}).Error(err)
+			}).Debug(err)
 		}
 	}()
 
@@ -69,6 +70,55 @@ func (managerDB *UserDBManager) GetIncome(c context.Context, in *profile.IncomeP
 	return &profile.Income{Change: valueFloat}, nil
 }
 
+func (managerDB *UserDBManager) GetAllIncomePerDay(c context.Context, in *profile.UserID) (*profile.WalletStates, error) {
+	ctx, cancel := context.WithTimeout(c, managerDB.timing)
+	defer cancel()
+
+	tx, err := managerDB.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return &profile.WalletStates{}, err
+	}
+	defer func() {
+		if err = tx.Rollback(); err != nil {
+			logrus.WithFields(logrus.Fields{
+				"infrastructure": "profile",
+				"function":       "GetAllIncomePerDay",
+				"action":         "Rollback",
+			}).Debug(err)
+		}
+	}()
+
+	rows, err := tx.Query("SELECT value, updated_at FROM wallet_history WHERE user_id = $1", in.Id)
+	if err != nil {
+		return &profile.WalletStates{}, err
+	}
+	defer rows.Close()
+
+	var out profile.WalletStates
+	for rows.Next() {
+		var state profile.WalletState
+		var updated time.Time
+
+		if err = rows.Scan(&state.Value, &updated); err != nil {
+			return &profile.WalletStates{}, err
+		}
+		if state.UpdatedAt, err = ptypes.TimestampProto(updated); err != nil {
+			return &profile.WalletStates{}, err
+		}
+
+		out.States = append(out.States, &state)
+	}
+
+	if err = rows.Err(); err != nil {
+		return &profile.WalletStates{}, err
+	}
+	if err = tx.Commit(); err != nil {
+		return &profile.WalletStates{}, err
+	}
+
+	return &out, nil
+}
+
 func (managerDB *UserDBManager) PutPortfolio(ctx context.Context, in *profile.PortfolioValue) (*profile.Empty, error) {
 	ctx, cancel := context.WithTimeout(ctx, managerDB.timing)
 	defer cancel()
@@ -83,12 +133,16 @@ func (managerDB *UserDBManager) PutPortfolio(ctx context.Context, in *profile.Po
 				"infrastructure": "profile",
 				"function":       "PutPortfolio",
 				"action":         "Rollback",
-			}).Error(err)
+			}).Debug(err)
 		}
 	}()
 
-	err = tx.
-		QueryRow("INSERT INTO wallet_history (user_id, value, updated_at) VALUES ($1, $2, $3)", in.Id, in.Value, time.Now()).Err()
+	err = tx.QueryRow(
+		"INSERT INTO wallet_history (user_id, value, updated_at) VALUES ($1, $2, $3)",
+		in.Id,
+		in.Value,
+		time.Now(),
+	).Err()
 	if err != nil {
 		return &profile.Empty{}, err
 	}
