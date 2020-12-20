@@ -94,7 +94,7 @@ jobs:
         file: ./currency/Dockerfile
         platforms: linux/amd64,linux/arm64,linux/386
         push: true
-        tags: softree/currency:${GITHUB_SHA::8}
+        tags: softree/currency:${{ GITHUB_SHA::8 }}
     -
       name: Currency digest
       run: echo currency ${{ steps.docker_build.outputs.digest }}
@@ -126,7 +126,7 @@ jobs:
         file: ./profile/Dockerfile
         platforms: linux/amd64,linux/arm64,linux/386
         push: true
-        tags: softree/profile:${GITHUB_SHA::8}
+        tags: softree/profile:${{ GITHUB_SHA::8 }}
     -
       name: Profile digest
       run: echo profile ${{ steps.docker_build.outputs.digest }}
