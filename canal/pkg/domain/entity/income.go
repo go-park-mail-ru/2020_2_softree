@@ -14,7 +14,7 @@ type (
 	}
 
 	WalletState struct {
-		Value decimal.Decimal `json:"value"`
+		Value     decimal.Decimal      `json:"value"`
 		UpdatedAt *timestamp.Timestamp `json:"updated_at"`
 	}
 
@@ -23,4 +23,16 @@ type (
 
 func (in *Income) ConvertToGRPC() *profile.IncomeParameters {
 	return &profile.IncomeParameters{Id: in.Id, Period: in.Period}
+}
+
+func ConvertToWalletStates(profileStates *profile.WalletStates) WalletStates {
+	entityStates := make(WalletStates, 0, len(profileStates.States))
+	for _, pflState := range profileStates.States {
+		entityStates = append(entityStates, WalletState{
+			Value:     decimal.NewFromFloat(pflState.Value),
+			UpdatedAt: pflState.UpdatedAt,
+		})
+	}
+
+	return entityStates
 }

@@ -47,7 +47,7 @@ func (p *Profile) GetIncome(w http.ResponseWriter, r *http.Request) {
 func (p *Profile) GetAllIncomePerDay(w http.ResponseWriter, r *http.Request) {
 	defer metric.RecordTimeMetric(time.Now(), "GetAllIncomePerDay")
 
-	desc, wallets, err := p.paymentLogic.ReceiveWallets(r.Context(), r.Context().Value(entity.UserIdKey).(int64))
+	desc, out, err := p.paymentLogic.GetAllIncomePerDay(r.Context(), r.Context().Value(entity.UserIdKey).(int64))
 	if err != nil {
 		p.logger.Error(desc, err)
 		w.WriteHeader(desc.Status)
@@ -56,9 +56,9 @@ func (p *Profile) GetAllIncomePerDay(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := json.Marshal(wallets)
+	res, err := json.Marshal(out)
 	if err != nil {
-		desc = entity.Description{Function: "GetWallets", Action: "Marshal", Status: http.StatusInternalServerError}
+		desc = entity.Description{Function: "GetAllIncomePerDay", Action: "Marshal", Status: http.StatusInternalServerError}
 		p.logger.Error(desc, err)
 		w.WriteHeader(http.StatusInternalServerError)
 
@@ -71,7 +71,7 @@ func (p *Profile) GetAllIncomePerDay(w http.ResponseWriter, r *http.Request) {
 
 	metric.RecordHitMetric(http.StatusOK, r.URL.Path)
 	if _, err = w.Write(res); err != nil {
-		p.logger.Error(entity.Description{Function: "GetTransactions", Action: "Write"}, err)
+		p.logger.Error(entity.Description{Function: "GetAllIncomePerDay", Action: "Write"}, err)
 	}
 }
 

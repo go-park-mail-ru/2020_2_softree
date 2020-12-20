@@ -256,6 +256,19 @@ func (pmt *PaymentApp) GetIncome(ctx context.Context, in entity.Income) (entity.
 	return entity.Description{}, walletUSDCash.Sub(decimal.NewFromFloat(result.Change)), nil
 }
 
+func (pmt *PaymentApp) GetAllIncomePerDay(ctx context.Context, id int64) (entity.Description, entity.WalletStates, error) {
+	out, err := pmt.profile.GetAllIncomePerDay(ctx, &profile.UserID{Id: id})
+	if err != nil {
+		return entity.Description{
+			Status:   http.StatusInternalServerError,
+			Function: "GetAllIncomePerDay",
+			Action:   "GetAllIncomePerDay",
+		}, entity.WalletStates{}, err
+	}
+
+	return entity.Description{}, entity.ConvertToWalletStates(out), nil
+}
+
 func (pmt *PaymentApp) transformActualUserWallets(ctx context.Context, id int64) (decimal.Decimal, error) {
 	wallets, err := pmt.profile.GetWallets(ctx, &profile.UserID{Id: id})
 	if err != nil {

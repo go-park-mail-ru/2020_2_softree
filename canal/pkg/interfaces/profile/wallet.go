@@ -35,7 +35,7 @@ func (p *Profile) GetWallets(w http.ResponseWriter, r *http.Request) {
 
 	metric.RecordHitMetric(http.StatusOK, r.URL.Path)
 	if _, err = w.Write(res); err != nil {
-		p.logger.Error(entity.Description{Function: "GetTransactions", Action: "Write"}, err)
+		p.logger.Error(entity.Description{Function: "GetWallets", Action: "Write"}, err)
 	}
 }
 

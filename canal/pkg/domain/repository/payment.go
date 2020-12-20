@@ -12,5 +12,6 @@ type PaymentLogic interface {
 	SetTransaction(ctx context.Context, payment entity.Payment) (entity.Description, error)
 	SetWallet(ctx context.Context, wallet entity.Wallet) (entity.Description, error)
 	GetIncome(ctx context.Context, in entity.Income) (entity.Description, decimal.Decimal, error)
+	GetAllIncomePerDay(ctx context.Context, id int64) (entity.Description, entity.WalletStates, error)
 	WritePortfolios()
 }
