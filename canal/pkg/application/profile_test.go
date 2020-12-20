@@ -48,7 +48,7 @@ func TestReceiveUser_Success(t *testing.T) {
 func createReceiveUserSuccess(t *testing.T, ctx context.Context) (*application.ProfileApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
 		GetUserById(ctx, &gen.UserID{Id: id}).
 		Return(&gen.PublicUser{Id: id, Email: email, Avatar: avatar}, nil)
@@ -75,7 +75,7 @@ func TestReceiveUser_Fail(t *testing.T) {
 func createReceiveUserFail(t *testing.T, ctx context.Context) (*application.ProfileApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
 		GetUserById(ctx, &gen.UserID{Id: id}).
 		Return(&gen.PublicUser{}, errors.New("error"))
@@ -101,7 +101,7 @@ func TestReceiveWatchlist_Success(t *testing.T) {
 func createReceiveWatchlistSuccess(t *testing.T, ctx context.Context) (*application.ProfileApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
 		GetUserWatchlist(ctx, &gen.UserID{Id: id}).
 		Return(createWatchlist(), nil)
@@ -128,7 +128,7 @@ func TestReceiveWatchlist_Fail(t *testing.T) {
 func createReceiveWatchlistFail(t *testing.T, ctx context.Context) (*application.ProfileApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
 		GetUserWatchlist(ctx, &gen.UserID{Id: id}).
 		Return(&gen.Currencies{}, errors.New("error"))
@@ -154,7 +154,7 @@ func TestUpdateAvatar_Success(t *testing.T) {
 func createUpdateAvatarSuccess(t *testing.T, ctx context.Context) (*application.ProfileApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
 		UpdateUserAvatar(ctx, &gen.UpdateFields{Id: id, User: &gen.User{Id: id, Avatar: avatar}}).
 		Return(&gen.Empty{}, nil)
@@ -184,7 +184,7 @@ func TestUpdateAvatar_FailUpdateAvatar(t *testing.T) {
 func createUpdateAvatarFailUpdateAvatar(t *testing.T, ctx context.Context) (*application.ProfileApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
 		UpdateUserAvatar(ctx, &gen.UpdateFields{Id: id, User: &gen.User{Id: id, Avatar: avatar}}).
 		Return(&gen.Empty{}, errors.New("error"))
@@ -211,7 +211,7 @@ func TestUpdateAvatar_FailGetById(t *testing.T) {
 func createUpdateAvatarFailGetById(t *testing.T, ctx context.Context) (*application.ProfileApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
 		UpdateUserAvatar(ctx, &gen.UpdateFields{Id: id, User: &gen.User{Id: id, Avatar: avatar}}).
 		Return(&gen.Empty{}, nil)
@@ -241,7 +241,7 @@ func TestUpdateAvatar_FailValidation(t *testing.T) {
 func createUpdateAvatarFailValidation(t *testing.T, ctx context.Context) (*application.ProfileApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 
 	securityService := mock.NewSecurityMock(ctrl)
 
@@ -264,7 +264,7 @@ func TestUpdatePassword_Success(t *testing.T) {
 func createUpdatePasswordSuccess(t *testing.T, ctx context.Context) (*application.ProfileApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
 		GetPassword(ctx, &gen.User{Id: id, OldPassword: oldPassword, NewPassword: newPassword}).
 		Return(&gen.User{Id: id, OldPassword: oldPassword, NewPassword: newPassword, PasswordToCheck: oldPassword}, nil)
@@ -303,7 +303,7 @@ func TestUpdatePassword_FailValidationV1(t *testing.T) {
 func createUpdatePasswordFailValidationV1(t *testing.T, ctx context.Context) (*application.ProfileApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 
 	securityService := mock.NewSecurityMock(ctrl)
 
@@ -326,7 +326,7 @@ func TestUpdatePassword_FailValidationV2(t *testing.T) {
 func createUpdatePasswordFailValidationV2(t *testing.T, ctx context.Context) (*application.ProfileApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 
 	securityService := mock.NewSecurityMock(ctrl)
 
@@ -349,7 +349,7 @@ func TestUpdatePassword_FailGetPassword(t *testing.T) {
 func createUpdatePasswordFailGetPassword(t *testing.T, ctx context.Context) (*application.ProfileApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
 		GetPassword(ctx, &gen.User{Id: id, OldPassword: oldPassword, NewPassword: newPassword}).
 		Return(&gen.User{}, errors.New("error"))
@@ -375,7 +375,7 @@ func TestUpdatePassword_FailCheckPassword(t *testing.T) {
 func createUpdatePasswordFailCheckPassword(t *testing.T, ctx context.Context) (*application.ProfileApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
 		GetPassword(ctx, &gen.User{Id: id, OldPassword: oldPassword, NewPassword: newPassword}).
 		Return(&gen.User{Id: id, OldPassword: oldPassword, NewPassword: newPassword, PasswordToCheck: oldPassword}, nil)
@@ -404,7 +404,7 @@ func TestUpdatePassword_FailMakeHash(t *testing.T) {
 func createUpdatePasswordFailMakeHash(t *testing.T, ctx context.Context) (*application.ProfileApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
 		GetPassword(ctx, &gen.User{Id: id, OldPassword: oldPassword, NewPassword: newPassword}).
 		Return(&gen.User{Id: id, OldPassword: oldPassword, NewPassword: newPassword, PasswordToCheck: oldPassword}, nil)
@@ -436,7 +436,7 @@ func TestUpdatePassword_FailUpdatePassword(t *testing.T) {
 func createUpdatePasswordFailUpdatePassword(t *testing.T, ctx context.Context) (*application.ProfileApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
 		GetPassword(ctx, &gen.User{Id: id, OldPassword: oldPassword, NewPassword: newPassword}).
 		Return(&gen.User{Id: id, OldPassword: oldPassword, NewPassword: newPassword, PasswordToCheck: oldPassword}, nil)
@@ -471,7 +471,7 @@ func TestUpdatePassword_FailGetById(t *testing.T) {
 func createUpdatePasswordFailGetById(t *testing.T, ctx context.Context) (*application.ProfileApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
 		GetPassword(ctx, &gen.User{Id: id, OldPassword: oldPassword, NewPassword: newPassword}).
 		Return(&gen.User{Id: id, OldPassword: oldPassword, NewPassword: newPassword, PasswordToCheck: oldPassword}, nil)

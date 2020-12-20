@@ -37,7 +37,7 @@ func create_Login_Success(t *testing.T, ctx context.Context) (*application.AuthA
 	ctrl := gomock.NewController(t)
 
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
-	mockUser := profileMock.NewProfileMock(ctrl)
+	mockUser := profileMock.NewMockProfileServiceClient(ctrl)
 
 	mockAuth.EXPECT().
 		Create(ctx, &authorization.UserID{Id: id}).
@@ -76,7 +76,7 @@ func create_Login_Fail_UserNotExists(t *testing.T, ctx context.Context) (*applic
 	ctrl := gomock.NewController(t)
 
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
-	mockUser := profileMock.NewProfileMock(ctrl)
+	mockUser := profileMock.NewMockProfileServiceClient(ctrl)
 
 	mockUser.EXPECT().
 		CheckExistence(ctx, &profile.User{Email: email, Password: password}).
@@ -107,7 +107,7 @@ func create_Login_Fail_CheckExistanceFail(t *testing.T, ctx context.Context) (*a
 	ctrl := gomock.NewController(t)
 
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
-	mockUser := profileMock.NewProfileMock(ctrl)
+	mockUser := profileMock.NewMockProfileServiceClient(ctrl)
 
 	mockUser.EXPECT().
 		CheckExistence(ctx, &profile.User{Email: email, Password: password}).
@@ -139,7 +139,7 @@ func create_Login_Fail_GetUserByLoginFail(t *testing.T, ctx context.Context) (*a
 	ctrl := gomock.NewController(t)
 
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
-	mockUser := profileMock.NewProfileMock(ctrl)
+	mockUser := profileMock.NewMockProfileServiceClient(ctrl)
 
 	mockUser.EXPECT().
 		GetUserByLogin(ctx, &profile.User{Email: email, Password: password}).
@@ -172,7 +172,7 @@ func create_Logout_Success(t *testing.T, ctx context.Context) (*application.Auth
 	ctrl := gomock.NewController(t)
 
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
-	mockUser := profileMock.NewProfileMock(ctrl)
+	mockUser := profileMock.NewMockProfileServiceClient(ctrl)
 
 	mockAuth.EXPECT().
 		Delete(ctx, &authorization.SessionID{SessionId: sessionId}).
@@ -203,7 +203,7 @@ func create_Logout_Fail(t *testing.T, ctx context.Context) (*application.AuthApp
 	ctrl := gomock.NewController(t)
 
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
-	mockUser := profileMock.NewProfileMock(ctrl)
+	mockUser := profileMock.NewMockProfileServiceClient(ctrl)
 
 	mockAuth.EXPECT().
 		Delete(ctx, &authorization.SessionID{SessionId: sessionId}).
@@ -232,7 +232,7 @@ func create_Signup_Success(t *testing.T, ctx context.Context) (*application.Auth
 	ctrl := gomock.NewController(t)
 
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
-	mockUser := profileMock.NewProfileMock(ctrl)
+	mockUser := profileMock.NewMockProfileServiceClient(ctrl)
 	securityService := mock.NewSecurityMock(ctrl)
 
 	mockAuth.EXPECT().
@@ -279,7 +279,7 @@ func create_Signup_Fail_UserExists(t *testing.T, ctx context.Context) (*applicat
 	ctrl := gomock.NewController(t)
 
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
-	mockUser := profileMock.NewProfileMock(ctrl)
+	mockUser := profileMock.NewMockProfileServiceClient(ctrl)
 	securityService := mock.NewSecurityMock(ctrl)
 
 	mockUser.EXPECT().
@@ -309,7 +309,7 @@ func create_Signup_Fail_CheckExistenceFail(t *testing.T, ctx context.Context) (*
 	ctrl := gomock.NewController(t)
 
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
-	mockUser := profileMock.NewProfileMock(ctrl)
+	mockUser := profileMock.NewMockProfileServiceClient(ctrl)
 
 	mockUser.EXPECT().
 		CheckExistence(ctx, &profile.User{Email: email, Password: password}).
@@ -340,7 +340,7 @@ func create_Signup_Fail_MakeShieldedPasswordFail(t *testing.T, ctx context.Conte
 	ctrl := gomock.NewController(t)
 
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
-	mockUser := profileMock.NewProfileMock(ctrl)
+	mockUser := profileMock.NewMockProfileServiceClient(ctrl)
 	securityService := mock.NewSecurityMock(ctrl)
 
 	securityService.EXPECT().
@@ -373,7 +373,7 @@ func create_Signup_Fail_SaveUserFail(t *testing.T, ctx context.Context) (*applic
 	ctrl := gomock.NewController(t)
 
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
-	mockUser := profileMock.NewProfileMock(ctrl)
+	mockUser := profileMock.NewMockProfileServiceClient(ctrl)
 	securityService := mock.NewSecurityMock(ctrl)
 
 	mockUser.EXPECT().
@@ -409,7 +409,7 @@ func create_Signup_Fail_CreateInitialWalletFail(t *testing.T, ctx context.Contex
 	ctrl := gomock.NewController(t)
 
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
-	mockUser := profileMock.NewProfileMock(ctrl)
+	mockUser := profileMock.NewMockProfileServiceClient(ctrl)
 	securityService := mock.NewSecurityMock(ctrl)
 
 	mockUser.EXPECT().
@@ -448,7 +448,7 @@ func create_Signup_Fail_PutPortfolioFail(t *testing.T, ctx context.Context) (*ap
 	ctrl := gomock.NewController(t)
 
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
-	mockUser := profileMock.NewProfileMock(ctrl)
+	mockUser := profileMock.NewMockProfileServiceClient(ctrl)
 	securityService := mock.NewSecurityMock(ctrl)
 
 	mockUser.EXPECT().
@@ -490,7 +490,7 @@ func create_Signup_Fail_CreateFail(t *testing.T, ctx context.Context) (*applicat
 	ctrl := gomock.NewController(t)
 
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
-	mockUser := profileMock.NewProfileMock(ctrl)
+	mockUser := profileMock.NewMockProfileServiceClient(ctrl)
 	securityService := mock.NewSecurityMock(ctrl)
 
 	mockAuth.EXPECT().
@@ -533,7 +533,7 @@ func create_Authenticate_Success(t *testing.T, ctx context.Context) (*applicatio
 	ctrl := gomock.NewController(t)
 
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
-	mockUser := profileMock.NewProfileMock(ctrl)
+	mockUser := profileMock.NewMockProfileServiceClient(ctrl)
 	securityService := mock.NewSecurityMock(ctrl)
 
 	mockUser.EXPECT().
@@ -562,7 +562,7 @@ func create_Authenticate_Fail(t *testing.T, ctx context.Context) (*application.A
 	ctrl := gomock.NewController(t)
 
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
-	mockUser := profileMock.NewProfileMock(ctrl)
+	mockUser := profileMock.NewMockProfileServiceClient(ctrl)
 	securityService := mock.NewSecurityMock(ctrl)
 
 	mockUser.EXPECT().
@@ -590,7 +590,7 @@ func create_Auth_Success(t *testing.T, ctx context.Context) (*application.AuthAp
 	ctrl := gomock.NewController(t)
 
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
-	mockUser := profileMock.NewProfileMock(ctrl)
+	mockUser := profileMock.NewMockProfileServiceClient(ctrl)
 	securityService := mock.NewSecurityMock(ctrl)
 
 	mockAuth.EXPECT().
@@ -620,7 +620,7 @@ func create_Auth_Fail(t *testing.T, ctx context.Context) (*application.AuthApp, 
 	ctrl := gomock.NewController(t)
 
 	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
-	mockUser := profileMock.NewProfileMock(ctrl)
+	mockUser := profileMock.NewMockProfileServiceClient(ctrl)
 	securityService := mock.NewSecurityMock(ctrl)
 
 	mockAuth.EXPECT().

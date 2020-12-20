@@ -6,6 +6,8 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/types/known/timestamppb"
+	"net/http"
 	"reflect"
 	"server/canal/pkg/application"
 	"server/canal/pkg/domain/entity"
@@ -33,7 +35,7 @@ func TestReceiveTransactions_Success(t *testing.T) {
 func createReceiveTransactionsSuccess(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
 		GetAllPaymentHistory(ctx, &profileGen.UserID{Id: id}).
 		Return(createHistory(), nil)
@@ -61,7 +63,7 @@ func TestReceiveTransactions_Fail(t *testing.T) {
 func createReceiveTransactionsFail(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
 		GetAllPaymentHistory(ctx, &profileGen.UserID{Id: id}).
 		Return(&profileGen.AllHistory{}, errors.New("error"))
@@ -89,7 +91,7 @@ func TestReceiveWallets_Success(t *testing.T) {
 func createReceiveWalletsSuccess(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
 		GetWallets(ctx, &profileGen.UserID{Id: id}).
 		Return(createWallets(), nil)
@@ -117,7 +119,7 @@ func TestReceiveWallets_Fail(t *testing.T) {
 func createReceiveWalletsFail(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
 		GetWallets(ctx, &profileGen.UserID{Id: id}).
 		Return(&profileGen.Wallets{}, errors.New("error"))
@@ -143,7 +145,7 @@ func TestSetWallets_Success(t *testing.T) {
 func createSetWalletsSuccess(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
 		CreateWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
 		Return(&profileGen.Empty{}, nil)
@@ -169,7 +171,7 @@ func TestSetWallets_Fail(t *testing.T) {
 func createSetWalletsFail(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
 		CreateWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
 		Return(&profileGen.Empty{}, errors.New("error"))
@@ -201,7 +203,7 @@ func TestSetTransaction_Success(t *testing.T) {
 func createSetTransactionSuccess(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
 		CheckWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
 		Return(&profileGen.Check{Existence: true}, nil)
@@ -260,7 +262,7 @@ func TestSetTransaction_FailAddToHistory(t *testing.T) {
 func createSetTransactionFailAddToHistory(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
 		CheckWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
 		Return(&profileGen.Check{Existence: true}, nil)
@@ -319,7 +321,7 @@ func TestSetTransaction_FailUpdatePutWallet(t *testing.T) {
 func createSetTransactionFailUpdatePutWallet(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
 		CheckWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
 		Return(&profileGen.Check{Existence: true}, nil)
@@ -367,7 +369,7 @@ func TestSetTransaction_FailUpdateRemoveWallet(t *testing.T) {
 func createSetTransactionFailUpdateRemoveWallet(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
 		CheckWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
 		Return(&profileGen.Check{Existence: true}, nil)
@@ -412,7 +414,7 @@ func TestSetTransaction_FailCheckWalletBuy(t *testing.T) {
 func createSetTransactionFailCheckWalletBuy(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
 		CheckWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
 		Return(&profileGen.Check{Existence: true}, nil)
@@ -454,7 +456,7 @@ func TestSetTransaction_SuccessCreateWallet(t *testing.T) {
 func createSetTransactionSuccessCreateWallet(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
 		CheckWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
 		Return(&profileGen.Check{Existence: true}, nil)
@@ -516,7 +518,7 @@ func TestSetTransaction_FailCreateWallet(t *testing.T) {
 func createSetTransactionFailCreateWallet(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
 		CheckWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
 		Return(&profileGen.Check{Existence: true}, nil)
@@ -561,7 +563,7 @@ func TestSetTransaction_FailGetWallet(t *testing.T) {
 func createSetTransactionFailGetWallet(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
 		CheckWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
 		Return(&profileGen.Check{Existence: true}, nil)
@@ -600,7 +602,7 @@ func TestSetTransaction_FailNoPayment(t *testing.T) {
 func createSetTransactionFailNoPayment(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
 		CheckWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
 		Return(&profileGen.Check{Existence: true}, nil)
@@ -639,7 +641,7 @@ func TestSetTransaction_FailCheckWalletSell(t *testing.T) {
 func createSetTransactionFailCheckWalletSell(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
 		CheckWallet(ctx, &profileGen.ConcreteWallet{Id: id, Title: curr}).
 		Return(&profileGen.Check{Existence: true}, errors.New("error"))
@@ -675,7 +677,7 @@ func TestSetTransaction_FailGetLastRateBase(t *testing.T) {
 func createSetTransactionFailGetLastRateBase(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 
 	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
 	currencyService.EXPECT().
@@ -708,11 +710,67 @@ func TestSetTransaction_FailGetLastRateCurr(t *testing.T) {
 func createSetTransactionFailGetLastRateCurr(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
-	profileService := profile.NewProfileMock(ctrl)
+	profileService := profile.NewMockProfileServiceClient(ctrl)
 
 	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
 	currencyService.EXPECT().
 		GetLastRate(ctx, &currencyGen.CurrencyTitle{Title: curr}).Return(&currencyGen.Currency{}, errors.New("error"))
+
+	securityService := mock.NewSecurityMock(ctrl)
+
+	return application.NewPaymentApp(profileService, currencyService, securityService), ctrl
+}
+
+func TestGetAllIncomePerDay_Success(t *testing.T) {
+	ctx := createContext()
+	testAuth, ctrl := createGetAllIncomePerDaySuccess(t, ctx)
+	defer ctrl.Finish()
+
+	desc, walletStates, err := testAuth.GetAllIncomePerDay(ctx, id)
+
+	require.NoError(t, err)
+	require.Empty(t, desc)
+	require.NotEmpty(t, walletStates)
+}
+
+func createGetAllIncomePerDaySuccess(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	profileService := profile.NewMockProfileServiceClient(ctrl)
+
+	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
+	profileService.EXPECT().
+		GetAllIncomePerDay(ctx, &profileGen.UserID{Id: id}).
+		Return(createWalletStates(), nil)
+
+	securityService := mock.NewSecurityMock(ctrl)
+
+	return application.NewPaymentApp(profileService, currencyService, securityService), ctrl
+}
+
+func TestGetAllIncomePerDay_Fail(t *testing.T) {
+	ctx := createContext()
+	testAuth, ctrl := createGetAllIncomePerDayFail(t, ctx)
+	defer ctrl.Finish()
+
+	desc, walletStates, err := testAuth.GetAllIncomePerDay(ctx, id)
+
+	require.Error(t, err)
+	require.NotEmpty(t, desc)
+	require.Equal(t, "GetAllIncomePerDay", desc.Action)
+	require.Equal(t, http.StatusInternalServerError, desc.Status)
+	require.Empty(t, walletStates)
+}
+
+func createGetAllIncomePerDayFail(t *testing.T, ctx context.Context) (*application.PaymentApp, *gomock.Controller) {
+	ctrl := gomock.NewController(t)
+
+	profileService := profile.NewMockProfileServiceClient(ctrl)
+
+	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
+	profileService.EXPECT().
+		GetAllIncomePerDay(ctx, &profileGen.UserID{Id: id}).
+		Return(&profileGen.WalletStates{}, errors.New("fail"))
 
 	securityService := mock.NewSecurityMock(ctrl)
 
@@ -733,4 +791,11 @@ func createWallets() *profileGen.Wallets {
 			{Title: curr, Value: currValue},
 		},
 	}
+}
+
+func createWalletStates() *profileGen.WalletStates {
+	return &profileGen.WalletStates{
+		States: []*profileGen.WalletState{
+			{Value: currValue, UpdatedAt: &timestamppb.Timestamp{Seconds: 100, Nanos: 100}},
+	}}
 }
