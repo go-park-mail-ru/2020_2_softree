@@ -19,8 +19,8 @@ type (
 		Amount    decimal.Decimal      `json:"amount"`
 		Value     decimal.Decimal      `json:"value"`
 		Sell      bool                 `json:"sell"`
-		UpdatedUp *timestamp.Timestamp `json:"updated_up"`
-		UserId    int64
+		UpdatedAt *timestamp.Timestamp `json:"updated_at"`
+		UserId    int64                `json:"-,omitempty"`
 	}
 
 	Payments []Payment
@@ -50,7 +50,7 @@ func ConvertToPayment(history *profile.AllHistory) Payments {
 			Amount:    decimal.NewFromFloat(pay.Amount),
 			Value:     decimal.NewFromFloat(pay.Value),
 			Sell:      !(pay.Sell == "false"),
-			UpdatedUp: pay.UpdatedAt,
+			UpdatedAt: pay.UpdatedAt,
 		})
 	}
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/shopspring/decimal"
 	"log"
 	"net/http"
 	"os"
@@ -18,6 +19,7 @@ import (
 )
 
 func init() {
+	decimal.MarshalJSONWithoutQuotes = true
 	pflag.StringP("config", "c", "", "path to config file")
 	pflag.BoolP("help", "h", false, "usage info")
 

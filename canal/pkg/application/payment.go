@@ -253,7 +253,7 @@ func (pmt *PaymentApp) GetIncome(ctx context.Context, in entity.Income) (entity.
 		}, decimal.Decimal{}, err
 	}
 
-	return entity.Description{}, walletUSDCash.Sub(decimal.NewFromFloat(result.Change)), nil
+	return entity.Description{}, walletUSDCash.Sub(decimal.NewFromFloat(result.Change)).Round(3), nil
 }
 
 func (pmt *PaymentApp) GetAllIncomePerDay(ctx context.Context, id int64) (entity.Description, entity.WalletStates, error) {

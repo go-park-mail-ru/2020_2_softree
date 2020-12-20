@@ -117,18 +117,16 @@ func easyjson377dcee4DecodeServerCanalPkgDomainEntity1(in *jlexer.Lexer, out *Pa
 			}
 		case "sell":
 			out.Sell = bool(in.Bool())
-		case "updated_up":
+		case "updated_at":
 			if in.IsNull() {
 				in.Skip()
-				out.UpdatedUp = nil
+				out.UpdatedAt = nil
 			} else {
-				if out.UpdatedUp == nil {
-					out.UpdatedUp = new(timestamppb.Timestamp)
+				if out.UpdatedAt == nil {
+					out.UpdatedAt = new(timestamppb.Timestamp)
 				}
-				easyjson377dcee4DecodeGoogleGolangOrgProtobufTypesKnownTimestamppb(in, out.UpdatedUp)
+				easyjson377dcee4DecodeGoogleGolangOrgProtobufTypesKnownTimestamppb(in, out.UpdatedAt)
 			}
-		case "UserId":
-			out.UserId = int64(in.Int64())
 		default:
 			in.SkipRecursive()
 		}
@@ -169,18 +167,13 @@ func easyjson377dcee4EncodeServerCanalPkgDomainEntity1(out *jwriter.Writer, in P
 		out.Bool(bool(in.Sell))
 	}
 	{
-		const prefix string = ",\"updated_up\":"
+		const prefix string = ",\"updated_at\":"
 		out.RawString(prefix)
-		if in.UpdatedUp == nil {
+		if in.UpdatedAt == nil {
 			out.RawString("null")
 		} else {
-			easyjson377dcee4EncodeGoogleGolangOrgProtobufTypesKnownTimestamppb(out, *in.UpdatedUp)
+			easyjson377dcee4EncodeGoogleGolangOrgProtobufTypesKnownTimestamppb(out, *in.UpdatedAt)
 		}
-	}
-	{
-		const prefix string = ",\"UserId\":"
-		out.RawString(prefix)
-		out.Int64(int64(in.UserId))
 	}
 	out.RawByte('}')
 }

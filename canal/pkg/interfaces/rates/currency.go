@@ -1,6 +1,7 @@
 package rates
 
 import (
+	"fmt"
 	json "github.com/mailru/easyjson"
 	"net/http"
 	"server/canal/pkg/domain/entity"
@@ -60,6 +61,8 @@ func (rates *Rates) GetURLRate(w http.ResponseWriter, r *http.Request) {
 		metric.RecordHitMetric(http.StatusInternalServerError, r.URL.Path)
 		return
 	}
+
+	fmt.Println(string(result))
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
