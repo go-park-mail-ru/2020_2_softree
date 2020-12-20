@@ -66,7 +66,7 @@ func (rm *RateDBManager) saveRates(table string, financial domain.FinancialRepos
 		return err
 	}
 	defer func() {
-		if err := tx.Rollback(); err != nil {
+		if err = tx.Rollback(); err != nil {
 			log.Println(fmt.Errorf("saveRates: %v", err))
 		}
 	}()
@@ -200,7 +200,7 @@ func chooseSql(period string) string {
 	switch period {
 	case "week":
 		return "SELECT value, updated_at FROM history_currency_by_day " +
-			"WHERE title = $1 and updated_at between current_date - interval '1 week' and current_date + interval '1 day'"
+			"WHERE title = $1 and updated_at between current_date - interval '1 week' and current_date"
 	case "month":
 		return "SELECT value, updated_at FROM history_currency_by_day " +
 			"WHERE title = $1 and updated_at between current_date - interval '1 month' and current_date + interval '1 day'"

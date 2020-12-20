@@ -15,6 +15,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/lib/pq v1.8.0
 	github.com/mailru/easyjson v0.7.6
+	github.com/mattevans/dinero v0.4.0 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.4
 	github.com/prometheus/client_golang v1.8.0
 	github.com/shopspring/decimal v1.2.0

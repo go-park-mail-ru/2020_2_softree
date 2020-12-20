@@ -40,7 +40,7 @@ func (rm *RateDBManager) GetRatesFromApi() {
 	task := gocron.NewScheduler(time.UTC)
 	defer task.Stop()
 
-	if _, err := task.Every(1).
+	if _, err := task.Every(30).
 		Minute().StartImmediately().Do(rm.writeCurrencyDB, history_currency_by_minutes, finance); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"function": "GetRatesFromApi",

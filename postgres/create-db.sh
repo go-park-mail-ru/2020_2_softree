@@ -24,7 +24,7 @@ function restore_from_backup() {
 	local owner=$(echo $1 | tr ',' ' ' | awk  '{print $2}')
 	local backup=$(echo /backups/$database.sql)
 
-	psql -f -U $owner -d $database -f $backup
+	psql -U $owner -d $database -f $backup
 }
 
 if [ -n "$POSTGRES_MULTIPLE_DATABASES" ]; then
