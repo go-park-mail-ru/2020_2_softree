@@ -2,15 +2,12 @@ name: Go
 
 on:
   push:
-    branches:
-      - dev
+    branches: [ master ]
   pull_request:
-    branches:
-      - master
-      - dev
+    branches: [ master ]
 
 jobs:
-  main:
+  build:
     runs-on: ubuntu-latest
     steps:
       -
