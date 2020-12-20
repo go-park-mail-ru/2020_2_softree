@@ -69,14 +69,20 @@ func easyjsonE5a98965EncodeServerCanalPkgDomainEntity(out *jwriter.Writer, in Cu
 	out.RawByte('{')
 	first := true
 	_ = first
-	{
+	if in.Base != "" {
 		const prefix string = ",\"base\":"
+		first = false
 		out.RawString(prefix[1:])
 		out.String(string(in.Base))
 	}
 	{
 		const prefix string = ",\"title\":"
-		out.RawString(prefix)
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
 		out.String(string(in.Title))
 	}
 	{
@@ -84,14 +90,10 @@ func easyjsonE5a98965EncodeServerCanalPkgDomainEntity(out *jwriter.Writer, in Cu
 		out.RawString(prefix)
 		out.Raw((in.Value).MarshalJSON())
 	}
-	{
+	if in.UpdatedAt != nil {
 		const prefix string = ",\"updated_at\":"
 		out.RawString(prefix)
-		if in.UpdatedAt == nil {
-			out.RawString("null")
-		} else {
-			easyjsonE5a98965EncodeGoogleGolangOrgProtobufTypesKnownTimestamppb(out, *in.UpdatedAt)
-		}
+		easyjsonE5a98965EncodeGoogleGolangOrgProtobufTypesKnownTimestamppb(out, *in.UpdatedAt)
 	}
 	out.RawByte('}')
 }

@@ -10,10 +10,10 @@ import (
 //easyjson:json
 type (
 	Currency struct {
-		Base      string               `json:"base"`
+		Base      string               `json:"base,omitempty"`
 		Title     string               `json:"title"`
 		Value     decimal.Decimal      `json:"value"`
-		UpdatedAt *timestamp.Timestamp `json:"updated_at"`
+		UpdatedAt *timestamp.Timestamp `json:"updated_at,omitempty"`
 	}
 
 	Currencies []Currency
@@ -34,12 +34,20 @@ func ConvertFromProfileCurrencies(currenciesProfile *profile.Currencies) Currenc
 func ConvertFromCurrencyCurrencies(currenciesCurrency *currency.Currencies) Currencies {
 	currenciesEntity := make(Currencies, 0, len(currenciesCurrency.Rates))
 	for _, currency := range currenciesCurrency.Rates {
-		currenciesEntity = append(currenciesEntity, Currency{
-			Base:      currency.Base,
-			Title:     currency.Title,
-			Value:     decimal.NewFromFloat(currency.Value),
-			UpdatedAt: currency.UpdatedAt,
-		})
+		if currency.Base == "" {
+			currenciesEntity = append(currenciesEntity, Currency{
+				Title:     currency.Title,
+				Value:     decimal.NewFromFloat(currency.Value),
+				UpdatedAt: currency.UpdatedAt,
+			})
+		} else {
+			currenciesEntity = append(currenciesEntity, Currency{
+				Base:      currency.Base,
+				Title:     currency.Title,
+				Value:     decimal.NewFromFloat(currency.Value),
+				UpdatedAt: currency.UpdatedAt,
+			})
+		}
 	}
 
 	return currenciesEntity
