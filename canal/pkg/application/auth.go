@@ -136,7 +136,7 @@ func (authApp *AuthApp) Signup(ctx context.Context, user entity.User) (entity.De
 		}, entity.PublicUser{}, http.Cookie{}, nil
 	}
 
-	if user.Password, err = authApp.security.MakeShieldedPassword(user.Password); err != nil {
+	if userGRPC.Password, err = authApp.security.MakeShieldedPassword(userGRPC.Password); err != nil {
 		return entity.Description{
 			Status:   http.StatusInternalServerError,
 			Function: "Signup",

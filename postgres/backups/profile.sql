@@ -11,6 +11,8 @@ CREATE TABLE user_trade
     avatar   text default ''
 );
 
+insert into user_trade (email, password) values ('test@test.com', '$2a$10$C5lRv07hMZS6VUzPq27Xu.l7j9zFLLl02hyVW9KyuZ5FDRfFRcf16');
+
 CREATE TABLE watchlist
 (
     user_id        bigint     NOT NULL,
@@ -33,9 +35,9 @@ CREATE TABLE accounts
         ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-create index idx_accounts on accounts(user_id, title);
+insert into accounts(user_id, title, "value") values (1, 'USD', 1000.0);
 
-truncate user_trade cascade;
+create index idx_accounts on accounts(user_id, title);
 
 create index idx_payment_history on payment_history(user_id);
 
@@ -53,6 +55,11 @@ CREATE TABLE payment_history
         ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+insert into payment_history(user_id, base, curr, "value", amount, sell, updated_at)
+values (1, 'USD', 'RUB', 76.7, 500, true, '2020-11-29');
+insert into payment_history(user_id, base, curr, "value", amount, sell, updated_at)
+values (1, 'USD', 'RUB', 73.6, 200, true, '2020-10-23');
+
 CREATE TABLE wallet_history
 (
     user_id    bigint NOT NULL,
@@ -60,6 +67,9 @@ CREATE TABLE wallet_history
     updated_at timestamp with time zone
 );
 
-truncate watchlist;
-truncate accounts;
-truncate payment_history;
+insert into wallet_history(user_id, "value", updated_at)
+values (1, 950, '2020-12-19');
+insert into wallet_history(user_id, "value", updated_at)
+values (1, 700, '2020-09-29');
+insert into wallet_history(user_id, "value", updated_at)
+values (1, 900, '2020-11-29');
