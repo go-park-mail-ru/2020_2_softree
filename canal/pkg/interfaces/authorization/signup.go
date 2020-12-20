@@ -53,7 +53,7 @@ func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusCreated)
 
 	metric.RecordHitMetric(http.StatusOK, r.URL.Path)
 	if _, err := w.Write(res); err != nil {
