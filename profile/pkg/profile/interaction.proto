@@ -93,6 +93,15 @@ message Income {
   double change = 1;
 }
 
+message WalletState {
+  double value = 1;
+  google.protobuf.Timestamp updated_at = 2;
+}
+
+message WalletStates {
+  repeated WalletState states = 1;
+}
+
 message PortfolioValue {
   int64 id = 1;
   double value = 2;
@@ -124,6 +133,7 @@ service profileService {
   rpc UpdateWallet(ToSetWallet) returns (Empty) {}
 
   rpc GetIncome(IncomeParameters) returns (Income) {}
+  rpc GetAllIncomePerDay(UserID) returns (WalletStates) {}
 
   rpc PutPortfolio(PortfolioValue) returns (Empty) {}
 }

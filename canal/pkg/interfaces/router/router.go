@@ -48,6 +48,9 @@ func NewRouter(userAuthenticate *authorization.Authentication, userProfile *prof
 	r.HandleFunc("/accounts", userAuthenticate.Auth(userProfile.GetWallets)).
 		Methods(http.MethodGet, http.MethodOptions)
 
+	r.HandleFunc("/accounts/all", userAuthenticate.Auth(userProfile.GetAllIncomePerDay)).
+		Methods(http.MethodGet, http.MethodOptions)
+
 	r.HandleFunc("/accounts", userAuthenticate.Auth(userProfile.SetWallet)).
 		Methods(http.MethodPost, http.MethodOptions)
 
