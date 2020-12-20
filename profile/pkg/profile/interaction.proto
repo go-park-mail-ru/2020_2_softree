@@ -133,7 +133,7 @@ service profileService {
   rpc UpdateWallet(ToSetWallet) returns (Empty) {}
 
   rpc GetIncome(IncomeParameters) returns (Income) {}
-  rpc GetAllIncomePerDay(UserID) returns (WalletStates) {}
+  rpc GetAllIncomePerDay(IncomeParameters) returns (WalletStates) {}
 
   rpc PutPortfolio(PortfolioValue) returns (Empty) {}
 }

@@ -70,7 +70,7 @@ func (managerDB *UserDBManager) GetIncome(c context.Context, in *profile.IncomeP
 	return &profile.Income{Change: valueFloat}, nil
 }
 
-func (managerDB *UserDBManager) GetAllIncomePerDay(c context.Context, in *profile.UserID) (*profile.WalletStates, error) {
+func (managerDB *UserDBManager) GetAllIncomePerDay(c context.Context, in *profile.IncomeParameters) (*profile.WalletStates, error) {
 	ctx, cancel := context.WithTimeout(c, managerDB.timing)
 	defer cancel()
 
@@ -88,7 +88,8 @@ func (managerDB *UserDBManager) GetAllIncomePerDay(c context.Context, in *profil
 		}
 	}()
 
-	rows, err := tx.Query("SELECT value, updated_at FROM wallet_history WHERE user_id = $1", in.Id)
+	query := chooseSql(in.Period)
+	rows, err := tx.Query(query, in.Id)
 	if err != nil {
 		return &profile.WalletStates{}, err
 	}
@@ -117,6 +118,23 @@ func (managerDB *UserDBManager) GetAllIncomePerDay(c context.Context, in *profil
 	}
 
 	return &out, nil
+}
+
+func chooseSql(period string) string {
+	switch period {
+	case "week":
+		return "SELECT value, updated_at FROM wallet_history " +
+			"WHERE title = $1 and updated_at between current_date - interval '1 week' and current_date"
+	case "month":
+		return "SELECT value, updated_at FROM wallet_history " +
+			"WHERE title = $1 and updated_at between current_date - interval '1 month' and current_date + interval '1 day'"
+	case "year":
+		return "SELECT value, updated_at FROM wallet_history " +
+			"WHERE title = $1 and updated_at between current_date - interval '1 year' and current_date + interval '1 day'"
+	}
+
+	return "SELECT value, updated_at FROM wallet_history " +
+		"WHERE title = $1 and updated_at between current_date - interval '1 week' and current_date"
 }
 
 func (managerDB *UserDBManager) PutPortfolio(ctx context.Context, in *profile.PortfolioValue) (*profile.Empty, error) {

@@ -47,7 +47,13 @@ func (p *Profile) GetIncome(w http.ResponseWriter, r *http.Request) {
 func (p *Profile) GetAllIncomePerDay(w http.ResponseWriter, r *http.Request) {
 	defer metric.RecordTimeMetric(time.Now(), "GetAllIncomePerDay")
 
-	desc, out, err := p.paymentLogic.GetAllIncomePerDay(r.Context(), r.Context().Value(entity.UserIdKey).(int64))
+	desc, out, err := p.paymentLogic.GetAllIncomePerDay(
+		r.Context(),
+		entity.Income{
+			Id:     r.Context().Value(entity.UserIdKey).(int64),
+			Period: r.URL.Query().Get("period"),
+		},
+	)
 	if err != nil {
 		p.logger.Error(desc, err)
 		w.WriteHeader(desc.Status)

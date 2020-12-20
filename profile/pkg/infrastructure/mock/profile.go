@@ -436,7 +436,7 @@ func (mr *MockProfileServiceClientMockRecorder) GetIncome(ctx, in interface{}, o
 }
 
 // GetAllIncomePerDay mocks base method
-func (m *MockProfileServiceClient) GetAllIncomePerDay(ctx context.Context, in *gen.UserID, opts ...grpc.CallOption) (*gen.WalletStates, error) {
+func (m *MockProfileServiceClient) GetAllIncomePerDay(ctx context.Context, in *gen.IncomeParameters, opts ...grpc.CallOption) (*gen.WalletStates, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, in}
 	for _, a := range opts {
@@ -799,7 +799,7 @@ func (mr *MockProfileServiceServerMockRecorder) GetIncome(arg0, arg1 interface{}
 }
 
 // GetAllIncomePerDay mocks base method
-func (m *MockProfileServiceServer) GetAllIncomePerDay(arg0 context.Context, arg1 *gen.UserID) (*gen.WalletStates, error) {
+func (m *MockProfileServiceServer) GetAllIncomePerDay(arg0 context.Context, arg1 *gen.IncomeParameters) (*gen.WalletStates, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllIncomePerDay", arg0, arg1)
 	ret0, _ := ret[0].(*gen.WalletStates)

@@ -256,8 +256,8 @@ func (pmt *PaymentApp) GetIncome(ctx context.Context, in entity.Income) (entity.
 	return entity.Description{}, walletUSDCash.Sub(decimal.NewFromFloat(result.Change)).Round(3), nil
 }
 
-func (pmt *PaymentApp) GetAllIncomePerDay(ctx context.Context, id int64) (entity.Description, entity.WalletStates, error) {
-	out, err := pmt.profile.GetAllIncomePerDay(ctx, &profile.UserID{Id: id})
+func (pmt *PaymentApp) GetAllIncomePerDay(ctx context.Context, in entity.Income) (entity.Description, entity.WalletStates, error) {
+	out, err := pmt.profile.GetAllIncomePerDay(ctx, &profile.IncomeParameters{Id: in.Id, Period: in.Period})
 	if err != nil {
 		return entity.Description{
 			Status:   http.StatusInternalServerError,
