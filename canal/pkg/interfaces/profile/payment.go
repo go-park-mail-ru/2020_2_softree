@@ -11,9 +11,10 @@ import (
 func (p *Profile) GetTransactions(w http.ResponseWriter, r *http.Request) {
 	defer metric.RecordTimeMetric(time.Now(), "GetTransactions")
 
-	id := r.Context().Value(entity.UserIdKey).(int64)
-
-	desc, payments, err := p.paymentLogic.ReceiveTransactions(r.Context(), id)
+	desc, payments, err := p.paymentLogic.ReceiveTransactions(r.Context(), entity.Income{
+		Id:     r.Context().Value(entity.UserIdKey).(int64),
+		Period: r.URL.Query().Get("period"),
+	})
 	if err != nil {
 		p.logger.Error(desc, err)
 		w.WriteHeader(desc.Status)

@@ -124,17 +124,17 @@ func chooseSql(period string) string {
 	switch period {
 	case "week":
 		return "SELECT value, updated_at FROM wallet_history " +
-			"WHERE title = $1 and updated_at between current_date - interval '1 week' and current_date"
+			"WHERE user_id = $1 and updated_at between current_date - interval '1 week' and current_date"
 	case "month":
 		return "SELECT value, updated_at FROM wallet_history " +
-			"WHERE title = $1 and updated_at between current_date - interval '1 month' and current_date + interval '1 day'"
+			"WHERE user_id = $1 and updated_at between current_date - interval '1 month' and current_date + interval '1 day'"
 	case "year":
 		return "SELECT value, updated_at FROM wallet_history " +
-			"WHERE title = $1 and updated_at between current_date - interval '1 year' and current_date + interval '1 day'"
+			"WHERE user_id = $1 and updated_at between current_date - interval '1 year' and current_date + interval '1 day'"
 	}
 
 	return "SELECT value, updated_at FROM wallet_history " +
-		"WHERE title = $1 and updated_at between current_date - interval '1 week' and current_date"
+		"WHERE user_id = $1 and updated_at between current_date - interval '1 week' and current_date"
 }
 
 func (managerDB *UserDBManager) PutPortfolio(ctx context.Context, in *profile.PortfolioValue) (*profile.Empty, error) {

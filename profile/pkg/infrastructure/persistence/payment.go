@@ -9,7 +9,7 @@ import (
 	"github.com/golang/protobuf/ptypes"
 )
 
-func (managerDB *UserDBManager) GetAllPaymentHistory(c context.Context, in *profile.UserID) (*profile.AllHistory, error) {
+func (managerDB *UserDBManager) GetAllPaymentHistory(c context.Context, in *profile.IncomeParameters) (*profile.AllHistory, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), managerDB.timing)
 	defer cancel()
 
@@ -27,10 +27,8 @@ func (managerDB *UserDBManager) GetAllPaymentHistory(c context.Context, in *prof
 		}
 	}()
 
-	result, err := tx.Query(
-		"SELECT base, curr, value, amount, sell, updated_at FROM payment_history WHERE user_id = $1 order by updated_at desc",
-		in.Id,
-	)
+	query := chooseQuery(in.Period)
+	result, err := tx.Query(query, in.Id)
 	if err != nil {
 		return &profile.AllHistory{}, err
 	}
@@ -59,6 +57,23 @@ func (managerDB *UserDBManager) GetAllPaymentHistory(c context.Context, in *prof
 	}
 
 	return &history, nil
+}
+
+func chooseQuery(period string) string {
+	switch period {
+	case "week":
+		return "SELECT base, curr, value, amount, sell, updated_at FROM payment_history " +
+			"WHERE user_id = $1 and updated_at between current_date - interval '1 week' and current_date order by updated_at"
+	case "month":
+		return "SELECT base, curr, value, amount, sell, updated_at FROM payment_history " +
+			"WHERE user_id = $1 and updated_at between current_date - interval '1 month' and current_date order by updated_at"
+	case "year":
+		return "SELECT base, curr, value, amount, sell, updated_at FROM payment_history " +
+			"WHERE user_id = $1 and updated_at between current_date - interval '1 year' and current_date order by updated_at"
+	}
+
+	return "SELECT base, curr, value, amount, sell, updated_at FROM payment_history " +
+		"WHERE user_id = $1 and updated_at between current_date - interval '1 week' and current_date order by updated_at"
 }
 
 func (managerDB *UserDBManager) AddToPaymentHistory(c context.Context, in *profile.AddToHistory) (*profile.Empty, error) {

@@ -26,8 +26,8 @@ func NewPaymentApp(profile profile.ProfileServiceClient, rates currency.Currency
 	return &PaymentApp{profile, rates, *bluemonday.UGCPolicy(), security}
 }
 
-func (pmt *PaymentApp) ReceiveTransactions(ctx context.Context, id int64) (entity.Description, entity.Payments, error) {
-	history, err := pmt.profile.GetAllPaymentHistory(ctx, &profile.UserID{Id: id})
+func (pmt *PaymentApp) ReceiveTransactions(ctx context.Context, in entity.Income) (entity.Description, entity.Payments, error) {
+	history, err := pmt.profile.GetAllPaymentHistory(ctx, &profile.IncomeParameters{Id: in.Id, Period: in.Period})
 	if err != nil {
 		return entity.Description{
 			Status:   http.StatusInternalServerError,

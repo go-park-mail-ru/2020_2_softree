@@ -236,7 +236,7 @@ func (mr *MockProfileServiceClientMockRecorder) GetUsers(ctx, in interface{}, op
 }
 
 // GetAllPaymentHistory mocks base method
-func (m *MockProfileServiceClient) GetAllPaymentHistory(ctx context.Context, in *gen.UserID, opts ...grpc.CallOption) (*gen.AllHistory, error) {
+func (m *MockProfileServiceClient) GetAllPaymentHistory(ctx context.Context, in *gen.IncomeParameters, opts ...grpc.CallOption) (*gen.AllHistory, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{ctx, in}
 	for _, a := range opts {
@@ -649,7 +649,7 @@ func (mr *MockProfileServiceServerMockRecorder) GetUsers(arg0, arg1 interface{})
 }
 
 // GetAllPaymentHistory mocks base method
-func (m *MockProfileServiceServer) GetAllPaymentHistory(arg0 context.Context, arg1 *gen.UserID) (*gen.AllHistory, error) {
+func (m *MockProfileServiceServer) GetAllPaymentHistory(arg0 context.Context, arg1 *gen.IncomeParameters) (*gen.AllHistory, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllPaymentHistory", arg0, arg1)
 	ret0, _ := ret[0].(*gen.AllHistory)

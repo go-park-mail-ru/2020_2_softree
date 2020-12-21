@@ -121,7 +121,7 @@ service profileService {
   rpc GetUserWatchlist(UserID) returns (Currencies) {}
   rpc GetUsers(Empty) returns (UsersCount) {}
 
-  rpc GetAllPaymentHistory(UserID) returns (AllHistory) {}
+  rpc GetAllPaymentHistory(IncomeParameters) returns (AllHistory) {}
   rpc AddToPaymentHistory(AddToHistory) returns (Empty) {}
 
   rpc GetWallets(UserID) returns (Wallets) {}

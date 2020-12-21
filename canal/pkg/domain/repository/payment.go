@@ -7,7 +7,7 @@ import (
 )
 
 type PaymentLogic interface {
-	ReceiveTransactions(ctx context.Context, id int64) (entity.Description, entity.Payments, error)
+	ReceiveTransactions(ctx context.Context, in entity.Income) (entity.Description, entity.Payments, error)
 	ReceiveWallets(ctx context.Context, id int64) (entity.Description, entity.Wallets, error)
 	SetTransaction(ctx context.Context, payment entity.Payment) (entity.Description, error)
 	SetWallet(ctx context.Context, wallet entity.Wallet) (entity.Description, error)
