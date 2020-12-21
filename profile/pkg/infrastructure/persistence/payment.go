@@ -61,19 +61,22 @@ func (managerDB *UserDBManager) GetAllPaymentHistory(c context.Context, in *prof
 
 func chooseQuery(period string) string {
 	switch period {
+	case "day":
+		return "SELECT base, curr, value, amount, sell, updated_at FROM payment_history " +
+			"WHERE user_id = $1 and updated_at between current_date - interval '1 day' and current_date + interval '1 day' order by updated_at desc"
 	case "week":
 		return "SELECT base, curr, value, amount, sell, updated_at FROM payment_history " +
-			"WHERE user_id = $1 and updated_at between current_date - interval '1 week' and current_date order by updated_at desc"
+			"WHERE user_id = $1 and updated_at between current_date - interval '1 week' and current_date + interval '1 day' order by updated_at desc"
 	case "month":
 		return "SELECT base, curr, value, amount, sell, updated_at FROM payment_history " +
-			"WHERE user_id = $1 and updated_at between current_date - interval '1 month' and current_date order by updated_at desc"
+			"WHERE user_id = $1 and updated_at between current_date - interval '1 month' and current_date + interval '1 day' order by updated_at desc"
 	case "year":
 		return "SELECT base, curr, value, amount, sell, updated_at FROM payment_history " +
-			"WHERE user_id = $1 and updated_at between current_date - interval '1 year' and current_date order by updated_at desc"
+			"WHERE user_id = $1 and updated_at between current_date - interval '1 year' and current_date + interval '1 day' order by updated_at desc"
 	}
 
 	return "SELECT base, curr, value, amount, sell, updated_at FROM payment_history " +
-		"WHERE user_id = $1 and updated_at between current_date - interval '1 year' and current_date order by updated_at desc"
+		"WHERE user_id = $1 and updated_at between current_date - interval '1 year' and current_date + interval '1 day' order by updated_at desc"
 }
 
 func (managerDB *UserDBManager) AddToPaymentHistory(c context.Context, in *profile.AddToHistory) (*profile.Empty, error) {
