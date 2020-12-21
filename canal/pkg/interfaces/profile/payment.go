@@ -57,11 +57,11 @@ func (p *Profile) SetTransaction(w http.ResponseWriter, r *http.Request) {
 	transaction.UserId = r.Context().Value(entity.UserIdKey).(int64)
 
 	if desc, err = p.paymentLogic.SetTransaction(r.Context(), transaction); err != nil {
-		desc = entity.Description{Function: "SetTransaction", Action: "SetPayment", Status: http.StatusInternalServerError}
+		desc = entity.Description{Function: "SetTransaction", Action: "SetPayment"}
 		p.logger.Error(desc, err)
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(desc.Status)
 
-		metric.RecordHitMetric(http.StatusInternalServerError, r.URL.Path)
+		metric.RecordHitMetric(desc.Status, r.URL.Path)
 		return
 	}
 
