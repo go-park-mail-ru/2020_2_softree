@@ -1,7 +1,6 @@
 package rates_test
 
 import (
-	"context"
 	"errors"
 	"github.com/gorilla/mux"
 	"github.com/shopspring/decimal"
@@ -21,7 +20,7 @@ func TestGetAllLatestRates_Success(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, url, nil)
 	w := httptest.NewRecorder()
-	testRate, ctrl := createGetAllLatestRatesSuccess(t, req.Context())
+	testRate, ctrl := createGetAllLatestRatesSuccess(t, req)
 	defer ctrl.Finish()
 
 	testRate.GetAllLatestRates(w, req)
@@ -31,12 +30,12 @@ func TestGetAllLatestRates_Success(t *testing.T) {
 	require.NotEmpty(t, w.Body)
 }
 
-func createGetAllLatestRatesSuccess(t *testing.T, ctx context.Context) (*rates.Rates, *gomock.Controller) {
+func createGetAllLatestRatesSuccess(t *testing.T, req *http.Request) (*rates.Rates, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
 	currencyLogic := mock.NewMockCurrencyLogic(ctrl)
 	currencyLogic.EXPECT().
-		GetAllLatestCurrencies(ctx).
+		GetAllLatestCurrencies(req).
 		Return(entity.Description{}, createCurrencies(), nil)
 
 	return rates.NewRates(currencyLogic), ctrl
@@ -47,7 +46,7 @@ func TestGetAllLatestRates_Fail(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, url, nil)
 	w := httptest.NewRecorder()
-	testRate, ctrl := createGetAllLatestRatesFail(t, req.Context())
+	testRate, ctrl := createGetAllLatestRatesFail(t, req)
 	defer ctrl.Finish()
 
 	testRate.GetAllLatestRates(w, req)
@@ -55,12 +54,12 @@ func TestGetAllLatestRates_Fail(t *testing.T) {
 	require.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
 }
 
-func createGetAllLatestRatesFail(t *testing.T, ctx context.Context) (*rates.Rates, *gomock.Controller) {
+func createGetAllLatestRatesFail(t *testing.T, req *http.Request) (*rates.Rates, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
 
 	currencyLogic := mock.NewMockCurrencyLogic(ctrl)
 	currencyLogic.EXPECT().
-		GetAllLatestCurrencies(ctx).
+		GetAllLatestCurrencies(req).
 		Return(entity.Description{Status: 500}, entity.Currencies{}, errors.New("error"))
 
 	return rates.NewRates(currencyLogic), ctrl
