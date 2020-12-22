@@ -22,12 +22,12 @@ const (
 	newPassword = "new"
 	avatar      = "base64"
 
-	walletSize = 100000.0
-	value      = 79.7
-	amount     = 1000.0
-	base       = "RUB"
-	curr       = "USD"
-	sell       = false
+	period = "week"
+	value  = 79.7
+	amount = 1000.0
+	base   = "RUB"
+	curr   = "USD"
+	sell   = false
 )
 
 func TestUpdateUserAvatar_Success(t *testing.T) {

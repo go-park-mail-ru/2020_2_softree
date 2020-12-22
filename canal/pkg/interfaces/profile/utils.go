@@ -6,23 +6,6 @@ import (
 	"server/canal/pkg/domain/entity"
 )
 
-func (p *Profile) createErrorJSON(err error) (errs entity.ErrorJSON) {
-	if err.Error() == "wrong old password" {
-		errs.NotEmpty = true
-		errs.NonFieldError = append(errs.NonFieldError, "Введен неверно старый пароль")
-	}
-
-	if err.Error() == "not enough payment" {
-		errs.NotEmpty = true
-		errs.NonFieldError = append(
-			errs.NonFieldError,
-			"В вашем кошельке недостаточно средств для совершения данной транзакции",
-		)
-	}
-
-	return
-}
-
 func (p *Profile) createServerError(errs *entity.ErrorJSON, w http.ResponseWriter) int {
 	res, err := json.Marshal(errs)
 	if err != nil {
