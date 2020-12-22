@@ -24,7 +24,7 @@ func TestReceiveTransactions_Success(t *testing.T) {
 	testAuth, ctrl := createReceiveTransactionsSuccess(t, ctx)
 	defer ctrl.Finish()
 
-	desc, out, err := testAuth.ReceiveTransactions(ctx, id)
+	desc, out, err := testAuth.ReceiveTransactions(ctx, entity.Income{Id: id, Period: "week"})
 
 	require.NoError(t, err)
 	require.Empty(t, desc)
@@ -37,7 +37,7 @@ func createReceiveTransactionsSuccess(t *testing.T, ctx context.Context) (*appli
 
 	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
-		GetAllPaymentHistory(ctx, &profileGen.UserID{Id: id}).
+		GetAllPaymentHistory(ctx, &profileGen.IncomeParameters{Id: id, Period: "week"}).
 		Return(createHistory(), nil)
 
 	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
@@ -52,7 +52,7 @@ func TestReceiveTransactions_Fail(t *testing.T) {
 	testAuth, ctrl := createReceiveTransactionsFail(t, ctx)
 	defer ctrl.Finish()
 
-	desc, out, err := testAuth.ReceiveTransactions(ctx, id)
+	desc, out, err := testAuth.ReceiveTransactions(ctx, entity.Income{Id: id, Period: "week"})
 
 	require.Error(t, err)
 	require.NotEmpty(t, desc)
@@ -65,7 +65,7 @@ func createReceiveTransactionsFail(t *testing.T, ctx context.Context) (*applicat
 
 	profileService := profile.NewMockProfileServiceClient(ctrl)
 	profileService.EXPECT().
-		GetAllPaymentHistory(ctx, &profileGen.UserID{Id: id}).
+		GetAllPaymentHistory(ctx, &profileGen.IncomeParameters{Id: id, Period: "week"}).
 		Return(&profileGen.AllHistory{}, errors.New("error"))
 
 	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
@@ -726,7 +726,7 @@ func TestGetAllIncomePerDay_Success(t *testing.T) {
 	testAuth, ctrl := createGetAllIncomePerDaySuccess(t, ctx)
 	defer ctrl.Finish()
 
-	desc, walletStates, err := testAuth.GetAllIncomePerDay(ctx, id)
+	desc, walletStates, err := testAuth.GetAllIncomePerDay(ctx, entity.Income{Id: id, Period: "week"})
 
 	require.NoError(t, err)
 	require.Empty(t, desc)
@@ -740,7 +740,7 @@ func createGetAllIncomePerDaySuccess(t *testing.T, ctx context.Context) (*applic
 
 	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
 	profileService.EXPECT().
-		GetAllIncomePerDay(ctx, &profileGen.UserID{Id: id}).
+		GetAllIncomePerDay(ctx, &profileGen.IncomeParameters{Id: id, Period: "week"}).
 		Return(createWalletStates(), nil)
 
 	securityService := mock.NewSecurityMock(ctrl)
@@ -753,7 +753,7 @@ func TestGetAllIncomePerDay_Fail(t *testing.T) {
 	testAuth, ctrl := createGetAllIncomePerDayFail(t, ctx)
 	defer ctrl.Finish()
 
-	desc, walletStates, err := testAuth.GetAllIncomePerDay(ctx, id)
+	desc, walletStates, err := testAuth.GetAllIncomePerDay(ctx, entity.Income{Id: id, Period: "week"})
 
 	require.Error(t, err)
 	require.NotEmpty(t, desc)
@@ -769,7 +769,7 @@ func createGetAllIncomePerDayFail(t *testing.T, ctx context.Context) (*applicati
 
 	currencyService := currency.NewMockCurrencyServiceClient(ctrl)
 	profileService.EXPECT().
-		GetAllIncomePerDay(ctx, &profileGen.UserID{Id: id}).
+		GetAllIncomePerDay(ctx, &profileGen.IncomeParameters{Id: id, Period: "week"}).
 		Return(&profileGen.WalletStates{}, errors.New("fail"))
 
 	securityService := mock.NewSecurityMock(ctrl)

@@ -18,7 +18,7 @@ import (
 )
 
 func TestGetAllLatestCurrencies_Success(t *testing.T) {
-	req := createRequest()
+	req := createRequestNotInitial()
 	testAuth, ctrl := createGetAllLatestCurrenciesSuccess(t, req.Context())
 	defer ctrl.Finish()
 
@@ -42,7 +42,7 @@ func createGetAllLatestCurrenciesSuccess(t *testing.T, ctx context.Context) (*ap
 }
 
 func TestGetAllLatestCurrencies_Fail(t *testing.T) {
-	req := createRequest()
+	req := createRequestNotInitial()
 	testAuth, ctrl := createGetAllLatestCurrenciesFail(t, req.Context())
 	defer ctrl.Finish()
 
@@ -66,7 +66,7 @@ func createGetAllLatestCurrenciesFail(t *testing.T, ctx context.Context) (*appli
 }
 
 func TestGetURLCurrencies_Success(t *testing.T) {
-	req := createRequest()
+	req := createRequestNotInitial()
 	testAuth, ctrl := createGetURLCurrenciesSuccess(t, req.Context())
 	defer ctrl.Finish()
 
@@ -90,7 +90,7 @@ func createGetURLCurrenciesSuccess(t *testing.T, ctx context.Context) (*applicat
 }
 
 func TestGetAllLatestCurrenciesInitial_Success(t *testing.T) {
-	req := createRequest()
+	req := createRequestInitial()
 	testAuth, ctrl := createGetAllLatestCurrenciesInitialSuccess(t, req.Context())
 	defer ctrl.Finish()
 
@@ -114,7 +114,7 @@ func createGetAllLatestCurrenciesInitialSuccess(t *testing.T, ctx context.Contex
 }
 
 func TestGetAllLatestCurrenciesInitial_Fail(t *testing.T) {
-	req := createRequest()
+	req := createRequestInitial()
 	testAuth, ctrl := createGetAllLatestCurrenciesInitialFail(t, req.Context())
 	defer ctrl.Finish()
 
@@ -138,7 +138,7 @@ func createGetAllLatestCurrenciesInitialFail(t *testing.T, ctx context.Context) 
 }
 
 func TestGetURLCurrencies_Fail(t *testing.T) {
-	ctx := createRequest()
+	ctx := createRequestNotInitial()
 	testAuth, ctrl := createGetURLCurrenciesFail(t, ctx.Context())
 	defer ctrl.Finish()
 
@@ -183,7 +183,7 @@ func createGetURLCurrenciesFailValidate(t *testing.T, ctx context.Context) (*app
 }
 
 func TestGetMarkets_Success(t *testing.T) {
-	req := createRequest()
+	req := createRequestNotInitial()
 	testAuth, ctrl := createGetMarketsSuccess(t, req.Context())
 	defer ctrl.Finish()
 
@@ -211,7 +211,13 @@ func createInitialCurrencies() *gen.InitialDayCurrencies {
 	return &gen.InitialDayCurrencies{Currencies: []*gen.InitialDayCurrency{{Title: "RUB", Value: 0.23}}}
 }
 
-func createRequest() *http.Request {
+func createRequestNotInitial() *http.Request {
+	req := httptest.NewRequest(http.MethodGet, "http://127.0.0.1:8000/api/rates/USD", nil)
+	req = mux.SetURLVars(req, map[string]string{"title": curr})
+	return req
+}
+
+func createRequestInitial() *http.Request {
 	req := httptest.NewRequest(http.MethodGet, "http://127.0.0.1:8000/api/rates/USD?initial=true", nil)
 	req = mux.SetURLVars(req, map[string]string{"title": curr})
 	return req
