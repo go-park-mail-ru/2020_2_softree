@@ -45,7 +45,13 @@ func (currencyApp *CurrencyApp) GetURLCurrencies(r *http.Request) (entity.Descri
 			entity.Currencies{}, errors.New("validateTitle from GetURLCurrencies")
 	}
 
-	out, err := currencyApp.currency.GetAllRatesByTitle(r.Context(), &currency.CurrencyTitle{Title: title, Period: r.URL.Query().Get("period")})
+	out, err := currencyApp.currency.GetAllRatesByTitle(
+		r.Context(),
+		&currency.CurrencyTitle{
+			Title:  title,
+			Period: r.URL.Query().Get("period"),
+		},
+	)
 	if err != nil {
 		return createErrorDescription("GetURLCurrencies", "GetAllRatesByTitle", http.StatusInternalServerError),
 			entity.Currencies{}, err
@@ -59,6 +65,7 @@ func (currencyApp *CurrencyApp) GetMarkets() (entity.Description, entity.Markets
 }
 
 const lenOfCurrency = 3
+
 func validateTitle(title string) bool {
 	if len(title) != lenOfCurrency {
 		return false
