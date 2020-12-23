@@ -32,27 +32,23 @@ func (managerDB *UserDBManager) GetIncome(c context.Context, in *profile.IncomeP
 	switch in.Period {
 	case "day":
 		err = tx.QueryRow(
-			"SELECT value FROM wallet_history WHERE user_id = $1 AND updated_at >= $2::date - interval '1 day' order by updated_at limit 1",
+			"SELECT value FROM wallet_history WHERE user_id = $1 AND updated_at >= current_date - interval '1 day' order by updated_at limit 1",
 			in.Id,
-			time.Now(),
 		).Scan(&valueDecimal)
 	case "week":
 		err = tx.QueryRow(
-			"SELECT value FROM wallet_history WHERE user_id = $1 AND updated_at >= $2::date - interval '1 week' order by updated_at limit 1",
+			"SELECT value FROM wallet_history WHERE user_id = $1 AND updated_at >= current_date - interval '1 week' order by updated_at limit 1",
 			in.Id,
-			time.Now(),
 		).Scan(&valueDecimal)
 	case "month":
 		err = tx.QueryRow(
-			"SELECT value FROM wallet_history WHERE user_id = $1 AND updated_at >= $2::date - interval '1 month' order by updated_at limit 1",
+			"SELECT value FROM wallet_history WHERE user_id = $1 AND updated_at >= current_date - interval '1 month' order by updated_at limit 1",
 			in.Id,
-			time.Now(),
 		).Scan(&valueDecimal)
 	case "year":
 		err = tx.QueryRow(
-			"SELECT value FROM wallet_history WHERE user_id = $1 AND updated_at >= $2::date - interval '1 year' order by updated_at limit 1",
+			"SELECT value FROM wallet_history WHERE user_id = $1 AND updated_at >= current_date - interval '1 year' order by updated_at limit 1",
 			in.Id,
-			time.Now(),
 		).Scan(&valueDecimal)
 	case "all_time":
 		err = tx.QueryRow("SELECT value FROM wallet_history WHERE user_id = $1 order by updated_at limit 1",
