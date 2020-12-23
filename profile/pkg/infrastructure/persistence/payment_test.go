@@ -16,6 +16,7 @@ import (
 
 const (
 	userId   = 1
+	period   = "week"
 	base     = "RUB"
 	currency = "USD"
 	amount   = 200
@@ -53,14 +54,16 @@ func TestGetAllPaymentHistory_Success(t *testing.T) {
 
 	mock.ExpectBegin()
 	mock.
-		ExpectQuery("SELECT base, curr, value, amount, sell, updated_at FROM payment_history WHERE").
+		ExpectQuery(regexp.QuoteMeta(`SELECT base, curr, value, amount, sell, updated_at FROM payment_history 
+			WHERE user_id = $1 and updated_at between current_date - interval '1 week' 
+			and current_date + interval '1 day' order by updated_at desc`)).
 		WithArgs(userId).
 		WillReturnRows(rows)
 	mock.ExpectCommit()
 
 	repo := database.NewUserDBManager(db)
 	ctx := context.Background()
-	row, err := repo.GetAllPaymentHistory(ctx, &profile.UserID{Id: userId})
+	row, err := repo.GetAllPaymentHistory(ctx, &profile.IncomeParameters{Id: userId, Period: period})
 
 	require.Equal(t, nil, err)
 	require.Equal(t, nil, mock.ExpectationsWereMet())
@@ -74,14 +77,16 @@ func TestGetAllPaymentHistory_Fail(t *testing.T) {
 
 	mock.ExpectBegin()
 	mock.
-		ExpectQuery("SELECT base, curr, value, amount, sell, updated_at FROM payment_history WHERE").
+		ExpectQuery(regexp.QuoteMeta(`SELECT base, curr, value, amount, sell, updated_at FROM payment_history 
+			WHERE user_id = $1 and updated_at between current_date - interval '1 week' 
+			and current_date + interval '1 day' order by updated_at desc`)).
 		WithArgs(userId).
 		WillReturnError(errors.New("error"))
 	mock.ExpectRollback()
 
 	repo := database.NewUserDBManager(db)
 	ctx := context.Background()
-	_, err = repo.GetAllPaymentHistory(ctx, &profile.UserID{Id: userId})
+	_, err = repo.GetAllPaymentHistory(ctx, &profile.IncomeParameters{Id: userId, Period: period})
 
 	require.NotEqual(t, nil, err)
 	require.Equal(t, nil, mock.ExpectationsWereMet())
