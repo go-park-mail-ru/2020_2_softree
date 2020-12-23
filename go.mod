@@ -7,6 +7,7 @@ require (
 	github.com/alicebob/miniredis/v2 v2.14.1
 	github.com/antihax/optional v1.0.0
 	github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef
+	github.com/elliotchance/redismock v1.5.3 // indirect
 	github.com/go-co-op/gocron v0.3.3
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.4.3
@@ -18,6 +19,7 @@ require (
 	github.com/mattevans/dinero v0.4.0 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.4
 	github.com/prometheus/client_golang v1.8.0
+	github.com/rafaeljusto/redigomock v2.4.0+incompatible
 	github.com/shopspring/decimal v1.2.0
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/pflag v1.0.5
@@ -28,6 +30,7 @@ require (
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43 // indirect
 	golang.org/x/sys v0.0.0-20201119102817-f84b799fce68 // indirect
 	golang.org/x/text v0.3.4 // indirect
+	golang.org/x/tools v0.0.0-20201223010750-3fa0e8f87c1a // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20201119123407-9b1e624d6bc4 // indirect
 	google.golang.org/grpc v1.33.2

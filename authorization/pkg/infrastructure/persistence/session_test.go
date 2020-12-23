@@ -2,7 +2,7 @@ package persistence_test
 
 import (
 	"context"
-	"github.com/sirupsen/logrus"
+	"fmt"
 	database "server/authorization/pkg/infrastructure/persistence"
 	session "server/authorization/pkg/session/gen"
 	"strconv"
@@ -10,6 +10,7 @@ import (
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/gomodule/redigo/redis"
+	"github.com/rafaeljusto/redigomock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -28,12 +29,6 @@ func TestCreate_Success(t *testing.T) {
 		MaxActive: 12000,
 		Dial: func() (redis.Conn, error) {
 			conn, err := redis.Dial("tcp", s.Addr())
-			if err != nil {
-				logrus.WithFields(logrus.Fields{
-					"function": "main",
-					"action":   "connect to redis",
-				}).Fatalln(err)
-			}
 			return conn, err
 		},
 	}
@@ -50,6 +45,54 @@ func TestCreate_Success(t *testing.T) {
 	}
 }
 
+func TestCreate_SetFail(t *testing.T) {
+	s, err := miniredis.Run()
+	require.NoError(t, err)
+	defer s.Close()
+
+	testPool := &redis.Pool{
+		MaxIdle:   80,
+		MaxActive: 12000,
+		Dial: func() (redis.Conn, error) {
+			conn := redigomock.NewConn()
+			conn.Command("SET").ExpectError(fmt.Errorf("Low level error"))
+			return conn, err
+		},
+	}
+
+	sessionManager := database.NewSessionManager(testPool)
+
+	ctx := context.Background()
+	sess, err := sessionManager.Create(ctx, &session.UserID{Id: userId})
+	require.Error(t, err)
+	require.Empty(t, sess)
+}
+
+func TestCreate_NilReply(t *testing.T) {
+	s, err := miniredis.Run()
+	require.NoError(t, err)
+	defer s.Close()
+
+	testPool := &redis.Pool{
+		MaxIdle:   80,
+		MaxActive: 12000,
+		Dial: func() (redis.Conn, error) {
+			conn := redigomock.NewConn()
+			conn.Command("SET").Expect(nil)
+			return conn, err
+		},
+	}
+
+	sessionManager := database.NewSessionManager(testPool)
+
+	ctx := context.Background()
+	sess, err := sessionManager.Create(ctx, &session.UserID{Id: userId})
+
+	require.Error(t, err)
+	require.Empty(t, sess)
+	require.Equal(t, "reply is nil", err.Error())
+}
+
 func TestCheck_Success(t *testing.T) {
 	s, err := miniredis.Run()
 	require.NoError(t, err)
@@ -60,12 +103,6 @@ func TestCheck_Success(t *testing.T) {
 		MaxActive: 12000,
 		Dial: func() (redis.Conn, error) {
 			conn, err := redis.Dial("tcp", s.Addr())
-			if err != nil {
-				logrus.WithFields(logrus.Fields{
-					"function": "main",
-					"action":   "connect to redis",
-				}).Fatalln(err)
-			}
 			return conn, err
 		},
 	}
@@ -76,13 +113,12 @@ func TestCheck_Success(t *testing.T) {
 	require.NoError(t, s.Set("sessions:"+sessionId, strconv.Itoa(userId)))
 
 	id, err := sessionManager.Check(ctx, &session.SessionID{SessionId: sessionId})
-	require.NoError(t, err)
 
 	require.NoError(t, err)
 	require.EqualValues(t, userId, id.Id)
 }
 
-func TestCheck_Fail(t *testing.T) {
+func TestCheck_GetFail(t *testing.T) {
 	s, err := miniredis.Run()
 	require.NoError(t, err)
 	defer s.Close()
@@ -91,13 +127,8 @@ func TestCheck_Fail(t *testing.T) {
 		MaxIdle:   80,
 		MaxActive: 12000,
 		Dial: func() (redis.Conn, error) {
-			conn, err := redis.Dial("tcp", s.Addr())
-			if err != nil {
-				logrus.WithFields(logrus.Fields{
-					"function": "main",
-					"action":   "connect to redis",
-				}).Fatalln(err)
-			}
+			conn := redigomock.NewConn()
+			conn.Command("GET").ExpectError(fmt.Errorf("redis fail"))
 			return conn, err
 		},
 	}
@@ -107,7 +138,32 @@ func TestCheck_Fail(t *testing.T) {
 	ctx := context.Background()
 	_, err = sessionManager.Check(ctx, &session.SessionID{SessionId: sessionId})
 
-	require.EqualValues(t, "reply is nil", err.Error())
+	require.EqualValues(t, "redis fail", err.Error())
+}
+
+func TestCheck_NilReply(t *testing.T) {
+	s, err := miniredis.Run()
+	require.NoError(t, err)
+	defer s.Close()
+
+	testPool := &redis.Pool{
+		MaxIdle:   80,
+		MaxActive: 12000,
+		Dial: func() (redis.Conn, error) {
+			conn := redigomock.NewConn()
+			conn.Command("GET").Expect(nil)
+			return conn, err
+		},
+	}
+
+	sessionManager := database.NewSessionManager(testPool)
+
+	ctx := context.Background()
+	sess, err := sessionManager.Check(ctx, &session.SessionID{SessionId: sessionId})
+
+	require.Error(t, err)
+	require.Empty(t, sess)
+	require.Equal(t, "reply is nil", err.Error())
 }
 
 func TestDelete_Success(t *testing.T) {
@@ -120,12 +176,6 @@ func TestDelete_Success(t *testing.T) {
 		MaxActive: 12000,
 		Dial: func() (redis.Conn, error) {
 			conn, err := redis.Dial("tcp", s.Addr())
-			if err != nil {
-				logrus.WithFields(logrus.Fields{
-					"function": "main",
-					"action":   "connect to redis",
-				}).Fatalln(err)
-			}
 			return conn, err
 		},
 	}
@@ -139,4 +189,55 @@ func TestDelete_Success(t *testing.T) {
 
 	exists := s.Exists(sessionId)
 	require.EqualValues(t, false, exists)
+}
+
+func TestDelete_DelFail(t *testing.T) {
+	s, err := miniredis.Run()
+	require.NoError(t, err)
+	defer s.Close()
+
+	testPool := &redis.Pool{
+		MaxIdle:   80,
+		MaxActive: 12000,
+		Dial: func() (redis.Conn, error) {
+			conn := redigomock.NewConn()
+			conn.Command("DEL").ExpectError(fmt.Errorf("redis fail"))
+			return conn, err
+		},
+	}
+
+	sessionManager := database.NewSessionManager(testPool)
+
+	ctx := context.Background()
+	require.NoError(t, s.Set("sessions:"+sessionId, strconv.Itoa(userId)))
+	_, err = sessionManager.Delete(ctx, &session.SessionID{SessionId: sessionId})
+
+	require.Error(t, err)
+	require.EqualValues(t, "redis fail", err.Error())
+}
+
+func TestDelete_NilReply(t *testing.T) {
+	s, err := miniredis.Run()
+	require.NoError(t, err)
+	defer s.Close()
+
+	testPool := &redis.Pool{
+		MaxIdle:   80,
+		MaxActive: 12000,
+		Dial: func() (redis.Conn, error) {
+			conn := redigomock.NewConn()
+			conn.Command("DEL").Expect(nil)
+			return conn, err
+		},
+	}
+
+	sessionManager := database.NewSessionManager(testPool)
+
+	ctx := context.Background()
+	require.NoError(t, s.Set("sessions:"+sessionId, strconv.Itoa(userId)))
+	sess, err := sessionManager.Delete(ctx, &session.SessionID{SessionId: sessionId})
+
+	require.Error(t, err)
+	require.Empty(t, sess)
+	require.Equal(t, "reply is nil", err.Error())
 }
