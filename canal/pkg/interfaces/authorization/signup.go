@@ -30,8 +30,7 @@ func (a *Authentication) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if desc.ErrorJSON.NotEmpty {
-		code := a.handleErrorJSON(desc, w)
-		w.WriteHeader(code)
+		a.handleErrorJSON(desc, w)
 
 		metric.RecordHitMetric(desc.Status, r.URL.Path)
 		return

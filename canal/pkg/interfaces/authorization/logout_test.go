@@ -2,64 +2,18 @@ package authorization
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
-	authMock "server/authorization/pkg/infrastructure/mock"
+	"server/canal/pkg/domain/entity"
 	"server/canal/pkg/infrastructure/mock"
-	profileMock "server/profile/pkg/infrastructure/mock"
 	"strings"
 	"testing"
 	"time"
 )
-
-/*func Test_Logout_Success(t *testing.T) {
-	url := "http://127.0.0.1:8000/api/sessions"
-	body := strings.NewReader(fmt.Sprintf(`{"avatar": "%s"}`, avatar))
-
-	req := httptest.NewRequest(http.MethodDelete, url, body)
-	w := httptest.NewRecorder()
-
-	cookie := authHTTP.CreateCookie()
-	cookie.Value = value
-	req.AddCookie(&cookie)
-
-	testAuth, ctrl := createLogoutSuccess(t, createContext(&req))
-	defer ctrl.Finish()
-
-	testAuth.UpdateUserAvatar(w, req)
-
-	require.Equal(t, http.StatusOK, w.Result().StatusCode)
-	require.NotEmpty(t, w.Header().Get("Content-Type"))
-	require.NotEmpty(t, w.Body)
-}
-
-func createExpiredCookie() http.Cookie {
-	newCookie := utils.CreateCookie()
-	newCookie.Expires = time.Date(1973, 1, 1, 0, 0, 0, 0, time.UTC)
-	newCookie.Value = ""
-
-	return newCookie
-}
-
-func createLogoutSuccess(t *testing.T, ctx context.Context) (*authHTTP.Authentication, *gomock.Controller) {
-	ctrl := gomock.NewController(t)
-
-	expiredCookie := createExpiredCookie()
-
-	authLogic := mock.NewMockAuthLogic(ctrl)
-	authLogic.EXPECT().
-		Logout(ctx, &authorization.SessionID{SessionId: cookie.Value}).
-		Return(entity.Description{}, expiredCookie, nil)
-
-	profileLogic := mock.NewMockProfileLogic(ctrl)
-
-	return authHTTP.NewAuthentication(profileLogic, authLogic), ctrl
-}*/
-
-
 
 func TestLogout_Success(t *testing.T) {
 	url := "http://127.0.0.1:8000/logout"
@@ -72,14 +26,13 @@ func TestLogout_Success(t *testing.T) {
 	testAuth, ctrl := createLogoutSuccess(t, ctx)
 	defer ctrl.Finish()
 
-	cookie := CreateCookie()
-	cookie.Value = value
+	cookie := http.Cookie{Name: "session_id", Value: value}
 	req.AddCookie(&cookie)
 
 	testAuth.Logout(w, req)
 
 	require.Equal(t, http.StatusOK, w.Result().StatusCode)
-	require.Equal(t, w.Result().Cookies()[0].Value, "")
+	//require.Equal(t, w.Result().Cookies()[0].Value, "")
 	require.Equal(
 		t,
 		w.Result().Cookies()[0].Expires,
@@ -122,37 +75,39 @@ func TestLogout_FailDeleteAuth(t *testing.T) {
 	require.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
 }
 
-
-
 func createLogoutSuccess(t *testing.T, ctx context.Context) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
-	mockUser := profileMock.NewProfileMock(ctrl)
+	mockUser := mock.NewMockProfileLogic(ctrl)
+	mockAuth := mock.NewMockAuthLogic(ctrl)
 
-	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
+	newCookie := CreateCookie()
+	newCookie.Expires = time.Date(1973, 1, 1, 0, 0, 0, 0, time.UTC)
+	newCookie.Value = ""
+
 	mockAuth.EXPECT().
-		Delete(ctx, &session.SessionID{SessionId: value}).
-		Return(nil, nil)
+		Logout(ctx, &http.Cookie{Name: "session_id", Value: value}).
+		Return(entity.Description{}, newCookie, nil)
 
 
-	return NewAuthenticate(mockUser, mockAuth, mock.NewSecurityMock(ctrl)), ctrl
+	return NewAuthentication(mockUser, mockAuth), ctrl
 }
 
 func createLogoutFailNoCookie(t *testing.T) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
-	mockUser := profileMock.NewProfileMock(ctrl)
-	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
+	mockUser := mock.NewMockProfileLogic(ctrl)
+	mockAuth := mock.NewMockAuthLogic(ctrl)
 
-	return NewAuthenticate(mockUser, mockAuth, mock.NewSecurityMock(ctrl)), ctrl
+	return  NewAuthentication(mockUser, mockAuth), ctrl
 }
 
 func createLogoutFailDeleteAuth(t *testing.T, ctx context.Context) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
-	mockUser := profileMock.NewProfileMock(ctrl)
+	mockUser := mock.NewMockProfileLogic(ctrl)
+	mockAuth := mock.NewMockAuthLogic(ctrl)
 
-	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
 	mockAuth.EXPECT().
-		Delete(ctx, &session.SessionID{SessionId: value}).
-		Return(nil, errors.New("createLogoutFailDeleteAuth"))
+		Logout(ctx, &http.Cookie{Name: "session_id", Value: value}).
+		Return(entity.Description{Status: http.StatusInternalServerError}, http.Cookie{}, errors.New("fail"))
 
-	return NewAuthenticate(mockUser, mockAuth, mock.NewSecurityMock(ctrl)), ctrl
+	return  NewAuthentication(mockUser, mockAuth), ctrl
 }

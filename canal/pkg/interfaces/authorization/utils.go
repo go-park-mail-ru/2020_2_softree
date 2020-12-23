@@ -20,14 +20,15 @@ func CreateCookie() http.Cookie {
 	}
 }
 
-func (a *Authentication) handleErrorJSON(desc entity.Description, w http.ResponseWriter) int {
+func (a *Authentication) handleErrorJSON(desc entity.Description, w http.ResponseWriter) {
 	res, err := json.Marshal(desc.ErrorJSON)
 	if err != nil {
 		a.logger.Error(desc, err)
-
-		return http.StatusInternalServerError
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
+	w.WriteHeader(desc.Status)
 	w.Header().Add("Content-Type", "application/json")
 
 	if _, err := w.Write(res); err != nil {
@@ -36,6 +37,4 @@ func (a *Authentication) handleErrorJSON(desc entity.Description, w http.Respons
 			"action":   "Write",
 		}).Error(err)
 	}
-
-	return desc.Status
 }

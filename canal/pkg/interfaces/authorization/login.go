@@ -29,14 +29,13 @@ func (a *Authentication) Login(w http.ResponseWriter, r *http.Request) {
 		metric.RecordHitMetric(desc.Status, r.URL.Path)
 		return
 	}
+
 	if desc.ErrorJSON.NotEmpty {
-		code := a.handleErrorJSON(desc, w)
-		w.WriteHeader(code)
+		a.handleErrorJSON(desc, w)
 
 		metric.RecordHitMetric(desc.Status, r.URL.Path)
 		return
 	}
-
 	http.SetCookie(w, &cookie)
 
 	res, err := json.Marshal(public)
