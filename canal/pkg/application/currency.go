@@ -21,11 +21,8 @@ func (currencyApp *CurrencyApp) GetAllLatestCurrencies(r *http.Request) (entity.
 	if r.URL.Query().Get("initial") == "true" {
 		out, err := currencyApp.currency.GetInitialDayCurrency(r.Context(), &currency.Empty{})
 		if err != nil {
-			return entity.Description{
-				Status:   http.StatusInternalServerError,
-				Function: "GetAllLatestCurrencies",
-				Action:   "GetInitialDayCurrency",
-			}, entity.Currencies{}, err
+			return createErrorDescription("GetAllLatestCurrencies", "GetInitialDayCurrency", http.StatusInternalServerError),
+				entity.Currencies{}, err
 		}
 
 		return entity.Description{}, entity.ConvertFromInitialDayCurrencies(out), nil
@@ -33,11 +30,8 @@ func (currencyApp *CurrencyApp) GetAllLatestCurrencies(r *http.Request) (entity.
 
 	out, err := currencyApp.currency.GetAllLatestRates(r.Context(), &currency.Empty{})
 	if err != nil {
-		return entity.Description{
-			Status:   http.StatusInternalServerError,
-			Function: "GetAllLatestCurrencies",
-			Action:   "GetAllLatestRates",
-		}, entity.Currencies{}, err
+		return createErrorDescription("GetAllLatestCurrencies", "GetAllLatestRates", http.StatusInternalServerError),
+			entity.Currencies{}, err
 	}
 
 	return entity.Description{}, entity.ConvertFromCurrencyCurrencies(out), nil
@@ -47,20 +41,14 @@ func (currencyApp *CurrencyApp) GetURLCurrencies(r *http.Request) (entity.Descri
 	vars := mux.Vars(r)
 	title := vars["title"]
 	if !validateTitle(title) {
-		return entity.Description{
-			Status:   http.StatusBadRequest,
-			Function: "GetURLCurrencies",
-			Action:   "validateTitle",
-		}, entity.Currencies{}, errors.New("validateTitle from GetURLCurrencies")
+		return createErrorDescription("GetURLCurrencies", "validateTitle", http.StatusBadRequest),
+			entity.Currencies{}, errors.New("validateTitle from GetURLCurrencies")
 	}
 
 	out, err := currencyApp.currency.GetAllRatesByTitle(r.Context(), &currency.CurrencyTitle{Title: title, Period: r.URL.Query().Get("period")})
 	if err != nil {
-		return entity.Description{
-			Status:   http.StatusInternalServerError,
-			Function: "GetAllLatestCurrencies",
-			Action:   "GetAllRatesByTitle",
-		}, entity.Currencies{}, err
+		return createErrorDescription("GetURLCurrencies", "GetAllRatesByTitle", http.StatusInternalServerError),
+			entity.Currencies{}, err
 	}
 
 	return entity.Description{}, entity.ConvertFromCurrencyCurrencies(out), nil
@@ -70,8 +58,8 @@ func (currencyApp *CurrencyApp) GetMarkets() (entity.Description, entity.Markets
 	return entity.Description{}, entity.CreateMarkets(), nil
 }
 
+const lenOfCurrency = 3
 func validateTitle(title string) bool {
-	lenOfCurrency := 3
 	if len(title) != lenOfCurrency {
 		return false
 	}

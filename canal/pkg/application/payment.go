@@ -29,11 +29,8 @@ func NewPaymentApp(profile profile.ProfileServiceClient, rates currency.Currency
 func (pmt *PaymentApp) ReceiveTransactions(ctx context.Context, in entity.Income) (entity.Description, entity.Payments, error) {
 	history, err := pmt.profile.GetAllPaymentHistory(ctx, &profile.IncomeParameters{Id: in.Id, Period: in.Period})
 	if err != nil {
-		return entity.Description{
-			Status:   http.StatusInternalServerError,
-			Function: "ReceiveTransactions",
-			Action:   "GetAllPaymentHistory",
-		}, entity.Payments{}, err
+		return createErrorDescription("ReceiveTransactions", "GetAllPaymentHistory", http.StatusInternalServerError),
+			entity.Payments{}, err
 	}
 
 	return entity.Description{}, entity.ConvertToPayment(history), err
@@ -42,11 +39,8 @@ func (pmt *PaymentApp) ReceiveTransactions(ctx context.Context, in entity.Income
 func (pmt *PaymentApp) ReceiveWallets(ctx context.Context, id int64) (entity.Description, entity.Wallets, error) {
 	wallets, err := pmt.profile.GetWallets(ctx, &profile.UserID{Id: id})
 	if err != nil {
-		return entity.Description{
-			Status:   http.StatusInternalServerError,
-			Function: "ReceiveWallets",
-			Action:   "GetWallets",
-		}, entity.Wallets{}, err
+		return createErrorDescription("ReceiveWallets", "GetWallets", http.StatusInternalServerError),
+			entity.Wallets{}, err
 	}
 
 	return entity.Description{}, entity.ConvertToWallets(wallets), nil
@@ -54,11 +48,7 @@ func (pmt *PaymentApp) ReceiveWallets(ctx context.Context, id int64) (entity.Des
 
 func (pmt *PaymentApp) SetWallet(ctx context.Context, wallet entity.Wallet) (entity.Description, error) {
 	if _, err := pmt.profile.CreateWallet(ctx, &profile.ConcreteWallet{Id: wallet.UserId, Title: wallet.Title}); err != nil {
-		return entity.Description{
-			Status:   http.StatusInternalServerError,
-			Function: "SetWallet",
-			Action:   "CreateWallet",
-		}, err
+		return createErrorDescription("SetWallet", "CreateWallet", http.StatusInternalServerError), err
 	}
 
 	return entity.Description{}, nil
@@ -105,6 +95,7 @@ func (pmt *PaymentApp) SetTransaction(ctx context.Context, payment entity.Paymen
 			errs := entity.ErrorJSON{}
 			errs.NonFieldError = append(errs.NonFieldError, "not enough payment")
 			desc.ErrorJSON = errs
+			desc.Status = http.StatusBadRequest
 		}
 		return desc, err
 	}
@@ -114,30 +105,18 @@ func (pmt *PaymentApp) SetTransaction(ctx context.Context, payment entity.Paymen
 	}
 
 	toSetWallet := profile.ToSetWallet{Id: payment.UserId, NewWallet: &profile.Wallet{Title: removedTitle, Value: removedMoney}}
-	if _, err := pmt.profile.UpdateWallet(ctx, &toSetWallet); err != nil {
-		return entity.Description{
-			Status:   http.StatusInternalServerError,
-			Function: "SetTransactions",
-			Action:   "UpdateWallet " + toSetWallet.NewWallet.Title,
-		}, err
+	if _, err = pmt.profile.UpdateWallet(ctx, &toSetWallet); err != nil {
+		return createErrorDescription("SetTransactions", "UpdateWallet "+toSetWallet.NewWallet.Title, http.StatusInternalServerError), err
 	}
 
 	toSetWallet = profile.ToSetWallet{Id: payment.UserId, NewWallet: &profile.Wallet{Title: putTitle, Value: putMoney}}
 	if _, err := pmt.profile.UpdateWallet(ctx, &toSetWallet); err != nil {
-		return entity.Description{
-			Status:   http.StatusInternalServerError,
-			Function: "SetTransactions",
-			Action:   "UpdateWallet" + toSetWallet.NewWallet.Title,
-		}, err
+		return createErrorDescription("SetTransactions", "UpdateWallet "+toSetWallet.NewWallet.Title, http.StatusInternalServerError), err
 	}
 
 	transaction.Value, _ = div.Float64()
 	if _, err = pmt.profile.AddToPaymentHistory(ctx, &profile.AddToHistory{Id: payment.UserId, Transaction: transaction}); err != nil {
-		return entity.Description{
-			Status:   http.StatusInternalServerError,
-			Function: "SetTransactions",
-			Action:   "AddToPaymentHistory",
-		}, err
+		return createErrorDescription("SetTransactions", "AddToPaymentHistory", http.StatusInternalServerError), err
 	}
 
 	return entity.Description{}, nil
@@ -147,17 +126,11 @@ func (pmt *PaymentApp) checkWalletSell(ctx context.Context, wallet *profile.Conc
 	var exist *profile.Check
 	var err error
 	if exist, err = pmt.profile.CheckWallet(ctx, wallet); err != nil {
-		return false, entity.Description{
-			Status:   http.StatusInternalServerError,
-			Function: "checkWalletSell",
-			Action:   "CheckWallet",
-		}, err
+		return false, createErrorDescription("checkWalletSell", "CheckWallet", http.StatusInternalServerError), err
 	}
 
 	if !exist.Existence {
-		return false, entity.Description{
-			Status: http.StatusBadRequest,
-		}, errors.New("existence")
+		return false, entity.Description{Status: http.StatusBadRequest}, errors.New("existence")
 	}
 
 	return true, entity.Description{}, nil
@@ -167,20 +140,12 @@ func (pmt *PaymentApp) checkWalletBuy(ctx context.Context, wallet *profile.Concr
 	var exist *profile.Check
 	var err error
 	if exist, err = pmt.profile.CheckWallet(ctx, wallet); err != nil {
-		return false, entity.Description{
-			Function: "checkWalletBuy",
-			Status:   http.StatusInternalServerError,
-			Action:   "CheckWallet",
-		}, err
+		return false, createErrorDescription("checkWalletBuy", "CheckWallet", http.StatusInternalServerError), err
 	}
 
 	if !exist.Existence {
 		if _, err = pmt.profile.CreateWallet(ctx, wallet); err != nil {
-			return false, entity.Description{
-				Function: "checkWalletBuy",
-				Status:   http.StatusInternalServerError,
-				Action:   "CreateWallet",
-			}, err
+			return false, createErrorDescription("checkWalletBuy", "CreateWallet", http.StatusInternalServerError), err
 		}
 	}
 
@@ -191,20 +156,14 @@ func (pmt *PaymentApp) getCurrencyDiv(ctx context.Context, transaction *profile.
 	var currencyBase *currency.Currency
 	var err error
 	if currencyBase, err = pmt.currency.GetLastRate(ctx, &currency.CurrencyTitle{Title: transaction.Base}); err != nil {
-		return entity.Description{
-			Status:   http.StatusInternalServerError,
-			Function: "getCurrencyDiv",
-			Action:   "GetLastRate",
-		}, decimal.Decimal{}, err
+		return createErrorDescription("getCurrencyDiv", "GetLastRate: Base", http.StatusInternalServerError),
+			decimal.Decimal{}, err
 	}
 
 	var currencyCurr *currency.Currency
 	if currencyCurr, err = pmt.currency.GetLastRate(ctx, &currency.CurrencyTitle{Title: transaction.Currency}); err != nil {
-		return entity.Description{
-			Status:   http.StatusInternalServerError,
-			Function: "getCurrencyDiv",
-			Action:   "GetLastRate",
-		}, decimal.Decimal{}, err
+		return createErrorDescription("getCurrencyDiv", "GetLastRate: Currency", http.StatusInternalServerError),
+			decimal.Decimal{}, err
 	}
 
 	div := decimal.NewFromFloat(currencyBase.Value).Div(decimal.NewFromFloat(currencyCurr.Value))
@@ -217,17 +176,11 @@ func (pmt *PaymentApp) getPay(ctx context.Context, userWallet *profile.ConcreteW
 	var wallet *profile.Wallet
 	var err error
 	if wallet, err = pmt.profile.GetWallet(ctx, userWallet); err != nil {
-		return entity.Description{
-			Function: "getPay",
-			Status:   http.StatusInternalServerError,
-			Action:   "GetWallet",
-		}, err
+		return createErrorDescription("getPay", "GetWallet", http.StatusInternalServerError), err
 	}
 
 	if needToPay.GreaterThan(decimal.NewFromFloat(wallet.Value)) {
-		return entity.Description{
-			Status: notEnoughPayment,
-		}, fmt.Errorf("%d notEnoughPayment", userWallet.Id)
+		return entity.Description{Status: notEnoughPayment}, fmt.Errorf("%d notEnoughPayment", userWallet.Id)
 	}
 
 	return entity.Description{}, nil
@@ -237,20 +190,13 @@ func (pmt *PaymentApp) GetIncome(ctx context.Context, in entity.Income) (entity.
 	incomeParameters := in.ConvertToGRPC()
 	result, err := pmt.profile.GetIncome(ctx, incomeParameters)
 	if err != nil {
-		return entity.Description{
-			Status:   http.StatusInternalServerError,
-			Function: "GetIncome",
-			Action:   "GetIncome",
-		}, decimal.Decimal{}, err
+		return createErrorDescription("GetIncome", "GetIncome", http.StatusInternalServerError), decimal.Decimal{}, err
 	}
 
 	walletUSDCash, err := pmt.transformActualUserWallets(ctx, incomeParameters.Id)
 	if err != nil {
-		return entity.Description{
-			Status:   http.StatusInternalServerError,
-			Function: "GetIncome",
-			Action:   "transformActualUserWallets",
-		}, decimal.Decimal{}, err
+		return createErrorDescription("GetIncome", "transformActualUserWallets", http.StatusInternalServerError),
+			decimal.Decimal{}, err
 	}
 
 	return entity.Description{}, walletUSDCash.Sub(decimal.NewFromFloat(result.Change)).Round(3), nil
@@ -259,11 +205,8 @@ func (pmt *PaymentApp) GetIncome(ctx context.Context, in entity.Income) (entity.
 func (pmt *PaymentApp) GetAllIncomePerDay(ctx context.Context, in entity.Income) (entity.Description, entity.WalletStates, error) {
 	out, err := pmt.profile.GetAllIncomePerDay(ctx, &profile.IncomeParameters{Id: in.Id, Period: in.Period})
 	if err != nil {
-		return entity.Description{
-			Status:   http.StatusInternalServerError,
-			Function: "GetAllIncomePerDay",
-			Action:   "GetAllIncomePerDay",
-		}, entity.WalletStates{}, err
+		return createErrorDescription("GetAllIncomePerDay", "GetAllIncomePerDay", http.StatusInternalServerError),
+			entity.WalletStates{}, err
 	}
 
 	return entity.Description{}, entity.ConvertToWalletStates(out), nil
@@ -305,7 +248,7 @@ func (pmt *PaymentApp) WritePortfolios() {
 				"function": "WritePortfolio",
 				"action":   "transformActualUserWallets",
 				"user_id":  i,
-			}).Error(err)
+			}).Debug(err)
 
 			return
 		}
@@ -318,7 +261,7 @@ func (pmt *PaymentApp) WritePortfolios() {
 				"action":   "PutPortfolio",
 				"user_id":  i,
 				"value":    value,
-			}).Error(err)
+			}).Debug(err)
 
 			return
 		}

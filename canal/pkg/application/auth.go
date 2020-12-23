@@ -29,56 +29,44 @@ func (authApp *AuthApp) Login(ctx context.Context, user entity.User) (entity.Des
 	authApp.sanitizer.Sanitize(user.Password)
 
 	var errs entity.ErrorJSON
+	var desc entity.Description
 	if errs = authApp.validate(user); errs.NotEmpty {
-		return entity.Description{
-			Status:    http.StatusBadRequest,
-			Function:  "Login",
-			Action:    "validate",
-			ErrorJSON: errs,
-		}, entity.PublicUser{}, http.Cookie{}, nil
+		desc = createErrorDescription("Login", "validate", http.StatusBadRequest)
+		desc.ErrorJSON = errs
+		return desc, entity.PublicUser{}, http.Cookie{}, nil
 	}
 
 	userGRPC := user.ConvertToGRPC()
 
 	check, err := authApp.profile.CheckExistence(ctx, userGRPC)
 	if err != nil {
-		return entity.Description{
-			Status:   http.StatusInternalServerError,
-			Function: "Login",
-			Action:   "CheckExistence",
-		}, entity.PublicUser{}, http.Cookie{}, err
+		return createErrorDescription("Login", "CheckExistence", http.StatusInternalServerError),
+			entity.PublicUser{}, http.Cookie{}, err
 	}
 	if !check.Existence {
 		errs.NotEmpty = true
 		errs.NonFieldError = append(errs.NonFieldError, "Неправильный email или пароль")
-		return entity.Description{
-			Status:    http.StatusBadRequest,
-			Function:  "Login",
-			Action:    "CheckExistence",
-			ErrorJSON: errs,
-		}, entity.PublicUser{}, http.Cookie{}, nil
+
+		desc = createErrorDescription("Login", "CheckExistence", http.StatusBadRequest)
+		desc.ErrorJSON = errs
+
+		return desc, entity.PublicUser{}, http.Cookie{}, nil
 	}
 
 	public, err := authApp.profile.GetUserByLogin(ctx, userGRPC)
 	if err != nil {
 		if errs = authApp.checkGetUserByLoginErrors(err); errs.NotEmpty {
-			return entity.Description{
-				Status:    http.StatusBadRequest,
-				Function:  "Login",
-				Action:    "GetUserByLogin",
-				ErrorJSON: errs,
-			}, entity.PublicUser{}, http.Cookie{}, nil
+			desc = createErrorDescription("Login", "GetUserByLogin", http.StatusBadRequest)
+			desc.ErrorJSON = errs
+			return desc, entity.PublicUser{}, http.Cookie{}, nil
 		}
 	}
 
 	cookie := utils.CreateCookie()
 	var sess *authorization.Session
 	if sess, err = authApp.auth.Create(ctx, &authorization.UserID{Id: public.Id}); err != nil {
-		return entity.Description{
-			Status:   http.StatusInternalServerError,
-			Function: "Login",
-			Action:   "Create",
-		}, entity.PublicUser{}, http.Cookie{}, err
+		return createErrorDescription("Login", "Create", http.StatusInternalServerError),
+			entity.PublicUser{}, http.Cookie{}, err
 	}
 	cookie.Value = sess.SessionId
 
@@ -87,11 +75,8 @@ func (authApp *AuthApp) Login(ctx context.Context, user entity.User) (entity.Des
 
 func (authApp *AuthApp) Logout(ctx context.Context, cookie *http.Cookie) (entity.Description, http.Cookie, error) {
 	if _, err := authApp.auth.Delete(ctx, &authorization.SessionID{SessionId: cookie.Value}); err != nil {
-		return entity.Description{
-			Status:   http.StatusInternalServerError,
-			Function: "Logout",
-			Action:   "Delete",
-		}, http.Cookie{}, err
+		return createErrorDescription("Logout", "Delete", http.StatusInternalServerError),
+			http.Cookie{}, err
 	}
 
 	newCookie := utils.CreateCookie()
@@ -106,77 +91,56 @@ func (authApp *AuthApp) Signup(ctx context.Context, user entity.User) (entity.De
 	authApp.sanitizer.Sanitize(user.Password)
 
 	var errs entity.ErrorJSON
+	var desc entity.Description
 	if errs = authApp.validate(user); errs.NotEmpty {
-		return entity.Description{
-			Status:    http.StatusBadRequest,
-			Function:  "Signup",
-			Action:    "validate",
-			ErrorJSON: errs,
-		}, entity.PublicUser{}, http.Cookie{}, nil
+		desc = createErrorDescription("Signup", "validate", http.StatusBadRequest)
+		desc.ErrorJSON = errs
+		return desc, entity.PublicUser{}, http.Cookie{}, nil
 	}
 
 	userGRPC := user.ConvertToGRPC()
 
 	check, err := authApp.profile.CheckExistence(ctx, userGRPC)
 	if err != nil {
-		return entity.Description{
-			Status:   http.StatusInternalServerError,
-			Function: "Signup",
-			Action:   "CheckExistence",
-		}, entity.PublicUser{}, http.Cookie{}, err
+		return createErrorDescription("Signup", "CheckExistence", http.StatusInternalServerError),
+			entity.PublicUser{}, http.Cookie{}, err
 	}
 	if check.Existence {
 		errs.NotEmpty = true
 		errs.NonFieldError = append(errs.NonFieldError, "Пользователь с таким email'ом уже существует")
-		return entity.Description{
-			Status:    http.StatusBadRequest,
-			Function:  "Signup",
-			Action:    "CheckExistence",
-			ErrorJSON: errs,
-		}, entity.PublicUser{}, http.Cookie{}, nil
+
+		desc = createErrorDescription("Signup", "CheckExistence", http.StatusBadRequest)
+		desc.ErrorJSON = errs
+
+		return desc, entity.PublicUser{}, http.Cookie{}, nil
 	}
 
 	if userGRPC.Password, err = authApp.security.MakeShieldedPassword(userGRPC.Password); err != nil {
-		return entity.Description{
-			Status:   http.StatusInternalServerError,
-			Function: "Signup",
-			Action:   "MakeShieldedPassword",
-		}, entity.PublicUser{}, http.Cookie{}, err
+		return createErrorDescription("Signup", "MakeShieldedPassword", http.StatusInternalServerError),
+			entity.PublicUser{}, http.Cookie{}, err
 	}
 
 	public, err := authApp.profile.SaveUser(ctx, userGRPC)
 	if err != nil {
-		return entity.Description{
-			Status:   http.StatusInternalServerError,
-			Function: "Signup",
-			Action:   "SaveUser",
-		}, entity.PublicUser{}, http.Cookie{}, err
+		return createErrorDescription("Signup", "SaveUser", http.StatusInternalServerError),
+			entity.PublicUser{}, http.Cookie{}, err
 	}
 
 	if _, err = authApp.profile.CreateInitialWallet(ctx, &profile.UserID{Id: public.Id}); err != nil {
-		return entity.Description{
-			Status:   http.StatusInternalServerError,
-			Function: "Signup",
-			Action:   "CreateInitialWallet",
-		}, entity.PublicUser{}, http.Cookie{}, err
+		return createErrorDescription("Signup", "CreateInitialWallet", http.StatusInternalServerError),
+			entity.PublicUser{}, http.Cookie{}, err
 	}
 
 	if _, err = authApp.profile.PutPortfolio(ctx, &profile.PortfolioValue{Id: public.Id, Value: 1000}); err != nil {
-		return entity.Description{
-			Status:   http.StatusInternalServerError,
-			Function: "Signup",
-			Action:   "PutPortfolio",
-		}, entity.PublicUser{}, http.Cookie{}, err
+		return createErrorDescription("Signup", "PutPortfolio", http.StatusInternalServerError),
+			entity.PublicUser{}, http.Cookie{}, err
 	}
 
 	cookie := utils.CreateCookie()
 	var sess *authorization.Session
 	if sess, err = authApp.auth.Create(ctx, &authorization.UserID{Id: public.Id}); err != nil {
-		return entity.Description{
-			Status:   http.StatusInternalServerError,
-			Function: "Signup",
-			Action:   "Create",
-		}, entity.PublicUser{}, http.Cookie{}, err
+		return createErrorDescription("Signup", "Create", http.StatusInternalServerError),
+			entity.PublicUser{}, http.Cookie{}, err
 	}
 	cookie.Value = sess.SessionId
 
@@ -186,11 +150,8 @@ func (authApp *AuthApp) Signup(ctx context.Context, user entity.User) (entity.De
 func (authApp *AuthApp) Authenticate(ctx context.Context, userId int64) (entity.Description, entity.PublicUser, error) {
 	user, err := authApp.profile.GetUserById(ctx, &profile.UserID{Id: userId})
 	if err != nil {
-		return entity.Description{
-			Status:   http.StatusBadRequest,
-			Function: "Authenticate",
-			Action:   "GetUserById",
-		}, entity.PublicUser{}, err
+		return createErrorDescription("Authenticate", "GetUserById", http.StatusInternalServerError),
+			entity.PublicUser{}, err
 	}
 
 	return entity.Description{}, entity.ConvertToPublic(user), nil
@@ -199,11 +160,7 @@ func (authApp *AuthApp) Authenticate(ctx context.Context, userId int64) (entity.
 func (authApp *AuthApp) Auth(ctx context.Context, cookie *http.Cookie) (entity.Description, int64, error) {
 	id, err := authApp.auth.Check(ctx, &authorization.SessionID{SessionId: cookie.Value})
 	if err != nil {
-		return entity.Description{
-			Status:   http.StatusBadRequest,
-			Function: "Auth",
-			Action:   "Check",
-		}, 0, err
+		return createErrorDescription("Auth", "Check", http.StatusBadRequest), 0, err
 	}
 
 	return entity.Description{}, id.Id, nil
