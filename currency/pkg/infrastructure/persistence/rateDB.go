@@ -101,12 +101,12 @@ func (rm *RateDBManager) GetAllLatestRates(ctx context.Context, in *currency.Emp
 		return &currency.Currencies{}, err
 	}
 	defer func() {
-		if err := tx.Rollback(); err != nil {
+		if err = tx.Rollback(); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"infrastructure": "currency",
 				"function":       "GetRates",
 				"action":         "Rollback",
-			}).Error(err)
+			}).Debug(err)
 		}
 	}()
 
@@ -154,7 +154,7 @@ func (rm *RateDBManager) GetAllRatesByTitle(ctx context.Context, in *currency.Cu
 		return &currency.Currencies{}, err
 	}
 	defer func() {
-		if err := tx.Rollback(); err != nil {
+		if err = tx.Rollback(); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"infrastructure": "currency",
 				"function":       "GetRate",
@@ -221,12 +221,12 @@ func (rm *RateDBManager) GetLastRate(ctx context.Context, in *currency.CurrencyT
 		return &currency.Currency{}, err
 	}
 	defer func() {
-		if err := tx.Rollback(); err != nil {
+		if err = tx.Rollback(); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"infrastructure": "currency",
 				"function":       "GetLastRate",
 				"action":         "Rollback",
-			}).Error(err)
+			}).Debug(err)
 		}
 	}()
 	row := tx.QueryRow(
@@ -260,12 +260,12 @@ func (rm *RateDBManager) GetInitialDayCurrency(ctx context.Context, in *currency
 		return &currency.InitialDayCurrencies{}, err
 	}
 	defer func() {
-		if err := tx.Rollback(); err != nil {
+		if err = tx.Rollback(); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"infrastructure": "currency",
 				"function":       "GetInitialDayCurrency",
 				"action":         "Rollback",
-			}).Error(err)
+			}).Debug(err)
 		}
 	}()
 
@@ -309,12 +309,12 @@ func (rm *RateDBManager) truncateTable(table string) error {
 		return err
 	}
 	defer func() {
-		if err := tx.Rollback(); err != nil {
+		if err = tx.Rollback(); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"infrastructure": "currency",
 				"function":       "truncateTable",
 				"action":         "Rollback",
-			}).Error(err)
+			}).Debug(err)
 		}
 	}()
 
