@@ -18,7 +18,7 @@ func NewCurrencyApp(currency currency.CurrencyServiceClient) *CurrencyApp {
 }
 
 func (currencyApp *CurrencyApp) GetAllLatestCurrencies(r *http.Request) (entity.Description, entity.Currencies, error) {
-	if r.URL.Query().Get("initial") == "true"{
+	if r.URL.Query().Get("initial") == "true" {
 		out, err := currencyApp.currency.GetInitialDayCurrency(r.Context(), &currency.Empty{})
 		if err != nil {
 			return entity.Description{
@@ -30,7 +30,6 @@ func (currencyApp *CurrencyApp) GetAllLatestCurrencies(r *http.Request) (entity.
 
 		return entity.Description{}, entity.ConvertFromInitialDayCurrencies(out), nil
 	}
-
 
 	out, err := currencyApp.currency.GetAllLatestRates(r.Context(), &currency.Empty{})
 	if err != nil {

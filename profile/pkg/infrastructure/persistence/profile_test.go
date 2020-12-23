@@ -14,9 +14,9 @@ import (
 )
 
 const (
-	email = "hound@psina.ru"
+	email    = "hound@psina.ru"
 	password = "password"
-	avatar = "base64"
+	avatar   = "base64"
 )
 
 func TestGetUserById_Success(t *testing.T) {

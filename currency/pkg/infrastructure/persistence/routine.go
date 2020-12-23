@@ -16,7 +16,7 @@ const (
 func (rm *RateDBManager) writeCurrencyDB(table string, finance domain.FinancialRepository) {
 	err := rm.saveRates(table, finance)
 	if err != nil {
-		logrus.WithFields(logrus.Fields{"function": "writeCurrencyDB", "action":   "saveRates"}).Error(err)
+		logrus.WithFields(logrus.Fields{"function": "writeCurrencyDB", "action": "saveRates"}).Error(err)
 		return
 	}
 }

@@ -223,7 +223,7 @@ func TestGetAllRatesByTitle_Fail(t *testing.T) {
 
 	title := currency.CurrencyTitle{Title: expected.Title}
 	_, err = repo.GetAllRatesByTitle(ctx, &title)
-	require.NotEmpty(t ,err)
+	require.NotEmpty(t, err)
 }
 
 func TestRateDBManager_GetLastRate_Success(t *testing.T) {

@@ -72,7 +72,6 @@ func (pfl *ProfileApp) UpdatePassword(ctx context.Context, userEntity entity.Use
 		}, entity.PublicUser{}, nil
 	}
 
-
 	user := userEntity.ConvertToGRPC()
 	if user, err = pfl.profile.GetPassword(ctx, user); err != nil {
 		return entity.Description{

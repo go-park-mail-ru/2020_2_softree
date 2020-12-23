@@ -294,7 +294,7 @@ func (pmt *PaymentApp) WritePortfolios() {
 
 	userNum, err := pmt.profile.GetUsers(ctx, &profile.Empty{})
 	if err != nil {
-		logrus.WithFields(logrus.Fields{"function": "WritePortfolio", "action":   "GetUsers"}).Error(err)
+		logrus.WithFields(logrus.Fields{"function": "WritePortfolio", "action": "GetUsers"}).Error(err)
 		return
 	}
 
