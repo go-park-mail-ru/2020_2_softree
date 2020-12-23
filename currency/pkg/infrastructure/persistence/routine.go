@@ -1,7 +1,6 @@
 package persistence
 
 import (
-	"fmt"
 	"github.com/go-co-op/gocron"
 	"github.com/sirupsen/logrus"
 	"time"
@@ -20,14 +19,10 @@ func (rm *RateDBManager) writeCurrencyDB(table string) {
 		return
 	}
 
-	fmt.Println("	GET", "\n---------\n", time.Now(), "\n", finance, "\n---------")
-
 	if err = rm.saveRates(table, finance); err != nil {
 		logrus.WithFields(logrus.Fields{"function": "writeCurrencyDB", "action": "saveRates"}).Error(err)
 		return
 	}
-
-	fmt.Println("	POST", "\n---------\n", time.Now(), "\n", finance, "\n---------")
 }
 
 func (rm *RateDBManager) truncate(table string) {
