@@ -69,6 +69,11 @@ func (rm *RateDBManager) GetRatesFromApi() {
 		return
 	}
 
+	if _, err = task.Every(1).Day().At("10:00").Do(rm.truncate, history_currency_by_minutes); err != nil {
+		logrus.WithFields(logrus.Fields{"function": "GetRatesFromApi"}).Error(err)
+		return
+	}
+
 	if _, err = task.Every(1).Day().At("00:00").Do(rm.truncate, history_currency_by_minutes); err != nil {
 		logrus.WithFields(logrus.Fields{"function": "GetRatesFromApi"}).Error(err)
 		return

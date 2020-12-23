@@ -79,7 +79,7 @@ func main() {
 
 	server := grpc.NewServer()
 
-	session.RegisterAuthorizationServiceServer(server, persistence.NewSessionManager(*pool))
+	session.RegisterAuthorizationServiceServer(server, persistence.NewSessionManager(pool))
 
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d",
 		viper.GetString("server.ip"),

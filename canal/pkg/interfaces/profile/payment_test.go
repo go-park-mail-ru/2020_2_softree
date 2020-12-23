@@ -12,7 +12,6 @@ import (
 	"server/canal/pkg/domain/entity"
 	"server/canal/pkg/infrastructure/mock"
 	profileHTTP "server/canal/pkg/interfaces/profile"
-	profileService "server/profile/pkg/profile/gen"
 	"strings"
 	"testing"
 )
@@ -202,12 +201,4 @@ func createExpectedPayments() entity.Payments {
 
 func createExpectedPayment() entity.Payment {
 	return entity.Payment{Base: base, Currency: curr, Amount: decimal.New(1000000000, -6), Sell: sell, UserId: id}
-}
-
-func createWalletCheck(dest string) *profileService.ConcreteWallet {
-	return &profileService.ConcreteWallet{Id: id, Title: dest}
-}
-
-func createWalletToSet(dest string, val float64) *profileService.ToSetWallet {
-	return &profileService.ToSetWallet{Id: id, NewWallet: &profileService.Wallet{Title: dest, Value: val}}
 }

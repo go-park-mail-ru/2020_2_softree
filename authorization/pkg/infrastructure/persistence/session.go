@@ -13,10 +13,10 @@ import (
 const day = 60 * 60 * 24
 
 type SessionManager struct {
-	ConnPool redis.Pool
+	ConnPool *redis.Pool
 }
 
-func NewSessionManager(pool redis.Pool) *SessionManager {
+func NewSessionManager(pool *redis.Pool) *SessionManager {
 	return &SessionManager{
 		ConnPool: pool,
 	}

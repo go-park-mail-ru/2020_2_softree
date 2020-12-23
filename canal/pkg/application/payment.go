@@ -227,7 +227,7 @@ func (pmt *PaymentApp) getPay(ctx context.Context, userWallet *profile.ConcreteW
 	if needToPay.GreaterThan(decimal.NewFromFloat(wallet.Value)) {
 		return entity.Description{
 			Status: notEnoughPayment,
-		}, errors.New(fmt.Sprintf("%d notEnoughPayment", userWallet.Id))
+		}, fmt.Errorf("%d notEnoughPayment", userWallet.Id)
 	}
 
 	return entity.Description{}, nil
