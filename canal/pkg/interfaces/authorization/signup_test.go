@@ -6,11 +6,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	authMock "server/authorization/pkg/infrastructure/mock"
-	session "server/authorization/pkg/session/gen"
+	"server/canal/pkg/domain/entity"
 	"server/canal/pkg/infrastructure/mock"
-	profileMock "server/profile/pkg/infrastructure/mock"
-	profile "server/profile/pkg/profile/gen"
 	"strings"
 	"testing"
 
@@ -31,13 +28,12 @@ func TestSignup_Success(t *testing.T) {
 
 	testAuth.Signup(w, req)
 
-	require.Empty(t, w.Header().Get("Content-Type"))
-	require.Empty(t, w.Body)
+	require.NotEmpty(t, w.Body)
 	require.Equal(t, http.StatusCreated, w.Result().StatusCode)
 	require.NotEmpty(t, w.Result().Cookies())
 }
 
-func TestSignup_FailPutPortfolio(t *testing.T) {
+func TestSignup_Fail(t *testing.T) {
 	url := "http://127.0.0.1:8000/signup"
 	body := strings.NewReader(fmt.Sprintf("{\"email\": \"%s\", \"password\": \"%s\"}", email, password))
 
@@ -45,7 +41,7 @@ func TestSignup_FailPutPortfolio(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	ctx := req.Context()
-	testAuth, ctrl := createSignupFailPutPortfolio(t, ctx)
+	testAuth, ctrl := createSignupFail(t, ctx)
 	defer ctrl.Finish()
 
 	testAuth.Signup(w, req)
@@ -56,7 +52,7 @@ func TestSignup_FailPutPortfolio(t *testing.T) {
 	require.Empty(t, w.Result().Cookies())
 }
 
-func TestSignup_FailUserExist(t *testing.T) {
+func TestSignup_Fail_ErrorJSON(t *testing.T) {
 	url := "http://127.0.0.1:8000/signup"
 	body := strings.NewReader(fmt.Sprintf("{\"email\": \"%s\", \"password\": \"%s\"}", email, password))
 
@@ -64,194 +60,52 @@ func TestSignup_FailUserExist(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	ctx := req.Context()
-	testAuth, ctrl := createSignupFailUserExist(t, ctx)
+	testAuth, ctrl := createSignupFail_ErrorJSON(t, ctx)
 	defer ctrl.Finish()
 
 	testAuth.Signup(w, req)
 
-	require.NotEmpty(t, w.Header().Get("Content-Type"))
 	require.NotEmpty(t, w.Body)
 	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
-}
-
-func TestSignup_FailUserExistFailDB(t *testing.T) {
-	url := "http://127.0.0.1:8000/signup"
-	body := strings.NewReader(fmt.Sprintf("{\"email\": \"%s\", \"password\": \"%s\"}", email, password))
-
-	req := httptest.NewRequest("POST", url, body)
-	w := httptest.NewRecorder()
-
-	ctx := req.Context()
-	testAuth, ctrl := createSignupFailUserExistFailDB(t, ctx)
-	defer ctrl.Finish()
-
-	testAuth.Signup(w, req)
-
-	require.Empty(t, w.Header().Get("Content-Type"))
-	require.Empty(t, w.Body)
-	require.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
-}
-
-func TestSignup_FailEmail(t *testing.T) {
-	url := "http://127.0.0.1:8000/signup"
-	body := strings.NewReader(fmt.Sprintf("{\"email\": \"%s\", \"password\": \"%s\"}", "", password))
-
-	req := httptest.NewRequest("POST", url, body)
-	w := httptest.NewRecorder()
-
-	testAuth, ctrl := createSignupFail(t)
-	defer ctrl.Finish()
-
-	testAuth.Signup(w, req)
-
-	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
-	require.NotEmpty(t, w.Body)
-	require.NotEmpty(t, w.Header().Get("Content-type"))
-}
-
-func TestSignup_FailEmptyPassword(t *testing.T) {
-	url := "http://127.0.0.1:8000/signup"
-	body := strings.NewReader(fmt.Sprintf("{\"email\": \"%s\", \"password\": \"%s\"}", email, ""))
-
-	req := httptest.NewRequest("POST", url, body)
-	w := httptest.NewRecorder()
-
-	testAuth, ctrl := createSignupFail(t)
-	defer ctrl.Finish()
-
-	testAuth.Signup(w, req)
-
-	require.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
-	require.NotEmpty(t, w.Body)
-	require.NotEmpty(t, w.Header().Get("Content-type"))
-}
-
-func TestSignup_FailBcrypt(t *testing.T) {
-	url := "http://127.0.0.1:8000/signup"
-	body := strings.NewReader(fmt.Sprintf("{\"email\": \"%s\", \"password\": \"%s\"}", email, password))
-
-	req := httptest.NewRequest("POST", url, body)
-	w := httptest.NewRecorder()
-
-	ctx := req.Context()
-	testAuth, ctrl := createSignupFailBcrypt(t, ctx)
-	defer ctrl.Finish()
-
-	testAuth.Signup(w, req)
-
-	require.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
+	require.Empty(t, w.Result().Cookies())
 }
 
 func createSignupSuccess(t *testing.T, ctx context.Context) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
+	mockUser := mock.NewMockProfileLogic(ctrl)
+	mockAuth := mock.NewMockAuthLogic(ctrl)
 
-	mockUser := profileMock.NewProfileMock(ctrl)
-	mockUser.EXPECT().
-		CheckExistence(ctx, &profile.User{Email: email, Password: password}).
-		Return(&profile.Check{Existence: false}, nil)
-	mockUser.EXPECT().
-		SaveUser(ctx, &profile.User{Email: email, Password: password}).
-		Times(1).
-		Return(createExpectedUser(), nil)
-	mockUser.EXPECT().
-		CreateInitialWallet(ctx, &profile.UserID{Id: id}).
-		Return(&profile.Empty{}, nil)
-	mockUser.EXPECT().
-		PutPortfolio(ctx, &profile.PortfolioValue{Id: id, Value: 1000}).
-		Return(&profile.Empty{}, nil)
-
-	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
 	mockAuth.EXPECT().
-		Create(ctx, &session.UserID{Id: id}).
-		Return(&session.Session{Id: id, SessionId: value}, nil)
+		Signup(ctx, entity.User{Email: email, Password: password}).
+		Return(entity.Description{}, createExpectedUser(), http.Cookie{Name: name, Value: value}, nil)
 
-	mockSecurity := mock.NewSecurityMock(ctrl)
-	mockSecurity.EXPECT().
-		MakeShieldedPassword(password).
-		Return(password, nil)
-
-	return NewAuthenticate(mockUser, mockAuth, mockSecurity), ctrl
+	return NewAuthentication(mockUser, mockAuth), ctrl
 }
 
-func createSignupFailPutPortfolio(t *testing.T, ctx context.Context) (*Authentication, *gomock.Controller) {
+func createSignupFail(t *testing.T, ctx context.Context) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
+	mockUser := mock.NewMockProfileLogic(ctrl)
+	mockAuth := mock.NewMockAuthLogic(ctrl)
 
-	mockUser := profileMock.NewProfileMock(ctrl)
-	mockUser.EXPECT().
-		CheckExistence(ctx, &profile.User{Email: email, Password: password}).
-		Return(&profile.Check{Existence: false}, nil)
-	mockUser.EXPECT().
-		SaveUser(ctx, &profile.User{Email: email, Password: password}).
-		Times(1).
-		Return(createExpectedUser(), nil)
-	mockUser.EXPECT().
-		CreateInitialWallet(ctx, &profile.UserID{Id: id}).
-		Return(&profile.Empty{}, nil)
-	mockUser.EXPECT().
-		PutPortfolio(ctx, &profile.PortfolioValue{Id: id, Value: 1000}).
-		Return(&profile.Empty{}, errors.New("createSignupFailPutPortfolio"))
+	mockAuth.EXPECT().
+		Signup(ctx, entity.User{Email: email, Password: password}).
+		Return(entity.Description{Status: http.StatusInternalServerError}, createExpectedUser(), http.Cookie{}, errors.New("fail"))
 
-	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
-
-	mockSecurity := mock.NewSecurityMock(ctrl)
-	mockSecurity.EXPECT().
-		MakeShieldedPassword(password).
-		Return(password, nil)
-
-	return NewAuthenticate(mockUser, mockAuth, mockSecurity), ctrl
+	return NewAuthentication(mockUser, mockAuth), ctrl
 }
 
-func createSignupFail(t *testing.T) (*Authentication, *gomock.Controller) {
+func createSignupFail_ErrorJSON(t *testing.T, ctx context.Context) (*Authentication, *gomock.Controller) {
 	ctrl := gomock.NewController(t)
-	mockUser := profileMock.NewProfileMock(ctrl)
-	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
+	mockUser := mock.NewMockProfileLogic(ctrl)
+	mockAuth := mock.NewMockAuthLogic(ctrl)
 
-	mockSecurity := mock.NewSecurityMock(ctrl)
+	mockAuth.EXPECT().
+		Signup(ctx, entity.User{Email: email, Password: password}).
+		Return(entity.Description{Status: http.StatusBadRequest,
+			ErrorJSON: entity.ErrorJSON{NotEmpty: true, NonFieldError: []string{"Error"}}},
+			entity.PublicUser{},
+			http.Cookie{},
+			nil)
 
-	return NewAuthenticate(mockUser, mockAuth, mockSecurity), ctrl
-}
-
-func createSignupFailBcrypt(t *testing.T, ctx context.Context) (*Authentication, *gomock.Controller) {
-	ctrl := gomock.NewController(t)
-	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
-
-	mockUser := profileMock.NewProfileMock(ctrl)
-	mockUser.EXPECT().
-		CheckExistence(ctx, &profile.User{Email: email, Password: password}).
-		Return(&profile.Check{Existence: false}, nil)
-
-	mockSecurity := mock.NewSecurityMock(ctrl)
-	mockSecurity.EXPECT().
-		MakeShieldedPassword(password).
-		Return("", errors.New("createSignupFailBcrypt"))
-
-	return NewAuthenticate(mockUser, mockAuth, mockSecurity), ctrl
-}
-
-func createSignupFailUserExist(t *testing.T, ctx context.Context) (*Authentication, *gomock.Controller) {
-	ctrl := gomock.NewController(t)
-	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
-
-	mockUser := profileMock.NewProfileMock(ctrl)
-	mockUser.EXPECT().
-		CheckExistence(ctx, &profile.User{Email: email, Password: password}).
-		Return(&profile.Check{Existence: true}, nil)
-
-	mockSecurity := mock.NewSecurityMock(ctrl)
-
-	return NewAuthenticate(mockUser, mockAuth, mockSecurity), ctrl
-}
-
-func createSignupFailUserExistFailDB(t *testing.T, ctx context.Context) (*Authentication, *gomock.Controller) {
-	ctrl := gomock.NewController(t)
-	mockAuth := authMock.NewAuthRepositoryForMock(ctrl)
-
-	mockUser := profileMock.NewProfileMock(ctrl)
-	mockUser.EXPECT().
-		CheckExistence(ctx, &profile.User{Email: email, Password: password}).
-		Return(&profile.Check{Existence: false}, errors.New("createSignupFailUserExistFailDB"))
-
-	mockSecurity := mock.NewSecurityMock(ctrl)
-
-	return NewAuthenticate(mockUser, mockAuth, mockSecurity), ctrl
+	return NewAuthentication(mockUser, mockAuth), ctrl
 }
