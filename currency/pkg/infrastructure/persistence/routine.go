@@ -1,6 +1,7 @@
 package persistence
 
 import (
+	"fmt"
 	"github.com/go-co-op/gocron"
 	"github.com/sirupsen/logrus"
 	"server/currency/pkg/domain"
@@ -14,6 +15,7 @@ const (
 )
 
 func (rm *RateDBManager) writeCurrencyDB(table string, finance domain.FinancialRepository) {
+	fmt.Println("POST\n", "--------------------------------------\n", finance, "--------------------------------------")
 	err := rm.saveRates(table, finance)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"function": "writeCurrencyDB", "action": "saveRates"}).Error(err)
@@ -34,6 +36,8 @@ func (rm *RateDBManager) getCurrencies(finance *domain.FinancialRepository) {
 	if *finance, err = rm.api.GetCurrencies(); err != nil {
 		logrus.Fatal(err)
 	}
+
+	fmt.Println("GET\n", "--------------------------------------\n", *finance, "--------------------------------------")
 }
 
 func (rm *RateDBManager) GetRatesFromApi() {
@@ -50,7 +54,6 @@ func (rm *RateDBManager) GetRatesFromApi() {
 		return
 	}
 
-	rm.writeCurrencyDB(history_currency_by_minutes, finance)
 	if _, err = task.Every(15).
 		Minute().StartImmediately().Do(rm.writeCurrencyDB, history_currency_by_minutes, finance); err != nil {
 		logrus.WithFields(logrus.Fields{"function": "GetRatesFromApi"}).Error(err)
