@@ -227,7 +227,7 @@ func (pmt *PaymentApp) getPay(ctx context.Context, userWallet *profile.ConcreteW
 	if needToPay.GreaterThan(decimal.NewFromFloat(wallet.Value)) {
 		return entity.Description{
 			Status: notEnoughPayment,
-		}, errors.New(fmt.Sprintf("%d notEnoughPayment", userWallet.Id))
+		}, fmt.Errorf("%d notEnoughPayment", userWallet.Id)
 	}
 
 	return entity.Description{}, nil
@@ -294,7 +294,7 @@ func (pmt *PaymentApp) WritePortfolios() {
 
 	userNum, err := pmt.profile.GetUsers(ctx, &profile.Empty{})
 	if err != nil {
-		logrus.WithFields(logrus.Fields{"function": "WritePortfolio", "action":   "GetUsers"}).Error(err)
+		logrus.WithFields(logrus.Fields{"function": "WritePortfolio", "action": "GetUsers"}).Error(err)
 		return
 	}
 

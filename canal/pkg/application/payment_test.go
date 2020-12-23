@@ -221,13 +221,13 @@ func createSetTransactionSuccess(t *testing.T, ctx context.Context) (*applicatio
 		Return(&profileGen.Empty{}, nil)
 	profileService.EXPECT().
 		AddToPaymentHistory(ctx, &profileGen.AddToHistory{
-			Id:          id,
+			Id: id,
 			Transaction: &profileGen.PaymentHistory{
 				Currency: base,
-				Base: curr,
-				Value: currValue,
-				Amount: amount,
-				Sell: "false",
+				Base:     curr,
+				Value:    currValue,
+				Amount:   amount,
+				Sell:     "false",
 			},
 		}).Return(&profileGen.Empty{}, nil)
 
@@ -280,13 +280,13 @@ func createSetTransactionFailAddToHistory(t *testing.T, ctx context.Context) (*a
 		Return(&profileGen.Empty{}, nil)
 	profileService.EXPECT().
 		AddToPaymentHistory(ctx, &profileGen.AddToHistory{
-			Id:          id,
+			Id: id,
 			Transaction: &profileGen.PaymentHistory{
 				Currency: base,
-				Base: curr,
-				Value: currValue,
-				Amount: amount,
-				Sell: "false",
+				Base:     curr,
+				Value:    currValue,
+				Amount:   amount,
+				Sell:     "false",
 			},
 		}).Return(&profileGen.Empty{}, errors.New("error"))
 
@@ -477,13 +477,13 @@ func createSetTransactionSuccessCreateWallet(t *testing.T, ctx context.Context) 
 		Return(&profileGen.Empty{}, nil)
 	profileService.EXPECT().
 		AddToPaymentHistory(ctx, &profileGen.AddToHistory{
-			Id:          id,
+			Id: id,
 			Transaction: &profileGen.PaymentHistory{
 				Currency: base,
-				Base: curr,
-				Value: currValue,
-				Amount: amount,
-				Sell: "false",
+				Base:     curr,
+				Value:    currValue,
+				Amount:   amount,
+				Sell:     "false",
 			},
 		}).Return(&profileGen.Empty{}, nil)
 
@@ -797,5 +797,5 @@ func createWalletStates() *profileGen.WalletStates {
 	return &profileGen.WalletStates{
 		States: []*profileGen.WalletState{
 			{Value: currValue, UpdatedAt: &timestamppb.Timestamp{Seconds: 100, Nanos: 100}},
-	}}
+		}}
 }

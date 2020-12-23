@@ -88,7 +88,6 @@ func createLogoutSuccess(t *testing.T, ctx context.Context) (*Authentication, *g
 		Logout(ctx, &http.Cookie{Name: "session_id", Value: value}).
 		Return(entity.Description{}, newCookie, nil)
 
-
 	return NewAuthentication(mockUser, mockAuth), ctrl
 }
 
@@ -97,7 +96,7 @@ func createLogoutFailNoCookie(t *testing.T) (*Authentication, *gomock.Controller
 	mockUser := mock.NewMockProfileLogic(ctrl)
 	mockAuth := mock.NewMockAuthLogic(ctrl)
 
-	return  NewAuthentication(mockUser, mockAuth), ctrl
+	return NewAuthentication(mockUser, mockAuth), ctrl
 }
 
 func createLogoutFailDeleteAuth(t *testing.T, ctx context.Context) (*Authentication, *gomock.Controller) {
@@ -109,5 +108,5 @@ func createLogoutFailDeleteAuth(t *testing.T, ctx context.Context) (*Authenticat
 		Logout(ctx, &http.Cookie{Name: "session_id", Value: value}).
 		Return(entity.Description{Status: http.StatusInternalServerError}, http.Cookie{}, errors.New("fail"))
 
-	return  NewAuthentication(mockUser, mockAuth), ctrl
+	return NewAuthentication(mockUser, mockAuth), ctrl
 }

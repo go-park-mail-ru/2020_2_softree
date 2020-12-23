@@ -27,7 +27,6 @@ const (
 	amount      = 1000.0
 	base        = "RUB"
 	curr        = "USD"
-	sell        = false
 
 	sessionId = "sessionId"
 )

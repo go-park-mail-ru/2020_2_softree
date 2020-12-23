@@ -57,7 +57,7 @@ func TestGetAllLatestRates_Success(t *testing.T) {
 	mock.ExpectCommit()
 
 	ctrl := gomock.NewController(t)
-	finMock := mocks.NewApiMock(ctrl)
+	finMock := mocks.NewMockFinancialAPI(ctrl)
 
 	repo := NewRateDBManager(db, finMock)
 	ctx := context.Background()
@@ -90,7 +90,7 @@ func TestGetAllLatestRates_Fail(t *testing.T) {
 	mock.ExpectRollback()
 
 	ctrl := gomock.NewController(t)
-	finMock := mocks.NewApiMock(ctrl)
+	finMock := mocks.NewMockFinancialAPI(ctrl)
 
 	repo := NewRateDBManager(db, finMock)
 	ctx := context.Background()
@@ -116,7 +116,7 @@ func TestGetAllRatesByTitle_DaySuccess(t *testing.T) {
 	mock.ExpectCommit()
 
 	ctrl := gomock.NewController(t)
-	finMock := mocks.NewApiMock(ctrl)
+	finMock := mocks.NewMockFinancialAPI(ctrl)
 
 	repo := NewRateDBManager(db, finMock)
 	ctx := context.Background()
@@ -144,13 +144,13 @@ func TestGetAllRatesByTitle_WeekSuccess(t *testing.T) {
 	mock.ExpectBegin()
 	mock.
 		ExpectQuery(regexp.QuoteMeta(`SELECT value, updated_at FROM history_currency_by_day 
-			WHERE title = $1 and (updated_at between current_date() - interval '1 week' and current_date())`)).
+			WHERE title = $1 and updated_at between current_date - interval '1 week' and current_date`)).
 		WithArgs(expected.Title).
 		WillReturnRows(rows)
 	mock.ExpectCommit()
 
 	ctrl := gomock.NewController(t)
-	finMock := mocks.NewApiMock(ctrl)
+	finMock := mocks.NewMockFinancialAPI(ctrl)
 
 	repo := NewRateDBManager(db, finMock)
 	ctx := context.Background()
@@ -178,13 +178,13 @@ func TestGetAllRatesByTitle_MonthSuccess(t *testing.T) {
 	mock.ExpectBegin()
 	mock.
 		ExpectQuery(regexp.QuoteMeta(`SELECT value, updated_at FROM history_currency_by_day 
-			WHERE title = $1 and (updated_at between current_date() - interval '1 month' and current_date())`)).
+			WHERE title = $1 and updated_at between current_date - interval '1 month' and current_date`)).
 		WithArgs(expected.Title).
 		WillReturnRows(rows)
 	mock.ExpectCommit()
 
 	ctrl := gomock.NewController(t)
-	finMock := mocks.NewApiMock(ctrl)
+	finMock := mocks.NewMockFinancialAPI(ctrl)
 
 	repo := NewRateDBManager(db, finMock)
 	ctx := context.Background()
@@ -216,14 +216,14 @@ func TestGetAllRatesByTitle_Fail(t *testing.T) {
 	mock.ExpectRollback()
 
 	ctrl := gomock.NewController(t)
-	finMock := mocks.NewApiMock(ctrl)
+	finMock := mocks.NewMockFinancialAPI(ctrl)
 
 	repo := NewRateDBManager(db, finMock)
 	ctx := context.Background()
 
 	title := currency.CurrencyTitle{Title: expected.Title}
 	_, err = repo.GetAllRatesByTitle(ctx, &title)
-	require.NotEmpty(t ,err)
+	require.NotEmpty(t, err)
 }
 
 func TestRateDBManager_GetLastRate_Success(t *testing.T) {
@@ -238,13 +238,13 @@ func TestRateDBManager_GetLastRate_Success(t *testing.T) {
 
 	mock.ExpectBegin()
 	mock.
-		ExpectQuery(`SELECT value, updated_at FROM history_currency_by_minutes WHERE title = \$1 ORDER BY updated_at DESC LIMIT 1`).
+		ExpectQuery(regexp.QuoteMeta(`SELECT value, updated_at FROM history_currency_by_minutes WHERE title = $1 ORDER BY updated_at DESC LIMIT 1`)).
 		WithArgs(expected.Title).
 		WillReturnRows(rows)
 	mock.ExpectCommit()
 
 	ctrl := gomock.NewController(t)
-	finMock := mocks.NewApiMock(ctrl)
+	finMock := mocks.NewMockFinancialAPI(ctrl)
 
 	repo := NewRateDBManager(db, finMock)
 	ctx := context.Background()
@@ -270,12 +270,12 @@ func TestRateDBManager_GetLastRate_Fail(t *testing.T) {
 
 	mock.ExpectBegin()
 	mock.
-		ExpectQuery(`SELECT value, updated_at FROM history_currency_by_minutes WHERE title = \$1 ORDER BY updated_at DESC LIMIT 1`).
+		ExpectQuery(regexp.QuoteMeta(`SELECT value, updated_at FROM history_currency_by_minutes WHERE title = $1 ORDER BY updated_at DESC LIMIT 1`)).
 		WillReturnError(errors.New("error"))
 	mock.ExpectRollback()
 
 	ctrl := gomock.NewController(t)
-	finMock := mocks.NewApiMock(ctrl)
+	finMock := mocks.NewMockFinancialAPI(ctrl)
 
 	repo := NewRateDBManager(db, finMock)
 	ctx := context.Background()
@@ -303,7 +303,7 @@ func TestRateDBManager_GetInitialDayCurrency_Success(t *testing.T) {
 	mock.ExpectCommit()
 
 	ctrl := gomock.NewController(t)
-	finMock := mocks.NewApiMock(ctrl)
+	finMock := mocks.NewMockFinancialAPI(ctrl)
 
 	repo := NewRateDBManager(db, finMock)
 	ctx := context.Background()
@@ -332,7 +332,7 @@ func TestRateDBManager_GetInitialDayCurrency_Fail(t *testing.T) {
 	mock.ExpectRollback()
 
 	ctrl := gomock.NewController(t)
-	finMock := mocks.NewApiMock(ctrl)
+	finMock := mocks.NewMockFinancialAPI(ctrl)
 
 	repo := NewRateDBManager(db, finMock)
 	ctx := context.Background()
@@ -355,7 +355,7 @@ func TestNewRateDBManager_TruncateTable_Success(t *testing.T) {
 	mock.ExpectCommit()
 
 	ctrl := gomock.NewController(t)
-	finMock := mocks.NewApiMock(ctrl)
+	finMock := mocks.NewMockFinancialAPI(ctrl)
 
 	repo := NewRateDBManager(db, finMock)
 
@@ -377,7 +377,7 @@ func TestNewRateDBManager_TruncateTable_Fail(t *testing.T) {
 	mock.ExpectRollback()
 
 	ctrl := gomock.NewController(t)
-	finMock := mocks.NewApiMock(ctrl)
+	finMock := mocks.NewMockFinancialAPI(ctrl)
 
 	repo := NewRateDBManager(db, finMock)
 
@@ -393,7 +393,7 @@ func TestNewRateDBManager_TruncateTable_FailValidate(t *testing.T) {
 	tableName := "table"
 
 	ctrl := gomock.NewController(t)
-	finMock := mocks.NewApiMock(ctrl)
+	finMock := mocks.NewMockFinancialAPI(ctrl)
 
 	repo := NewRateDBManager(db, finMock)
 

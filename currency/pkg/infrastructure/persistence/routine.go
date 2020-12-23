@@ -16,7 +16,7 @@ const (
 func (rm *RateDBManager) writeCurrencyDB(table string, finance domain.FinancialRepository) {
 	err := rm.saveRates(table, finance)
 	if err != nil {
-		logrus.WithFields(logrus.Fields{"function": "writeCurrencyDB", "action":   "saveRates"}).Error(err)
+		logrus.WithFields(logrus.Fields{"function": "writeCurrencyDB", "action": "saveRates"}).Error(err)
 		return
 	}
 }
@@ -65,6 +65,11 @@ func (rm *RateDBManager) GetRatesFromApi() {
 
 	if _, err = task.Every(1).
 		Day().At("00:00").StartImmediately().Do(rm.writeCurrencyDB, history_currency_by_day, finance); err != nil {
+		logrus.WithFields(logrus.Fields{"function": "GetRatesFromApi"}).Error(err)
+		return
+	}
+
+	if _, err = task.Every(1).Day().At("10:00").Do(rm.truncate, history_currency_by_minutes); err != nil {
 		logrus.WithFields(logrus.Fields{"function": "GetRatesFromApi"}).Error(err)
 		return
 	}

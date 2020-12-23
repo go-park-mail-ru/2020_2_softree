@@ -38,7 +38,7 @@ func TestCreate_Success(t *testing.T) {
 		},
 	}
 
-	sessionManager := database.NewSessionManager(*testPool)
+	sessionManager := database.NewSessionManager(testPool)
 
 	ctx := context.Background()
 	sess, err := sessionManager.Create(ctx, &session.UserID{Id: userId})
@@ -70,7 +70,7 @@ func TestCheck_Success(t *testing.T) {
 		},
 	}
 
-	sessionManager := database.NewSessionManager(*testPool)
+	sessionManager := database.NewSessionManager(testPool)
 
 	ctx := context.Background()
 	require.NoError(t, s.Set("sessions:"+sessionId, strconv.Itoa(userId)))
@@ -102,7 +102,7 @@ func TestCheck_Fail(t *testing.T) {
 		},
 	}
 
-	sessionManager := database.NewSessionManager(*testPool)
+	sessionManager := database.NewSessionManager(testPool)
 
 	ctx := context.Background()
 	_, err = sessionManager.Check(ctx, &session.SessionID{SessionId: sessionId})
@@ -130,7 +130,7 @@ func TestDelete_Success(t *testing.T) {
 		},
 	}
 
-	sessionManager := database.NewSessionManager(*testPool)
+	sessionManager := database.NewSessionManager(testPool)
 
 	ctx := context.Background()
 	require.NoError(t, s.Set("sessions:"+sessionId, strconv.Itoa(userId)))
