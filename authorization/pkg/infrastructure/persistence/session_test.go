@@ -93,6 +93,55 @@ func TestCreate_NilReply(t *testing.T) {
 	require.Equal(t, "reply is nil", err.Error())
 }
 
+func TestCreate_TypeError(t *testing.T) {
+	s, err := miniredis.Run()
+	require.NoError(t, err)
+	defer s.Close()
+
+	testPool := &redis.Pool{
+		MaxIdle:   80,
+		MaxActive: 12000,
+		Dial: func() (redis.Conn, error) {
+			conn := redigomock.NewConn()
+			conn.Command("SET").Expect(1)
+			return conn, err
+		},
+	}
+
+	sessionManager := database.NewSessionManager(testPool)
+
+	ctx := context.Background()
+	sess, err := sessionManager.Create(ctx, &session.UserID{Id: userId})
+
+	require.Error(t, err)
+	require.Empty(t, sess)
+}
+
+func TestCreate_NotOk(t *testing.T) {
+	s, err := miniredis.Run()
+	require.NoError(t, err)
+	defer s.Close()
+
+	testPool := &redis.Pool{
+		MaxIdle:   80,
+		MaxActive: 12000,
+		Dial: func() (redis.Conn, error) {
+			conn := redigomock.NewConn()
+			conn.Command("SET").Expect("")
+			return conn, err
+		},
+	}
+
+	sessionManager := database.NewSessionManager(testPool)
+
+	ctx := context.Background()
+	sess, err := sessionManager.Create(ctx, &session.UserID{Id: userId})
+
+	require.Error(t, err)
+	require.Empty(t, sess)
+	require.Equal(t, "result not OK", err.Error())
+}
+
 func TestCheck_Success(t *testing.T) {
 	s, err := miniredis.Run()
 	require.NoError(t, err)
@@ -164,6 +213,30 @@ func TestCheck_NilReply(t *testing.T) {
 	require.Error(t, err)
 	require.Empty(t, sess)
 	require.Equal(t, "reply is nil", err.Error())
+}
+
+func TestCheck_TypeError(t *testing.T) {
+	s, err := miniredis.Run()
+	require.NoError(t, err)
+	defer s.Close()
+
+	testPool := &redis.Pool{
+		MaxIdle:   80,
+		MaxActive: 12000,
+		Dial: func() (redis.Conn, error) {
+			conn := redigomock.NewConn()
+			conn.Command("GET").Expect("")
+			return conn, err
+		},
+	}
+
+	sessionManager := database.NewSessionManager(testPool)
+
+	ctx := context.Background()
+	sess, err := sessionManager.Check(ctx, &session.SessionID{SessionId: sessionId})
+
+	require.Error(t, err)
+	require.Empty(t, sess)
 }
 
 func TestDelete_Success(t *testing.T) {
@@ -240,4 +313,29 @@ func TestDelete_NilReply(t *testing.T) {
 	require.Error(t, err)
 	require.Empty(t, sess)
 	require.Equal(t, "reply is nil", err.Error())
+}
+
+func TestDelete_TypeError(t *testing.T) {
+	s, err := miniredis.Run()
+	require.NoError(t, err)
+	defer s.Close()
+
+	testPool := &redis.Pool{
+		MaxIdle:   80,
+		MaxActive: 12000,
+		Dial: func() (redis.Conn, error) {
+			conn := redigomock.NewConn()
+			conn.Command("DEL").Expect("")
+			return conn, err
+		},
+	}
+
+	sessionManager := database.NewSessionManager(testPool)
+
+	ctx := context.Background()
+	require.NoError(t, s.Set("sessions:"+sessionId, strconv.Itoa(userId)))
+	sess, err := sessionManager.Delete(ctx, &session.SessionID{SessionId: sessionId})
+
+	require.Error(t, err)
+	require.Empty(t, sess)
 }
