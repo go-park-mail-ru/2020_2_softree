@@ -68,7 +68,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
         name: Push canal
-        id: docker_build
+        id: canal_build
         uses: docker/build-push-action@v2
         with:
           context: .
@@ -77,8 +77,11 @@ jobs:
           push: true
           tags: softree/canal:latest
       -
+        name: Canal digest
+        run: echo canal ${{ steps.canal_build.outputs.digest }}
+      -
         name: Push authorization
-        id: docker_build
+        id: authorization_build
         uses: docker/build-push-action@v2
         with:
           context: .
@@ -88,10 +91,10 @@ jobs:
           tags: softree/authorization:latest
       -
         name: Authorization digest
-        run: echo authorization ${{ steps.docker_build.outputs.digest }}
+        run: echo authorization ${{ steps.authorization_build.outputs.digest }}
       -
         name: Push currency
-        id: docker_build
+        id: currency_build
         uses: docker/build-push-action@v2
         with:
           context: .
@@ -101,10 +104,10 @@ jobs:
           tags: softree/currency:latest
       -
         name: Currency digest
-        run: echo currency ${{ steps.docker_build.outputs.digest }}
+        run: echo currency ${{ steps.currency_build.outputs.digest }}
       -
         name: Push profile
-        id: docker_build
+        id: profile_build
         uses: docker/build-push-action@v2
         with:
           context: .
@@ -114,4 +117,4 @@ jobs:
           tags: softree/profile:latest
       -
         name: Profile digest
-        run: echo profile ${{ steps.docker_build.outputs.digest }}
+        run: echo profile ${{ steps.profile_build.outputs.digest }}
