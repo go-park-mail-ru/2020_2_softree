@@ -11,7 +11,7 @@ postgres:
   password: '123'
 
 api-key:
-  token: '4a8e1de3470f47ac98361fe74706ea53'
+  token: ''
 
 sql:
   timing: 5
