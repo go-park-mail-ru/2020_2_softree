@@ -4,3 +4,6 @@
 [submodule "deployment"]
 	path = deployment
 	url = https://github.com/MuradyanArtem/softree-deploy.git
+[submodule "softree-deploy"]
+	path = softree-deploy
+	url = https://github.com/MuradyanArtem/softree-deploy
