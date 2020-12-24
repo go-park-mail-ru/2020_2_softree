@@ -237,9 +237,6 @@ func TestGetAllIncomePerDay_Fail(t *testing.T) {
 	require.Equal(t, nil, err)
 	defer db.Close()
 
-	rows := sqlmock.NewRows([]string{"value", "updated_at"})
-	rows = rows.AddRow(79.7, time.Now())
-
 	mock.ExpectBegin()
 	mock.
 		ExpectQuery(regexp.QuoteMeta(`SELECT value, updated_at FROM wallet_history 
