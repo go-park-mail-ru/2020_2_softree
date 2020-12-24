@@ -48,8 +48,8 @@ services:
     build:
       context: postgres
     environment:
-      - POSTGRES_MULTIPLE_DATABASES: ${MULT_DB}
-      - POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_MULTIPLE_DATABASES: ${MULT_DB}
+      POSTGRES_PASSWORD: ${DB_PASS}
     volumes:
       - ./postgres/backups:/backups
 
