@@ -8,7 +8,7 @@ postgres:
   port: 5432
   db: 'currency'
   user: 'currency'
-  password: '123'
+  password: ''
 
 api-key:
   token: ''

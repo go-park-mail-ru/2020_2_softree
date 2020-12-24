@@ -8,7 +8,7 @@ postgres:
   port: 5432
   db: 'profile'
   user: 'profile'
-  password: '123'
+  password: ''
 
 sql:
   timing: 5
