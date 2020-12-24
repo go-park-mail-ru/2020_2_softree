@@ -1,3 +1,6 @@
 [submodule "api-softree"]
 	path = api-softree
 	url = https://github.com/mark-by/api-softree.git
+[submodule "deployment"]
+	path = deployment
+	url = https://github.com/MuradyanArtem/softree-deploy.git
