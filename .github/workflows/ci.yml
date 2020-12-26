@@ -1,4 +1,4 @@
-name: build and deploy
+name: test and build
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       -
         name: Set up Go
@@ -49,7 +49,7 @@ jobs:
         run: make TARGET="currency" build
 
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: test
     steps:
       -
