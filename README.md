@@ -25,7 +25,7 @@ https://softree.group
     docker-compose up -d --build postgres
     ```
 
-3. Из корня проекта запустить выполнить команду:
+3. Из корня проекта выполнить команду:
     ```
     make run
     ```
