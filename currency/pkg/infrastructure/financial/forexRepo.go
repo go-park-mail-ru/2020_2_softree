@@ -1,9 +1,7 @@
 package financial
 
 import (
-	"fmt"
 	"server/currency/pkg/infrastructure/persistence"
-	"strconv"
 )
 
 type ForexRepo struct {
@@ -11,17 +9,13 @@ type ForexRepo struct {
 	base  string
 }
 
-func convertToForexRepo(rates map[string]string) *ForexRepo {
+func convertToForexRepo(rates map[string]float64) *ForexRepo {
 	finance := &ForexRepo{
 		forex: make(map[string]interface{}, persistence.LenListOfCurrencies),
 		base:  "USD",
 	}
-	var err error
 	for key, val := range rates {
-		finance.forex[key], err = strconv.ParseFloat(val, 3)
-		if err != nil {
-			fmt.Println(err)
-		}
+		finance.forex[key] = val
 	}
 
 	return finance

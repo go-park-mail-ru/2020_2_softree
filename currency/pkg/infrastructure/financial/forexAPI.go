@@ -17,14 +17,12 @@ func NewForexAPI() *ForexAPI {
 }
 
 type Rate struct {
-	Rates map[string]string `json:"rates"`
+	Rates map[string]float64 `json:"quotes"`
 }
 
 func (f *ForexAPI) GetCurrencies() (domain.FinancialRepository, error) {
-	url := "https://api.currencyfreaks.com/latest" +
-		"?apikey=" + viper.GetString("api-key.token") +
-		"&symbols=USD,RUB,EUR,JPY,GBP,AUD,CAD,CHF,CNY,HKD,NZD,SEK,KRW,SGD,NOK,MXN,INR,ZAR,TRY,BRL,ILS" +
-		"&base=USD"
+	url := "https://finnhub.io/api/v1/forex/rates?base=USD" +
+		"&token=" + viper.GetString("api-key.token")
 
 	client := &http.Client{}
 	req, err := http.NewRequest(http.MethodGet, url, nil)
