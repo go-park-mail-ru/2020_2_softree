@@ -76,7 +76,7 @@ func (rm *RateDBManager) saveRates(table string, financial domain.FinancialRepos
 		_, err = tx.Exec(
 			query,
 			name,
-			quote.(float64),
+			quote,
 			currentTime,
 		)
 
