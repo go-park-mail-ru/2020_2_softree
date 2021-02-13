@@ -5,13 +5,13 @@ import (
 )
 
 type ForexRepo struct {
-	forex map[string]float64
+	forex map[string]interface{}
 	base  string
 }
 
-func convertToForexRepo(rates map[string]float64) *ForexRepo {
+func convertToForexRepo(rates map[string]interface{}) *ForexRepo {
 	finance := &ForexRepo{
-		forex: make(map[string]float64, persistence.LenListOfCurrencies),
+		forex: make(map[string]interface{}, persistence.LenListOfCurrencies),
 		base:  "USD",
 	}
 	for key, val := range rates {
@@ -25,6 +25,6 @@ func (fr *ForexRepo) GetBase() string {
 	return fr.base
 }
 
-func (fr *ForexRepo) GetQuote() map[string]float64 {
+func (fr *ForexRepo) GetQuote() map[string]interface{} {
 	return fr.forex
 }

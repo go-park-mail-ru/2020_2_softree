@@ -6,7 +6,7 @@ type FinancialRepository interface {
 }
 
 type currency interface {
-	GetQuote() map[string]float64
+	GetQuote() map[string]interface{}
 }
 
 type base interface {

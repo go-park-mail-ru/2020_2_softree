@@ -7,7 +7,6 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"log"
 	currency "server/currency/pkg/currency/gen"
 	"server/currency/pkg/domain"
 	"time"
@@ -67,7 +66,11 @@ func (rm *RateDBManager) saveRates(table string, financial domain.FinancialRepos
 	}
 	defer func() {
 		if err = tx.Rollback(); err != nil {
-			log.Println(fmt.Errorf("saveRates: %v", err))
+			logrus.WithFields(logrus.Fields{
+				"infrastructure": "currency",
+				"function":       "saveRates",
+				"action":         "Rollback",
+			}).Debug(err)
 		}
 	}()
 
@@ -76,7 +79,7 @@ func (rm *RateDBManager) saveRates(table string, financial domain.FinancialRepos
 		_, err = tx.Exec(
 			query,
 			name,
-			quote,
+			quote.(float64),
 			currentTime,
 		)
 

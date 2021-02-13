@@ -8,10 +8,10 @@ postgres:
   port: 5432
   db: 'currency'
   user: 'currency'
-  password: ''
+  password: '123'
 
 api-key:
-  token: ''
+  token: 'bttn28748v6ojt2hev60'
 
 sql:
   timing: 5

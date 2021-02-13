@@ -17,7 +17,7 @@ func NewForexAPI() *ForexAPI {
 }
 
 type Rate struct {
-	Rates map[string]float64 `json:"quotes"`
+	Rates map[string]interface{} `json:"quotes"`
 }
 
 func (f *ForexAPI) GetCurrencies() (domain.FinancialRepository, error) {
@@ -46,7 +46,7 @@ func (f *ForexAPI) GetCurrencies() (domain.FinancialRepository, error) {
 	}
 
 	var rate Rate
-	if err = json.Unmarshal(body, &rate); err != nil {
+	if err = json.Unmarshal(body, &rate.Rates); err != nil {
 		return &ForexRepo{}, err
 	}
 
