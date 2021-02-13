@@ -10,15 +10,15 @@ type ForexRepo struct {
 }
 
 func convertToForexRepo(rates map[string]interface{}) *ForexRepo {
-	finance := &ForexRepo{
+	finance := ForexRepo{
 		forex: make(map[string]interface{}, persistence.LenListOfCurrencies),
 		base:  "USD",
 	}
-	for key, val := range rates {
+	for key, val := range rates["quote"].(map[string]interface{}) {
 		finance.forex[key] = val
 	}
 
-	return finance
+	return &finance
 }
 
 func (fr *ForexRepo) GetBase() string {
